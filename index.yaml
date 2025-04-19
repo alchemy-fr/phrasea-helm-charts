@@ -1,0 +1,48 @@
+apiVersion: v1
+entries:
+  phrasea:
+  - apiVersion: v2
+    appVersion: 3.7.3
+    created: "2025-04-19T10:31:54.453232852Z"
+    dependencies:
+    - condition: elasticsearch.enabled
+      name: elasticsearch
+      repository: https://helm.elastic.co
+      version: 7.17.3
+    - condition: zippy.enabled
+      name: zippy
+      repository: https://alchemy-fr.github.io/zippy-svc/
+      version: 0.1.11
+    - condition: soketi.enabled
+      name: soketi
+      repository: https://helm.soketi.app
+      version: 2.0.0
+    description: A Helm chart for Kubernetes
+    digest: c588e052e657d42e193128feafad8495323ba430c5ef3bf91b77060662d90f98
+    name: phrasea
+    type: application
+    urls:
+    - https://github.com/alchemy-fr/phrasea-helm-charts/releases/download/phrasea-2.12.0/phrasea-2.12.0.tgz
+    version: 2.12.0
+  phrasea-report-elk:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2025-04-19T10:31:54.623500002Z"
+    dependencies:
+    - name: elasticsearch
+      repository: https://helm.elastic.co
+      version: 7.17.1
+    - name: logstash
+      repository: https://helm.elastic.co
+      version: 7.17.1
+    - name: kibana
+      repository: https://helm.elastic.co
+      version: 7.17.1
+    description: A Helm chart for Kubernetes
+    digest: 668f876ecd4072942448a34570319b1b0537196ca139d996d0df5a367b0368e8
+    name: phrasea-report-elk
+    type: application
+    urls:
+    - https://github.com/alchemy-fr/phrasea-helm-charts/releases/download/phrasea-report-elk-0.1.1/phrasea-report-elk-0.1.1.tgz
+    version: 0.1.1
+generated: "2025-04-19T10:31:54.180664993Z"
