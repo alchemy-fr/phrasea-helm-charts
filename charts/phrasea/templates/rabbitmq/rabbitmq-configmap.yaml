@@ -1,0 +1,12 @@
+{{- with .Values.rabbitmq }}
+{{- if .enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rabbitmq-config
+data:
+  RABBITMQ_NODENAME: {{ .nodeName | quote }}
+  RABBITMQ_ERLANG_COOKIE: {{ .erlangCookie | quote }}
+  ERL_EPMD_PORT: {{ .epmdPort | quote }}
+{{- end }}
+{{- end }}

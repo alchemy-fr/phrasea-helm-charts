@@ -1,0 +1,14 @@
+{{- if and $.Values.stack.running .Values.dashboard.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: dashboard
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  selector:
+    app: phrasea
+    tier: dashboard
+{{- end }}

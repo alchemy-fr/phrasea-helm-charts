@@ -1,0 +1,85 @@
+{{- range .Values._internal.services }}
+{{- $appName := . }}
+{{- if and $.Values.stack.running (index $.Values $appName).enabled }}
+{{- with (index $.Values $appName) }}
+{{ $tplArgs := dict "app" $appName "ctx" . "glob" $ }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $appName }}-api-php
+spec:
+  replicas: {{(index $.Values $appName).api.replicas}}
+  selector:
+    matchLabels:
+      app: phrasea
+      tier: {{ $appName }}-api-php
+  template:
+    metadata:
+      labels:
+        app: phrasea
+        tier: {{ $appName }}-api-php
+      annotations:
+        {{- include "annotation.checksum.configs" $ | indent 8 }}
+    spec:
+      {{ include "imagePullSecrets" $ | indent 6 }}
+      {{- if $.Values.nodeSelector }}
+      nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      volumes:
+{{- include "volumes.configs" $ | indent 6 }}
+{{- include "app.volumes" $tplArgs | indent 6 }}
+      containers:
+      - name: {{ $appName }}-api-php
+        image: {{ $.Values.repository.baseurl }}/ps-{{ $appName }}-api-php:{{ $.Values.repository.tag }}
+        imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
+        {{- if (index $.Values $appName).resourcesquota }}
+        resources:
+          requests:
+            memory: {{(index $.Values $appName).api.resources.requests.memory}}
+            cpu: {{(index $.Values $appName).api.resources.requests.cpu}}
+          limits:
+            memory: {{(index $.Values $appName).api.resources.limits.memory}}
+            cpu: {{(index $.Values $appName).api.resources.limits.cpu}}
+        {{- end }}
+        terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+        - name: configs
+          mountPath: /configs
+{{- include "app.volumesMounts" $tplArgs | indent 8 }}
+        env:
+        {{- include "envRef.phpApp" $tplArgs | indent 8 }}
+        {{- include "envRef.configuratorSecrets" $ | indent 8 }}
+        {{- if .api.ingress }}
+        {{- if .api.ingress.maxBodySize }}
+        - name: UPLOAD_MAX_FILE_SIZE
+          value: {{ .api.ingress.maxBodySize | quote }}
+        {{- end }}
+        {{- end }}
+        envFrom:
+        {{- include "envFrom.phpApp" $ | indent 8 }}
+        {{- include "envFrom.rabbitmq" $ | indent 8 }}
+        {{- include "envFrom.postgresql" $ | indent 8 }}
+        - secretRef:
+            name: {{ .adminOAuthClient.externalSecretName | default (printf "%s-admin-oauth-client-secret" $appName) }}
+        {{- if (eq "databox" $appName) }}
+        - secretRef:
+            name: {{ $appName }}-secrets
+        {{- end }}
+        - configMapRef:
+            name: {{ $appName }}-api-config
+        - configMapRef:
+            name: soketi
+        - secretRef:
+            name: soketi
+        {{- if .matomo }}
+        {{- if .matomo.enabled }}
+        - configMapRef:
+            name: matomo
+        - secretRef:
+            name: matomo
+        {{- end }}
+        {{- end }}
+---
+{{- end }}
+{{- end }}
+{{- end }}

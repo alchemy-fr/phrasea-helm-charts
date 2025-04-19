@@ -1,0 +1,47 @@
+{{- with .Values.keycloak }}
+{{- if and $.Values.stack.running .enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: phrasea
+      tier: keycloak
+  template:
+    metadata:
+      labels:
+        app: phrasea
+        tier: keycloak
+    spec:
+      {{ include "imagePullSecrets" $ | indent 6 }}
+      {{- if $.Values.nodeSelector }}
+      nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: keycloak
+          image: {{ $.Values.repository.baseurl }}/ps-keycloak:{{ $.Values.repository.tag }}
+          args:
+          - 'start'
+          imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
+          terminationMessagePolicy: FallbackToLogsOnError
+          envFrom:
+            - secretRef:
+                name: {{ include "secretName.postgresql" $ }}
+            - secretRef:
+                name: keycloak
+            - configMapRef:
+                name: urls-config
+          env:
+          - name: KC_HTTP_ENABLED
+            value: 'true'
+          - name: KC_PROXY_HEADERS
+            value: xforwarded
+          - name: KC_HOSTNAME
+            value: {{ .baseUrl | quote }}
+          - name: KC_DB
+            value: postgres
+{{- end }}
+{{- end }}

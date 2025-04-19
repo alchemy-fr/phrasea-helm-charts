@@ -1,0 +1,11 @@
+{{- with .Values.report }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: report-config
+data:
+  APP_ENV: prod
+  POSTGRES_HOST: {{ $.Values.postgresql.host | quote }}
+  POSTGRES_PORT: {{ $.Values.postgresql.port | quote }}
+  POSTGRES_DATABASE: {{ .databaseName | quote }}
+{{- end }}

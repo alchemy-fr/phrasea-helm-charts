@@ -1,0 +1,16 @@
+{{- with .Values.keycloak }}
+{{- if and $.Values.stack.running .enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+  selector:
+    app: phrasea
+    tier: keycloak
+{{- end }}
+{{- end }}

@@ -1,0 +1,16 @@
+{{- with .Values.configurator.s3 }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configurator-s3
+  annotations:
+    "helm.sh/hook": "pre-install,pre-upgrade"
+    "helm.sh/hook-weight": "-20"
+    "helm.sh/resource-policy": "keep"
+data:
+  CONFIGURATOR_S3_ENDPOINT: {{ tpl .endpoint $ | quote }}
+  CONFIGURATOR_S3_REGION: {{ .region | default "eu-west-3" | quote }}
+  CONFIGURATOR_S3_USE_PATH_STYLE_ENDPOINT: {{ ternary "true" "false" (or .usePathStyleEndpoint $.Values.minio.enabled) | quote }}
+  CONFIGURATOR_S3_BUCKET_NAME: {{ .bucketName | quote }}
+  CONFIGURATOR_S3_PATH_PREFIX: {{ .pathPrefix | quote }}
+{{- end }}

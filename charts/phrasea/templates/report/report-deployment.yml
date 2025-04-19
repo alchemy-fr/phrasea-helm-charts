@@ -1,0 +1,34 @@
+{{- with .Values.report }}
+{{- if and $.Values.stack.running .enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: report-api
+spec:
+  replicas: {{ .replicas }}
+  selector:
+    matchLabels:
+      app: phrasea
+      tier: report-api
+  template:
+    metadata:
+      labels:
+        app: phrasea
+        tier: report-api
+    spec:
+      {{ include "imagePullSecrets" $ | indent 6 }}
+      {{- if $.Values.nodeSelector }}
+      nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: report-api
+        image: {{ $.Values.repository.baseurl }}/ps-report-api:{{ $.Values.repository.tag }}
+        imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
+        terminationMessagePolicy: FallbackToLogsOnError
+        envFrom:
+        - configMapRef:
+            name: report-config
+        - secretRef:
+            name: {{ include "secretName.postgresql" $ }}
+{{- end }}
+{{- end }}

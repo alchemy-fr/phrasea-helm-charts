@@ -1,0 +1,553 @@
+repository:
+  baseurl: alchemyfr
+  tag: latest
+  imagePullPolicy: IfNotPresent
+
+acme:
+  enabled: false
+  email:
+  production: false
+  rootHost:
+  gandi:
+    apiToken:
+
+security:
+  verifySsl: true
+
+stack:
+  # Custom stack name to distinguish multiple stacks
+  name:
+  running: true
+  runSetups: true
+  runMigrations: true
+
+image:
+  pullSecret:
+    enabled: false
+    name: registry-secret
+    registry:
+    username:
+    password:
+    email:
+
+nodeSelector:
+
+configurator:
+  executeMigration: ~
+  database:
+    name: configurator
+  s3:
+    endpoint: "{{ .Values.minio.baseUrl }}"
+    region:
+    bucketName: config
+    # Can be used to support a single CloudFront distribution with multiple origins
+    pathPrefix: ''
+    usePathStyleEndpoint: false
+    accessKey:
+    secretKey:
+    externalSecretKey:
+    externalSecretMapping:
+      accessKey: CONFIGURATOR_S3_ACCESS_KEY
+      secretKey: CONFIGURATOR_S3_SECRET_KEY
+
+keycloak:
+  realm:
+    name: phrasea
+  enabled: true
+  autoConnectIdP:
+  masterAdmin:
+    username: admin
+    password: __CHANGE_ME_obIaHz6cVTkQKHqLBj
+  defaultAdmin:
+    username: phrasea-admin
+    password: __CHANGE_ME_KFBsKzc7RupJhXkr
+  database:
+    create: true
+    name: keycloak
+  hostname:
+  baseUrl:
+  ingress:
+    enabled: true
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-buffers-number: "4"
+      nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+    extraLabels: {}
+    tls: []
+
+auth:
+  database:
+    name: auth
+
+novu:
+  enabled: true
+  bridge:
+    hostname:
+    baseUrl:
+    ingress:
+      enabled: true
+      annotations: {}
+      extraLabels: {}
+      tls: []
+  dashboardUrl: https://dashboard.novu.co
+  apiHost: api.novu.co
+  wsUrl: https://ws.novu.co
+  applicationIdentifier:
+  secretKey:
+
+databox:
+  enabled: true
+  api:
+    replicas: 1
+    ingress:
+      enabled: true
+      annotations:
+        nginx.ingress.kubernetes.io/proxy-body-size: "2G"
+      extraLabels: {}
+      maxBodySize: 2G
+      tls: []
+    hostname:
+    baseUrl:
+    ressourcesquota: false
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "256Mi"
+      limits:
+        cpu: "2000m"
+        memory: "2048Mi"
+    config:
+      requestSignatureTtl: 86400
+      s3Storage:
+        endpoint: "{{ .Values.minio.baseUrl }}"
+        region:
+        bucketName: databox
+        # Can be used to support a single CloudFront distribution with multiple origins
+        pathPrefix: ''
+        usePathStyleEndpoint: false
+        accessKey:
+        secretKey:
+        externalSecretKey:
+        externalSecretMapping:
+          accessKey: S3_ACCESS_KEY
+          secretKey: S3_SECRET_KEY
+      cloudFront:
+        url:
+        region:
+        privateKey:
+        keyPairId:
+        ttl: 86400
+      phraseanet:
+        baseUrl:
+        oauthToken:
+      secrets:
+        publicKey:
+        secretKey:
+  adminOAuthClient:
+    externalSecretName:
+    id: databox-admin
+    secret: '__CHANGE_ME_9jZuZqkwf9qW881jTqG'
+  client:
+    hostname:
+    baseUrl:
+    ingress:
+      enabled: true
+      annotations: {}
+      extraLabels: {}
+      tls: []
+    oauthClient:
+      id: databox-app
+  worker:
+    replicas: 1
+    ressourcesquota: false
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "256Mi"
+      limits:
+        cpu: "2000m"
+        memory: "2048Mi"
+  rabbitmq:
+    vhost: databox
+  database:
+    name: databox
+  upload:
+    uploaderTargetSlug: databox-uploader
+  zippy:
+    enabled: true
+    baseUrl: "{{ .Values.zippy.ingress.baseUrl }}"
+    clientId: databox
+    clientSecret: __CHANGE_ME_MxWoVddUWq
+  matomo:
+    enabled: false
+    siteId:
+    baseUrl:
+
+expose:
+  enabled: true
+  matomo:
+    enabled: false
+    siteId:
+    baseUrl:
+    authToken:
+    syncPhraseanet:
+      enabled: false
+      schedule: '30 5 * * *'
+  api:
+    replicas: 1
+    subnet: 0.0.0.0/0
+    ingress:
+      enabled: true
+      annotations:
+        nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+        nginx.ingress.kubernetes.io/proxy-body-size: "22G"
+      extraLabels: {}
+      maxBodySize: 22G
+      tls: []
+    hostname:
+    baseUrl:
+    ressourcesquota: false
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "256Mi"
+      limits:
+        cpu: "2000m"
+        memory: "2048Mi"
+    config:
+      requestSignatureTtl: 86400
+      s3Storage:
+        endpoint: "{{ .Values.minio.baseUrl }}"
+        region:
+        bucketName: expose
+        # Can be used to support a single CloudFront distribution with multiple origins
+        pathPrefix: ''
+        usePathStyleEndpoint: false
+        accessKey:
+        secretKey:
+        externalSecretKey:
+        externalSecretMapping:
+          accessKey: S3_ACCESS_KEY
+          secretKey: S3_SECRET_KEY
+      cloudFront:
+        url:
+        region:
+        privateKey:
+        keyPairId:
+        ttl: 86400
+      phraseanet:
+        baseUrl:
+        oauthToken:
+  adminOAuthClient:
+    externalSecretName:
+    id: expose-admin
+    secret: '__CHANGE_ME_71EuDQ2H$ei3sHwIB0sfy'
+  worker:
+    replicas: 1
+    ressourcesquota: false
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "256Mi"
+      limits:
+        cpu: "2000m"
+        memory: "2048Mi"
+  client:
+    hostname:
+    baseUrl:
+    ingress:
+      enabled: true
+      annotations: {}
+      extraLabels: {}
+      tls: []
+    csp:
+      allowedFrameAncestors: ""
+    oauthClient:
+      id: expose-app
+    mapbox:
+      token: "define-me"
+    logoUrl: ""
+    logoAlt: ""
+    sidebarDefaultOpen: false
+    disableIndexPage: false
+  rabbitmq:
+    vhost: expose
+  database:
+    name: expose
+  zippy:
+    enabled: true
+    baseUrl: "{{ .Values.zippy.ingress.baseUrl }}"
+    clientId: expose
+    clientSecret: __CHANGE_ME_zEp1JbcjuQ
+
+uploader:
+  enabled: true
+  api:
+    replicas: 1
+    ingress:
+      enabled: true
+      annotations:
+        nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+        nginx.ingress.kubernetes.io/proxy-body-size: "22G"
+      extraLabels: {}
+      maxBodySize: 22G
+      tls: []
+    hostname:
+    baseUrl:
+    ressourcesquota: false
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "256Mi"
+      limits:
+        cpu: "2000m"
+        memory: "2048Mi"
+    config:
+      deleteAssetGracefulTime: 0
+      assetConsumerCommitUri:
+      assetConsumerAccessToken:
+      requestSignatureTtl: 3600
+      s3Storage:
+        endpoint: "{{ .Values.minio.baseUrl }}"
+        region:
+        bucketName: uploader-deposit
+        # Can be used to support a single CloudFront distribution with multiple origins
+        pathPrefix: ''
+        usePathStyleEndpoint: false
+        accessKey:
+        secretKey:
+        externalSecretKey:
+        externalSecretMapping:
+          accessKey: S3_ACCESS_KEY
+          secretKey: S3_SECRET_KEY
+  adminOAuthClient:
+    externalSecretName:
+    id: uploader-admin
+    secret: '__CHANGE_ME_p@P@CSnZi3sHwIB0sfy'
+  worker:
+    replicas: 1
+    ressourcesquota: false
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "256Mi"
+      limits:
+        cpu: "2000m"
+        memory: "2048Mi"
+  client:
+    hostname:
+    baseUrl:
+    ingress:
+      enabled: true
+      annotations: {}
+      extraLabels: {}
+      tls: []
+    oauthClient:
+      id: uploader-app
+  rabbitmq:
+    vhost: uploader
+  database:
+    name: uploader
+  matomo:
+    enabled: false
+    siteId:
+    baseUrl:
+
+report:
+  enabled: true
+  replicas: 1
+  api:
+    hostname: report-api
+    baseUrl: http://report-api
+    ressourcesquota: false
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "256Mi"
+      limits:
+        cpu: "2000m"
+        memory: "2048Mi"
+  databaseName: report
+  createDatabase: true
+
+dashboard:
+  enabled: true
+  menuEnabled: true
+  hostname:
+  baseUrl:
+  ingress:
+    enabled: true
+    annotations: {}
+    extraLabels: {}
+    tls: []
+  client:
+    oauthClient:
+      id: dashboard-app
+  matomo:
+    enabled: false
+    siteId:
+    baseUrl:
+
+mailer:
+  dsn: 'null://null'
+  from: 'no-reply@acme.com'
+
+postgresql:
+  enabled: true
+  externalSecretName:
+  host: postgresql
+  port: 5432
+  user: phrasea
+  password: '__CHANGE_ME_iHdBtyVGmT9Zj6shv'
+  persistence:
+    enabled: true
+    existingClaim:
+    storageClass:
+    annotations: {}
+    accessMode: ReadWriteOnce
+    size: 10Gi
+    subPath:
+
+redis:
+  enabled: true
+
+rabbitmq:
+  enabled: true
+  externalSecretName:
+  host: rabbitmq
+  port: 5672
+  user: phrasea
+  ssl: false
+  password: '__CHANGE_ME_yUZV7fEAnb$u4dqFchQDz'
+  erlangCookie: 'H#75$3CjoTKn3129DNwcqlHvhfqs15'
+  epmdPort: 55950
+  nodeName: rabbit@rabbitmq
+  persistence:
+    enabled: true
+    existingClaim:
+    storageClass:
+    annotations: {}
+    accessMode: ReadWriteOnce
+    size: 20Gi
+    subPath:
+
+minio:
+  enabled: true
+  hostname:
+  baseUrl:
+  accessKey: '__CHANGE_ME_jw2G5OskVG2VVXIyHsuQJIo'
+  secretKey: '__CHANGE_ME_bIYN#LuI9$ED9B0ck2scn'
+  ingress:
+    enabled: true
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+      nginx.ingress.kubernetes.io/proxy-body-size: "22G"
+    extraLabels: {}
+    maxBodySize: 22G
+    tls: []
+  persistence:
+    enabled: true
+    existingClaim:
+    storageClass:
+    annotations: {}
+    accessMode: ReadWriteOnce
+    size: 20Gi
+    subPath:
+  console:
+    enabled: true
+    hostname:
+    ingress:
+      enabled: true
+      annotations: {}
+      extraLabels: {}
+      tls: []
+
+ingress:
+  tls:
+    wildcard:
+      externalSecretName:
+      enabled: false
+      crt:
+      key:
+
+globalConfig:
+  externalConfigmapName:
+  content: |
+    {}
+
+_internal:
+  services:
+  - databox
+  - expose
+  - uploader
+  clients:
+  - databox
+  - expose
+  - uploader
+  - dashboard
+  volumes:
+#    uploader:
+#      data:
+#        name: uploader-data
+#        mountPath: /var/data/upload
+#        uid: 1000
+
+elasticsearch:
+  enabled: true
+  replicas: 1
+  clusterName: elasticsearch-databox
+  minimumMasterNodes: 1
+  url:
+  indexPrefix: ""
+  volumeClaimTemplate:
+    resources:
+      requests:
+        storage: 5Gi
+
+zippy:
+  enabled: true
+  ingress:
+    baseUrl: ""
+    hostname: ""
+  rabbitmq:
+    enabled: false
+    username: phrasea
+    password: '__CHANGE_ME_yUZV7fEAnb$u4dqFchQDz'
+    erlangCookie: 'H#75$3CjoTKn3129DNwcqlHvhfqs15'
+    nodeName: 'rabbit@rabbitmq'
+
+soketi:
+  enabled: true
+  fullnameOverride: phrasea-soketi
+  host:
+  appId: phrasea
+  key:
+  secret:
+  service:
+    port: 80
+  app:
+    extraEnv:
+     - name: SOKETI_DEFAULT_APP_ID
+       valueFrom:
+         configMapKeyRef:
+           name: soketi
+           key: SOKETI_APP_ID
+     - name: SOKETI_DEFAULT_APP_KEY
+       valueFrom:
+         configMapKeyRef:
+           name: soketi
+           key: SOKETI_KEY
+     - name: SOKETI_DEFAULT_APP_SECRET
+       valueFrom:
+         secretKeyRef:
+           name: soketi
+           key: SOKETI_SECRET
+
+newrelic:
+  enabled: false
+  licenceKey: ~
+
+sentry:
+  enabled: false
+  dsn: ~
+  clientDsn: ~
+  environment: prod

@@ -1,0 +1,14 @@
+{{- if and $.Values.stack.running .Values.novu.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: novu-bridge
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 3000
+  selector:
+    app: phrasea
+    tier: novu-bridge
+{{- end }}

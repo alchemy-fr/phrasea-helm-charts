@@ -1,0 +1,54 @@
+{{- if .Values.expose.enabled }}
+{{- with .Values.expose }}
+{{- if .matomo.enabled }}
+{{- if .matomo.syncPhraseanet.enabled }}
+{{- $appName := "expose" }}
+{{ $tplArgs := dict "app" $appName "ctx" . "glob" $ }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: matomo-phraseanet-sync
+spec:
+  schedule: {{ .matomo.syncPhraseanet.schedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          {{- if $.Values.nodeSelector }}
+          nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 12 }}
+          {{- end }}
+          volumes:
+            {{- include "volumes.configs" $ | indent 12 }}
+            {{- include "app.volumes" $tplArgs | indent 12 }}
+          containers:
+          - name: {{ $appName }}-api-php
+            image: {{ $.Values.repository.baseurl }}/ps-{{ $appName }}-api-php:{{ $.Values.repository.tag }}
+            imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
+            command:
+              - bin/console
+              - app:matomo:sync-phraseanet
+            volumeMounts:
+            - name: configs
+              mountPath: /configs
+            {{- include "app.volumesMounts" $tplArgs | indent 12 }}
+            env:
+            {{- include "envRef.phpApp" $tplArgs | indent 12 }}
+            envFrom:
+            {{- include "envFrom.phpApp" $ | indent 12 }}
+            {{- include "envFrom.rabbitmq" $ | indent 12 }}
+            {{- include "envFrom.postgresql" $ | indent 12 }}
+            - secretRef:
+                name: {{ .adminOAuthClient.externalSecretName | default (printf "%s-admin-oauth-client-secret" $appName) }}
+            - configMapRef:
+                name: {{ $appName }}-api-config
+            {{- if .matomo.enabled }}
+            - configMapRef:
+                name: matomo
+            - secretRef:
+                name: matomo
+            {{- end }}
+          restartPolicy: OnFailure
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,29 @@
+{{- if .Values.stack.runSetups }}
+{{ $appName := "configurator" }}
+{{- with (index $.Values $appName)  }}
+{{ $tplArgs := dict "app" $appName "ctx" . "glob" $ }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $appName }}-setup
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "6"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    spec:
+      {{- include "imagePullSecrets" $ | indent 6 }}
+      {{- if $.Values.nodeSelector }}
+      nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      volumes:
+      {{- include "volumes.configs" $ | indent 6 }}
+      containers:
+      - {{- include "configurator.containerSpecs" $ | nindent 8 }}
+        args: ["bin/setup.sh"]
+      restartPolicy: Never
+  backoffLimit: 0
+---
+{{- end }}
+{{- end }}

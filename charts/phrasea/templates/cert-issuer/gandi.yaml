@@ -1,0 +1,11 @@
+{{- if .Values.acme.enabled }}
+{{- with .Values.acme.gandi }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ template "ps.fullname" $ }}-gandi-credentials
+  namespace: cert-manager
+stringData:
+  api-token: {{ required "Missing acme.gandi.apiToken" .apiToken | quote }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,38 @@
+{{- with .Values.dashboard }}
+{{- if and $.Values.stack.running .enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: phrasea
+      tier: dashboard
+  template:
+    metadata:
+      labels:
+        app: phrasea
+        tier: dashboard
+    spec:
+      {{ include "imagePullSecrets" $ | indent 6 }}
+      {{- if $.Values.nodeSelector }}
+      nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: dashboard
+        image: {{ $.Values.repository.baseurl }}/ps-dashboard:{{ $.Values.repository.tag }}
+        imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
+        terminationMessagePolicy: FallbackToLogsOnError
+        envFrom:
+        - configMapRef:
+            name: urls-config
+        - configMapRef:
+            name: novu
+        - configMapRef:
+            name: configurator-s3
+        - configMapRef:
+            name: dashboard-client-config
+{{- end }}
+{{- end }}

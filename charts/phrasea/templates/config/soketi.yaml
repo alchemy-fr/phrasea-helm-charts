@@ -1,0 +1,11 @@
+{{- with .Values.soketi }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: soketi
+data:
+  SOKETI_HOST: {{ required "Missing soketi.host" .host | quote }}
+  SOKETI_APP_ID: {{ required "Missing soketi.appId" .appId | quote }}
+  SOKETI_KEY: {{ required "Missing soketi.key" .key | quote }}
+---
+{{- end }}

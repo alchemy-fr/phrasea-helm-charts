@@ -1,0 +1,27 @@
+{{- if and $.Values.stack.running .Values.novu.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: novu-bridge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: phrasea
+      tier: novu-bridge
+  template:
+    metadata:
+      labels:
+        app: phrasea
+        tier: novu-bridge
+      annotations:
+        {{- include "annotation.checksum.configs" $ | indent 8 }}
+    spec:
+      {{ include "imagePullSecrets" $ | indent 6 }}
+      {{- if $.Values.nodeSelector }}
+      nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: novu-bridge
+        {{- include "novuBridge.containerSpecs" $ | nindent 8 }}
+{{- end }}

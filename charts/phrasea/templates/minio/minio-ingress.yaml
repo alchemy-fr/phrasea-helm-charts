@@ -1,0 +1,42 @@
+{{- if and $.Values.stack.running .Values.minio.enabled }}
+{{- if .Values.minio.ingress.enabled }}
+{{- with .Values.minio }}
+{{- $ingressNode := . }}
+apiVersion: {{ template "ingress.apiVersion" $ }}
+kind: Ingress
+metadata:
+  name: minio-ingress
+{{- if .ingress.annotations }}
+  annotations:
+{{ toYaml .ingress.annotations | indent 4 }}
+{{- end }}
+{{- if .ingress.extraLabels }}
+  labels:
+{{ toYaml .ingress.extraLabels | indent 4 }}
+{{- end }}
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: {{ required "Missing minio.hostname" .hostname }}
+    http:
+      paths:
+      {{- include "ingress.rule_path" (dict "_" $ "name" "minio" "port" 80) | indent 6 }}
+{{- if .ingress.tls }}
+{{- $tlsNode := .ingress.tls -}}
+{{- range $value := $tlsNode }}
+  {{- if not (hasKey $value "hosts") }}
+    {{- $hosts := list $ingressNode.hostname }}
+    {{- $_ := set $value "hosts" $hosts }}
+  {{- end -}}
+{{- end }}
+  tls:
+{{ toYaml $tlsNode | indent 2 }}
+{{- else if $.Values.ingress.tls.wildcard.enabled }}
+  tls:
+  - hosts:
+    - {{ .hostname }}
+    secretName: {{ include "secretRef.ingress.tls.wildcard" $ }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

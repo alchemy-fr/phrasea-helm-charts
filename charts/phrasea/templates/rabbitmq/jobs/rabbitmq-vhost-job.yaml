@@ -1,0 +1,51 @@
+{{- with .Values.rabbitmq }}
+{{- if .enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rabbitmq-vhost-setup
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    spec:
+      {{- if $.Values.nodeSelector }}
+      nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: rabbitmq
+        image: rabbitmq:3.7.14-management
+        command: ["sh", "-c"]
+        args:
+          - |
+            #!/bin/sh
+            set -ex
+
+            n=0
+            until [ "$n" -ge 20 ]; do
+              rabbitmqctl -n {{ .nodeName }} await_startup && break
+              n=$((n+1))
+              sleep 5
+            done
+
+            {{- $nodeName := .nodeName }}
+            rabbitmqctl -n {{ $nodeName }} await_startup
+            {{- range $.Values._internal.services }}
+            {{- $appName := . }}
+            {{- if (index $.Values $appName).rabbitmq }}
+            {{- $vhost := (index $.Values $appName).rabbitmq.vhost }}
+            rabbitmqctl -n {{ $nodeName }} add_vhost {{ $vhost | quote }}
+            rabbitmqctl -n {{ $nodeName }} set_permissions -p {{ $vhost | quote }} ${RABBITMQ_USER} '.*' '.*' '.*'
+            {{- end }}
+            {{- end }}
+
+        envFrom:
+        - secretRef:
+            name: {{ include "secretName.rabbitmq" $ }}
+        - configMapRef:
+            name: rabbitmq-config
+      restartPolicy: Never
+  backoffLimit: 10
+{{- end }}
+{{- end }}

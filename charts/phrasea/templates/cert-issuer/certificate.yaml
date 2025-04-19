@@ -1,0 +1,16 @@
+{{- if .Values.acme.enabled }}
+{{- with .Values.acme }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-certificate
+spec:
+  dnsNames:
+    - '*.{{ required "Missing acme.rootHost" .rootHost }}'
+    - {{ required "Missing acme.rootHost" .rootHost | quote }}
+  issuerRef:
+    name: {{ template "ps.fullname" $ }}-letsencrypt
+    kind: ClusterIssuer
+  secretName: wildcard-tls
+{{- end }}
+{{- end }}

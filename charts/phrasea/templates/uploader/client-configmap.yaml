@@ -1,0 +1,11 @@
+{{- with .Values.uploader }}
+{{- if and $.Values.stack.running .enabled }}
+{{- $tplArgs := dict "ctx" . "glob" $ }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: uploader-client-config
+data:
+  {{- include "app.client.configMap" $tplArgs | indent 2 }}
+{{- end }}
+{{- end }}

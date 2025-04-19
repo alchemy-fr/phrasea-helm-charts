@@ -1,0 +1,22 @@
+{{- if and $.Values.stack.running .Values.novu.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: novu-sync
+  annotations:
+    "helm.sh/hook": "post-install,post-upgrade"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    spec:
+      {{ include "imagePullSecrets" $ | indent 6 }}
+      {{- if $.Values.nodeSelector }}
+      nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: novu-sync-job
+        {{- include "novuBridge.containerSpecs" $ | nindent 8 }}
+        args: ["pnpm", "sync"]
+      restartPolicy: Never
+  backoffLimit: 0
+{{- end }} 

@@ -1,0 +1,12 @@
+{{- with .Values.databox }}
+{{- if and $.Values.stack.running .enabled }}
+{{- $tplArgs := dict "ctx" . "glob" $ }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: databox-client-config
+data:
+  UPLOADER_TARGET_SLUG: {{ .upload.uploaderTargetSlug | quote }}
+  {{- include "app.client.configMap" $tplArgs | indent 2 }}
+{{- end }}
+{{- end }}

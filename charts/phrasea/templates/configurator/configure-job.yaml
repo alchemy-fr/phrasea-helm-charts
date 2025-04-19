@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: configurator-configure
+  annotations:
+    "helm.sh/hook": post-{{- if .Values.configurator.executeMigration -}}upgrade{{- else -}}install{{- end }}
+    "helm.sh/hook-weight": "7"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    spec:
+      {{- if $.Values.nodeSelector }}
+      nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      volumes:
+      {{- include "volumes.configs" $ | indent 6 }}
+      {{ include "imagePullSecrets" $ | indent 6 }}
+      containers:
+      - {{- include "configurator.containerSpecs" $ | nindent 8 }}
+      restartPolicy: Never
+  backoffLimit: 10

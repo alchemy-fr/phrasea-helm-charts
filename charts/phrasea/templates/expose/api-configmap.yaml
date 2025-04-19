@@ -1,0 +1,25 @@
+{{- with .Values.expose }}
+{{- $tplArgs := dict "app" "expose" "ctx" .api.config "glob" $ }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: expose-api-config
+data:
+  MAPBOX_TOKEN: {{ .client.mapbox.token | quote }}
+  S3_REQUEST_SIGNATURE_TTL: {{ .api.config.requestSignatureTtl | quote }}
+  SIDEBAR_DEFAULT_OPEN: {{ ternary "true" "false" .client.sidebarDefaultOpen | quote }}
+  DEV_MODE: "0"
+  {{- if .zippy.enabled }}
+  ZIPPY_URL: {{ tpl .zippy.baseUrl $ | quote }}
+  ZIPPY_CLIENT_ID: {{ required "Missing expose.zippy.clientId" .zippy.clientId | quote }}
+  ZIPPY_CLIENT_SECRET: {{ required "Missing expose.zippy.clientSecret" .zippy.clientSecret | quote }}
+  {{- end }}
+  EXPOSE_CLIENT_LOGO_URL: {{ .client.logoUrl | quote }}
+  EXPOSE_CLIENT_LOGO_ALT: {{ .client.logoAlt | quote }}
+  {{- with .api.config.phraseanet }}
+  PHRASEANET_URL: {{ .baseUrl | default "" | quote }}
+  PHRASEANET_APP_OAUTH_TOKEN: {{ .oauthToken | default "" | quote }}
+  {{- end }}
+{{- include "app.s3Storage.configMap" $tplArgs | indent 2 }}
+{{- include "app.cloudFront.configMap" $tplArgs | indent 2 }}
+{{- end }}

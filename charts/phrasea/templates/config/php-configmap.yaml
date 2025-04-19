@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: php-config
+data:
+  APP_ENV: prod
+  {{- if not .Values.security.verifySsl }}
+  VERIFY_SSL: "false"
+  {{- end }}
+  TRUSTED_PROXIES: 127.0.0.1,REMOTE_ADDR
+{{- if .Values.newrelic.enabled }}
+  NEWRELIC_ENABLED: "1"
+  NEWRELIC_LICENSE_KEY: {{ required "Missing newrelic.licenceKey" .Values.newrelic.licenceKey | quote }}
+{{- end }}
+{{- if .Values.sentry.enabled }}
+  SENTRY_DSN: {{ required "Missing sentry.dsn" .Values.sentry.dsn | quote }}
+  SENTRY_ENVIRONMENT: {{ required "Missing sentry.environment" .Values.sentry.environment | quote }}
+{{- end }}

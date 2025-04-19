@@ -1,0 +1,28 @@
+{{- if .Values.acme.enabled }}
+{{- with .Values.acme }}
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ template "ps.fullname" $ }}-letsencrypt
+spec:
+  acme:
+    email: {{ required "Missing acme.email" .email | quote }}
+    server: {{ ternary "https://acme-v02.api.letsencrypt.org/directory" "https://acme-staging-v02.api.letsencrypt.org/directory" .production | quote }}
+    privateKeySecretRef:
+      # Secret resource that will be used to store the account's private key.
+      name: acme-issuer-account-key
+    solvers:
+      - dns01:
+          webhook:
+            groupName: acme.bwolf.me
+            solverName: gandi
+            config:
+              apiKeySecretRef:
+                key: api-token
+                name: {{ template "ps.fullname" $ }}-gandi-credentials
+        selector:
+          dnsNames:
+            - {{ required "Missing acme.rootHost" .rootHost | quote }}
+            - '*.{{ required "Missing acme.rootHost" .rootHost }}'
+{{- end }}
+{{- end }}

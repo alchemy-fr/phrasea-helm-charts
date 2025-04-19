@@ -1,0 +1,81 @@
+{{- range .Values._internal.services }}
+{{- $appName := . }}
+{{- if and $.Values.stack.running (index $.Values $appName).enabled }}
+{{- with (index $.Values $appName) }}
+{{- $tplArgs := dict "app" $appName "ctx" . "glob" $ }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $appName }}-worker
+spec:
+  replicas: {{(index $.Values $appName).worker.replicas }}
+  selector:
+    matchLabels:
+      app: phrasea
+      tier: {{ $appName }}-worker
+  template:
+    metadata:
+      labels:
+        app: phrasea
+        tier: {{ $appName }}-worker
+    spec:
+      {{ include "imagePullSecrets" $ | indent 6 }}
+      {{- if $.Values.nodeSelector }}
+      nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      volumes:
+{{- include "volumes.configs" $ | indent 6 }}
+{{- include "app.volumes" $tplArgs | indent 6 }}
+      containers:
+      - name: {{ $appName }}-worker
+        image: {{ $.Values.repository.baseurl }}/ps-{{ $appName }}-worker:{{ $.Values.repository.tag }}
+        imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
+        {{- if (index $.Values $appName).resourcesquotas }}
+        resources:
+          requests:
+            memory: {{(index $.Values $appName).worker.resources.requests.memory}}
+            cpu: {{(index $.Values $appName).worker.resources.requests.cpu}}
+          limits:
+            memory: {{(index $.Values $appName).worker.resources.limits.memory}}
+            cpu: {{(index $.Values $appName).worker.resources.limits.cpu}}
+        {{- end }}
+        terminationMessagePolicy: FallbackToLogsOnError
+        volumeMounts:
+        - name: configs
+          mountPath: /configs
+{{- include "app.volumesMounts" $tplArgs | indent 8 }}
+        env:
+        {{- if (eq "databox" $appName) }}
+        - name: SECRETS_SECRET_KEY
+          value: {{ required "Missing databox.api.config.secrets.secretKey value" .api.config.secrets.secretKey | quote }}
+        {{- end }}
+        {{- include "envRef.phpApp" $tplArgs | indent 8 }}
+        {{- include "envRef.configuratorSecrets" $ | indent 8 }}
+        envFrom:
+        {{- include "envFrom.phpApp" $ | indent 8 }}
+        {{- include "envFrom.rabbitmq" $ | indent 8 }}
+        {{- include "envFrom.postgresql" $ | indent 8 }}
+        - secretRef:
+            name: {{ .adminOAuthClient.externalSecretName | default (printf "%s-admin-oauth-client-secret" $appName) }}
+        {{- if (eq "databox" $appName) }}
+        - secretRef:
+            name: {{ $appName }}-secrets
+        {{- end }}
+        - configMapRef:
+            name: {{ $appName }}-api-config
+        - configMapRef:
+            name: soketi
+        - secretRef:
+            name: soketi
+        {{- if .matomo }}
+        {{- if .matomo.enabled }}
+        - configMapRef:
+            name: matomo
+        - secretRef:
+            name: matomo
+        {{- end }}
+        {{- end }}
+---
+{{- end }}
+{{- end }}
+{{- end }}

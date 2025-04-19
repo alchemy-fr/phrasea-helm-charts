@@ -1,0 +1,58 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: elasticsearch-cleanup
+  annotations:
+    "helm.sh/hook": pre-delete
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  template:
+    spec:
+      {{- if $.Values.nodeSelector }}
+      nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: cleanup
+        image: curlimages/curl:8.12.1
+        imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
+        env:
+        - name: ELASTICSEARCH_URL
+          valueFrom:
+            configMapKeyRef:
+              name: databox-api-config
+              key: ELASTICSEARCH_URL
+        - name: ELASTICSEARCH_INDEX_PREFIX
+          valueFrom:
+            configMapKeyRef:
+              name: databox-api-config
+              key: ELASTICSEARCH_INDEX_PREFIX
+        command:
+        - /bin/sh
+        - -c
+        - |
+          set -e
+          ELASTICSEARCH_URL=${ELASTICSEARCH_URL}
+          PREFIX=${ELASTICSEARCH_INDEX_PREFIX}
+
+          # Get list of aliases and indices
+          ALIASES=$(curl -s -X GET "${ELASTICSEARCH_URL}/_cat/aliases/${PREFIX}*?h=alias,index")
+
+          # Loop through each alias and index
+          echo "$ALIASES" | while read -r line; do
+            ALIAS=$(echo $line | awk '{print $1}')
+            INDEX=$(echo $line | awk '{print $2}')
+
+            # Remove alias
+            curl -s -X POST "${ELASTICSEARCH_URL}/_aliases" -H 'Content-Type: application/json' -d "{
+              \"actions\": [
+                { \"remove\": { \"index\": \"$INDEX\", \"alias\": \"$ALIAS\" } }
+              ]
+            }"
+
+            # Close index
+            curl -s -X POST "${ELASTICSEARCH_URL}/$INDEX/_close"
+
+            # Delete index
+            curl -s -X DELETE "${ELASTICSEARCH_URL}/$INDEX"
+          done
+      restartPolicy: Never
