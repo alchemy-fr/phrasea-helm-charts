@@ -53,6 +53,22 @@ configurator:
 keycloak:
   realm:
     name: phrasea
+    supportedLocales: "en,fr"
+    defaultLocale: en
+    loginRegistrationAllowed: true
+    loginResetPasswordAllowed: true
+    loginRememberMeAllowed: true
+    loginWithEmailAllowed: true
+    loginVerifyEmailAllowed: true
+    loginEmailAsUsername: true
+    loginEditUsername: false
+    ssoSessionIdleTimeout: 28800
+    clientSessionIdleTimeout: 28800
+    offlineSessionIdleTimeout: 604800
+    userEventEnabled: true
+    userEventExpiration: 1209600
+    adminEventEnabled: true
+    adminEventExpiration: 1209600
   enabled: true
   autoConnectIdP:
   masterAdmin:
@@ -73,6 +89,7 @@ keycloak:
       nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
     extraLabels: {}
     tls: []
+  
 
 auth:
   database:
@@ -388,8 +405,12 @@ dashboard:
     baseUrl:
 
 mailer:
-  dsn: 'null://null'
-  from: 'no-reply@acme.com'
+  host:
+  port: 587
+  user:
+  password:
+  dsn: 'smtp://{{ .Values.mailer.user }}:{{ .Values.mailer.password }}@{{ .Values.mailer.host }}:{{ .Values.mailer.port }}' 
+
 
 postgresql:
   enabled: true
