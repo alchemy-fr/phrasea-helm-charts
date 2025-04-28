@@ -409,6 +409,8 @@ mailer:
   port: 587
   user:
   password:
+  from:
+  replyto:
   dsn: 'smtp://{{ .Values.mailer.user }}:{{ .Values.mailer.password }}@{{ .Values.mailer.host }}:{{ .Values.mailer.port }}' 
 
 

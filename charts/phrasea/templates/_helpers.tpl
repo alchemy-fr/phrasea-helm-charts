@@ -248,39 +248,39 @@ env:
 - name: MAIL_REPLY_TO
   value: {{ .Values.mailer.replyTo | quote }}
 - name: MAILER_DSN
-  value: {{ required "Missing mailer.dsn value" .Values.mailer.dsn | quote }}
+  value: 'smtp://{{ .Values.mailer.user }}:{{ .Values.mailer.password }}@{{ .Values.mailer.host }}:{{ .Values.mailer.port }}'
 - name: KC_REALM_SUPPORTED_LOCALES
   value: {{ .Values.keycloak.realm.supportedLocales | quote }}
 - name: KC_REALM_DEFAULT_LOCALE
-  value: {{ .Value.keycloak.realm.defaultLocale | quote }}
+  value: {{ .Values.keycloak.realm.defaultLocale | quote }}
 - name: KC_REALM_LOGIN_REGISTRATION_ALLOWED
-  value: {{ .Value.keycloak.realm.loginRegistrationAllowed }}
+  value: {{ .Values.keycloak.realm.loginRegistrationAllowed }}
 - name: KC_REALM_LOGIN_RESET_PASSWORD_ALLOWED
-  value: {{ .Value.keycloak.realm.loginResetPasswordAllowed }}
+  value: {{ .Values.keycloak.realm.loginResetPasswordAllowed }}
 - name: KC_REALM_LOGIN_REMEMBER_ME_ALLOWED
-  value: {{ .Value.keycloak.realm.loginRememberMeAllowed }}
+  value: {{ .Values.keycloak.realm.loginRememberMeAllowed }}
 - name: KC_REALM_LOGIN_WITH_EMAIL_ALLOWED
-  value: {{ .Value.keycloak.realm.loginWithEmailAllowed }}
+  value: {{ .Values.keycloak.realm.loginWithEmailAllowed }}
 - name: KC_REALM_LOGIN_VERIFY_EMAIL_ALLOWED
-  value: {{ .Value.keycloak.realm.loginVerifyEmailAllowed }}
+  value: {{ .Values.keycloak.realm.loginVerifyEmailAllowed }}
 - name: KC_REALM_LOGIN_EMAIL_AS_USERNAME
-  value: {{ .Value.keycloak.realm.loginEmailAsUsername }}
+  value: {{ .Values.keycloak.realm.loginEmailAsUsername }}
 - name: KC_REALM_LOGIN_EDIT_USERNAME
-  value: {{ .Value.keycloak.realm.loginEditUsername }}
+  value: {{ .Values.keycloak.realm.loginEditUsername }}
 - name: KC_REALM_SSO_SESSION_IDLE_TIMEOUT
-  value: {{ .Value.keycloak.realm.ssoSessionIdleTimeout }}
+  value: {{ .Values.keycloak.realm.ssoSessionIdleTimeout }}
 - name: KC_REALM_CLIENT_SESSION_IDLE_TIMEOUT
-  value: {{ .Value.keycloak.realm.clientSessionIdleTimeout }}
+  value: {{ .Values.keycloak.realm.clientSessionIdleTimeout }}
 - name: KC_REALM_OFFLINE_SESSION_IDLE_TIMEOUT
-  value: {{ .Value.keycloak.realm.offlineSessionIdleTimeout }}
+  value: {{ .Values.keycloak.realm.offlineSessionIdleTimeout }}
 - name: KC_REALM_USER_EVENT_ENABLED
-  value: {{ .Value.keycloak.realm.userEventEnabled }}
+  value: {{ .Values.keycloak.realm.userEventEnabled }}
 - name: KC_REALM_USER_EVENT_EXPIRATION
-  value: {{ .Value.keycloak.realm.userEventExpiration }}
+  value: {{ .Values.keycloak.realm.userEventExpiration }}
 - name: KC_REALM_ADMIN_EVENT_ENABLED
-  value: {{ .Value.keycloak.realm.adminEventEnabled }}
+  value: {{ .Values.keycloak.realm.adminEventEnabled }}
 - name: KC_REALM_ADMIN_EVENT_EXPIRATION
-  value: {{ .Value.keycloak.realm.adminEventExpiration }} 
+  value: {{ .Values.keycloak.realm.adminEventExpiration }} 
 {{- range .Values._internal.services }}
 {{- $appName := . }}
 {{- with (index $.Values $appName) }}
