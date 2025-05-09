@@ -35,7 +35,7 @@ spec:
             - "rabbitmq"
       containers:
       - name: rabbitmq
-        image: {{ .image | default "rabbitmq:3.7.14-management" }}
+        image: {{ .image }}
         terminationMessagePolicy: FallbackToLogsOnError
         volumeMounts:
         - name: data
