@@ -1,4 +1,4 @@
-{{- if .Values.stack.runMigrations }}
+{{- if and $.Values.stack.running $.Values.stack.runMigrations }}
 {{ $appName := "configurator" }}
 {{- with (index $.Values $appName)  }}
 {{ $tplArgs := dict "app" $appName "ctx" . "glob" $ }}

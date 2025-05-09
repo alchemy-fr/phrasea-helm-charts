@@ -1,4 +1,4 @@
-{{- if .Values.configurator.executeMigration }}
+{{- if and $.Values.stack.running $.Values.configurator.executeMigration }}
 apiVersion: batch/v1
 kind: Job
 metadata:
