@@ -409,6 +409,8 @@ mailer:
   port: 587
   user:
   password:
+  from:
+  replyto:
   dsn: 'smtp://{{ .Values.mailer.user }}:{{ .Values.mailer.password }}@{{ .Values.mailer.host }}:{{ .Values.mailer.port }}' 
 
 
@@ -433,6 +435,7 @@ redis:
 
 rabbitmq:
   enabled: true
+  image: rabbitmq:3.7.14-management
   externalSecretName:
   host: rabbitmq
   port: 5672
@@ -442,6 +445,9 @@ rabbitmq:
   erlangCookie: 'H#75$3CjoTKn3129DNwcqlHvhfqs15'
   epmdPort: 55950
   nodeName: rabbit@rabbitmq
+  securityContext:
+    runAsUser: 
+    runAsGroup:   
   persistence:
     enabled: true
     existingClaim:

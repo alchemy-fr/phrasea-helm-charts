@@ -35,14 +35,11 @@ spec:
             - "rabbitmq"
       containers:
       - name: rabbitmq
-        image: rabbitmq:3.7.14-management
+        image: {{ .image }}
         terminationMessagePolicy: FallbackToLogsOnError
         volumeMounts:
         - name: data
           mountPath: "/var/lib/rabbitmq"
-        securityContext:
-          runAsUser: 999
-          runAsGroup: 999   
         env:
         - name: RABBITMQ_DEFAULT_USER
           valueFrom:
@@ -57,5 +54,14 @@ spec:
         envFrom:
         - configMapRef:
             name: rabbitmq-config
+      {{- if or .securityContext.runAsUser .securityContext.runAsGroup }}
+      securityContext:
+        {{- if .securityContext.runAsUser }}
+        runAsUser: {{ .securityContext.runAsUser }}
+        {{- end }}
+        {{- if .securityContext.runAsGroup }}
+        runAsGroup: {{ .securityContext.runAsGroup }}
+        {{- end }}
+      {{- end }}
 {{- end }}
 {{- end }}

@@ -1,4 +1,4 @@
-{{- if and $.Values.stack.running .Values.novu.enabled }}
+{{- if and $.Values.stack.running $.Values.novu.enabled }}
 apiVersion: batch/v1
 kind: Job
 metadata:
