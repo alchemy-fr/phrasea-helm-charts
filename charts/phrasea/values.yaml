@@ -323,6 +323,7 @@ uploader:
       assetConsumerCommitUri:
       assetConsumerAccessToken:
       requestSignatureTtl: 3600
+      allowedFileTypes: 'image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg),application/*(.pdf,.doc,.docx,.xls,.xlsx,.odt),video/*(.mpg,.mpeg,.mov,.avi,.mp3,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc)audio/*(.aac,.aiff,.wav)'
       s3Storage:
         endpoint: "{{ .Values.minio.baseUrl }}"
         region:
