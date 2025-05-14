@@ -33,7 +33,6 @@ image:
 nodeSelector:
 
 configurator:
-  executeMigration: ~
   database:
     name: configurator
   s3:
