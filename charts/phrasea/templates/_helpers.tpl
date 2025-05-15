@@ -231,6 +231,10 @@ volumeMounts:
 - name: configs
   mountPath: /configs
 env:
+- name: VERIFY_SSL
+  value: {{ .Values.security.verifySSL | quote }}
+- name: VERIFY_HOST
+  value: {{ .Values.security.verifyHost | quote }}
 - name: AUTH_DB_NAME
   value: {{ .Values.auth.database.name | quote }}
 - name: CONFIGURATOR_DB_NAME

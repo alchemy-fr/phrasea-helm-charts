@@ -13,6 +13,7 @@ acme:
 
 security:
   verifySsl: true
+  verifyHost: true
 
 stack:
   # Custom stack name to distinguish multiple stacks
