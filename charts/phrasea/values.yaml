@@ -66,7 +66,7 @@ keycloak:
     clientSessionIdleTimeout: 28800
     offlineSessionIdleTimeout: 604800
     userEventEnabled: true
-    userEventExpiration: 1209600
+    userEventExpiration: 950400
     adminEventEnabled: true
     adminEventExpiration: 1209600
   enabled: true
@@ -407,12 +407,15 @@ dashboard:
 
 mailer:
   host:
-  port: 587
+  port: 
   user:
   password:
   from:
-  replyto:
-  dsn: 'smtp://{{ .Values.mailer.user }}:{{ .Values.mailer.password }}@{{ .Values.mailer.host }}:{{ .Values.mailer.port }}' 
+  fromDisplayName:
+  replyTo:
+  replyToDisplayName:
+  envelopeFrom:
+  dsn: 
 
 
 postgresql:
