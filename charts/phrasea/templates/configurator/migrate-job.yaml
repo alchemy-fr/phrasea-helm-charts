@@ -23,7 +23,7 @@ spec:
         args: ["bin/migrate.sh"]
         terminationMessagePolicy: FallbackToLogsOnError
       restartPolicy: Never
-  backoffLimit: 0
+  backoffLimit: 3
 ---
 {{- end }}
 {{- end }}

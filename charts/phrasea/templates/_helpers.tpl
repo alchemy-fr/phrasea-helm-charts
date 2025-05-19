@@ -231,6 +231,10 @@ volumeMounts:
 - name: configs
   mountPath: /configs
 env:
+- name: VERIFY_SSL
+  value: {{ .Values.security.verifySSL | quote }}
+- name: VERIFY_HOST
+  value: {{ .Values.security.verifyHost | quote }}
 - name: AUTH_DB_NAME
   value: {{ .Values.auth.database.name | quote }}
 - name: CONFIGURATOR_DB_NAME
@@ -245,8 +249,14 @@ env:
   value: {{ .Values.mailer.password | quote }}
 - name: MAIL_FROM
   value: {{ .Values.mailer.from | quote }}
+- name: MAIL_FROM_DISPLAY_NAME
+  value: {{ .Values.mailer.fromDisplayName | default (printf " Phrasea No reply %s" .Values.stack.name) | quote }}
 - name: MAIL_REPLY_TO
   value: {{ .Values.mailer.replyTo | quote }}
+- name: MAIL_REPLY_TO_DISPLAY_NAME
+  value: {{ .Values.mailer.replyToDisplayName | quote }}
+- name: MAIL_ENVELOPE_FROM
+  value: {{ .Values.mailer.envelopeFrom | quote }}
 - name: MAILER_DSN
   value: "smtp://{{ .Values.mailer.user }}:{{ .Values.mailer.password }}@{{ .Values.mailer.host }}:{{ .Values.mailer.port }}"
 - name: KC_REALM_SUPPORTED_LOCALES
@@ -266,21 +276,21 @@ env:
 - name: KC_REALM_LOGIN_EMAIL_AS_USERNAME
   value: {{ .Values.keycloak.realm.loginEmailAsUsername | quote }}
 - name: KC_REALM_LOGIN_EDIT_USERNAME
-  value: {{ .Values.keycloak.realm.loginEditUsername | quote}}
+  value: {{ .Values.keycloak.realm.loginEditUsername | quote }}
 - name: KC_REALM_SSO_SESSION_IDLE_TIMEOUT
-  value: {{ .Values.keycloak.realm.ssoSessionIdleTimeout | quote}}
+  value: {{ .Values.keycloak.realm.ssoSessionIdleTimeout | quote }}
 - name: KC_REALM_CLIENT_SESSION_IDLE_TIMEOUT
   value: {{ .Values.keycloak.realm.clientSessionIdleTimeout | quote }}
 - name: KC_REALM_OFFLINE_SESSION_IDLE_TIMEOUT
-  value: {{ .Values.keycloak.realm.offlineSessionIdleTimeout | quote}}
+  value: {{ .Values.keycloak.realm.offlineSessionIdleTimeout | quote }}
 - name: KC_REALM_USER_EVENT_ENABLED
-  value: {{ .Values.keycloak.realm.userEventEnabled | quote}}
+  value: {{ .Values.keycloak.realm.userEventEnabled | quote }}
 - name: KC_REALM_USER_EVENT_EXPIRATION
   value: {{ .Values.keycloak.realm.userEventExpiration | quote }}
 - name: KC_REALM_ADMIN_EVENT_ENABLED
-  value: {{ .Values.keycloak.realm.adminEventEnabled | quote}}
+  value: {{ .Values.keycloak.realm.adminEventEnabled | quote }}
 - name: KC_REALM_ADMIN_EVENT_EXPIRATION
-  value: {{ .Values.keycloak.realm.adminEventExpiration | quote}} 
+  value: {{ .Values.keycloak.realm.adminEventExpiration | quote }} 
 {{- range .Values._internal.services }}
 {{- $appName := . }}
 {{- with (index $.Values $appName) }}
