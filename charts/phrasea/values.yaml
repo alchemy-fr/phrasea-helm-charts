@@ -21,6 +21,7 @@ stack:
   running: true
   runSetups: true
   runMigrations: true
+  runSynchronize: true
 
 image:
   pullSecret:
