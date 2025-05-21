@@ -65,7 +65,7 @@ keycloak:
     loginEditUsername: false
     ssoSessionIdleTimeout: 28800
     clientSessionIdleTimeout: 28800
-    offlineSessionIdleTimeout: 28800
+    offlineSessionIdleTimeout: 604800
     userEventEnabled: true
     userEventExpiration: 950400
     adminEventEnabled: true
