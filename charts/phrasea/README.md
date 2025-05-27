@@ -38,18 +38,6 @@ uploader:
         host: client.uploader.com
 ```
 
-## Run migration
-
-```bash
-export MIGRATION_NAME=20230807
-helm template <release-name> -f values.yaml \
-  --set "configurator.executeMigration" "${MIGRATION_NAME}" \
-    -s templates/job-tests.yaml | kubectl apply -f -
-kubectl attach -it pod/${MIGRATION_NAME}
-kubectl delete -it pod/${MIGRATION_NAME}
-```
-
-
 ## [Optional] Install cert-manager
 
 We need to replicate tls secret across namespaces, so they can be used in all ingresses.

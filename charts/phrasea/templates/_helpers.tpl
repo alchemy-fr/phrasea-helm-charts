@@ -243,10 +243,6 @@ env:
   value: {{ .Values.mailer.host | quote }}
 - name: MAILER_PORT
   value: {{ .Values.mailer.port | quote }}
-- name: MAILER_USER
-  value: {{ .Values.mailer.user | quote  }}
-- name: MAILER_PASSWORD
-  value: {{ .Values.mailer.password | quote }}
 - name: MAIL_FROM
   value: {{ .Values.mailer.from | quote }}
 - name: MAIL_FROM_DISPLAY_NAME
@@ -279,10 +275,16 @@ env:
   value: {{ .Values.keycloak.realm.loginEditUsername | quote }}
 - name: KC_REALM_SSO_SESSION_IDLE_TIMEOUT
   value: {{ .Values.keycloak.realm.ssoSessionIdleTimeout | quote }}
+- name: KC_REALM_SSO_SESSION_MAX_LIFESPAN
+  value: {{ .Values.keycloak.realm.ssoSessionMaxLifespan | quote }}
 - name: KC_REALM_CLIENT_SESSION_IDLE_TIMEOUT
   value: {{ .Values.keycloak.realm.clientSessionIdleTimeout | quote }}
+- name: KC_REALM_CLIENT_SESSION_MAX_LIFESPAN
+  value: {{ .Values.keycloak.realm.clientSessionMaxLifespan | quote }}
 - name: KC_REALM_OFFLINE_SESSION_IDLE_TIMEOUT
   value: {{ .Values.keycloak.realm.offlineSessionIdleTimeout | quote }}
+- name: KC_REALM_OFFLINE_SESSION_MAX_LIFESPAN
+  value: {{ .Values.keycloak.realm.offlineSessionMaxLifespan | quote }}
 - name: KC_REALM_USER_EVENT_ENABLED
   value: {{ .Values.keycloak.realm.userEventEnabled | quote }}
 - name: KC_REALM_USER_EVENT_EXPIRATION
@@ -314,6 +316,8 @@ env:
 envFrom:
 - secretRef:
     name: keycloak
+- secretRef:
+    name: mailer
 {{- include "envFrom.phpApp" $ }}
 {{- include "envFrom.rabbitmq" $ }}
 {{- include "envFrom.postgresql" $ }}

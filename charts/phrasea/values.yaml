@@ -64,8 +64,11 @@ keycloak:
     loginEmailAsUsername: true
     loginEditUsername: false
     ssoSessionIdleTimeout: 28800
+    ssoSessionMaxLifespan: 604800
     clientSessionIdleTimeout: 28800
+    clientSessionMaxLifespan: 604800
     offlineSessionIdleTimeout: 604800
+    offlineSessionMaxLifespan: 604800
     userEventEnabled: true
     userEventExpiration: 950400
     adminEventEnabled: true
