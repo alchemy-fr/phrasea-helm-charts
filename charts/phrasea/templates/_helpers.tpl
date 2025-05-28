@@ -253,8 +253,6 @@ env:
   value: {{ .Values.mailer.replyToDisplayName | quote }}
 - name: MAIL_ENVELOPE_FROM
   value: {{ .Values.mailer.envelopeFrom | quote }}
-- name: MAILER_DSN
-  value: "smtp://{{ .Values.mailer.user }}:{{ .Values.mailer.password }}@{{ .Values.mailer.host }}:{{ .Values.mailer.port }}"
 - name: KC_REALM_SUPPORTED_LOCALES
   value: {{ .Values.keycloak.realm.supportedLocales | quote }}
 - name: KC_REALM_DEFAULT_LOCALE
