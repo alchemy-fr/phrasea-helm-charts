@@ -419,8 +419,6 @@ mailer:
   replyTo:
   replyToDisplayName:
   envelopeFrom:
-  dsn: 
-
 
 postgresql:
   enabled: true
