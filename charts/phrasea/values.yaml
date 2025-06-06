@@ -73,6 +73,9 @@ keycloak:
     userEventExpiration: 950400
     adminEventEnabled: true
     adminEventExpiration: 1209600
+    loginCssBackground: "#f1f1f1"
+    loginCssLogoBackground: "url('../../img/logo.png') no-repeat 40% 65%"
+    loginDisplayDashboardLink: true
   enabled: true
   autoConnectIdP:
   masterAdmin:
