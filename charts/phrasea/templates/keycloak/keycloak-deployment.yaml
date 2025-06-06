@@ -44,5 +44,11 @@ spec:
             value: {{ .baseUrl | quote }}
           - name: KC_DB
             value: postgres
+          - name: KC_LOGIN_CSS_BACKGROUND
+            value: {{ $.Values.keycloak.realm.loginCssBackground | quote }}
+          - name: KC_LOGIN_CSS_LOGO_BACKGROUND
+            value: {{ $.Values.keycloak.realm.loginCssLogoBackground | quote }}
+          - name: KC_LOGIN_DISPLAY_DASHBOARD_LINK
+            value: {{ $.Values.keycloak.realm.loginDisplayDashboardLink | quote }}
 {{- end }}
 {{- end }}
