@@ -45,10 +45,10 @@ spec:
           - name: KC_DB
             value: postgres
           - name: KC_LOGIN_CSS_BACKGROUND
-            value: {{ $.Values.keycloak.realm.loginCssBackground | quote }}
+            value: {{ .realm.loginCssBackground | quote }}
           - name: KC_LOGIN_CSS_LOGO_BACKGROUND
-            value: {{ $.Values.keycloak.realm.loginCssLogoBackground | quote }}
+            value: {{ .realm.loginCssLogoBackground | quote }}
           - name: KC_LOGIN_DISPLAY_DASHBOARD_LINK
-            value: {{ $.Values.keycloak.realm.loginDisplayDashboardLink | quote }}
+            value: {{ .realm.loginDisplayDashboardLink | quote }}
 {{- end }}
 {{- end }}
