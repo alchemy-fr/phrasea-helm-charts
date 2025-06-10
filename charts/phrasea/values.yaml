@@ -590,7 +590,7 @@ sentry:
 
 ImageMagick:
   policy:
-    area: 4096MB
+    area: 4096MiB
     temporaryPath: /tmp
     disk: 6GiB
     map: 2048MiB
