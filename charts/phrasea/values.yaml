@@ -587,3 +587,12 @@ sentry:
   dsn: ~
   clientDsn: ~
   environment: prod
+
+ImageMagick:
+  policy:
+    area: 2GiB
+    temporaryPath: /tmp
+    disk: 40GiB
+    map: 2GiB
+    width: 48KP
+    version: 7

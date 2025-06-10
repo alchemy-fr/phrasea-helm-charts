@@ -60,6 +60,8 @@ spec:
         {{- if (eq "databox" $appName) }}
         - secretRef:
             name: {{ $appName }}-secrets
+        - configMapRef:
+            name: imagemagick-policies
         {{- end }}
         - configMapRef:
             name: {{ $appName }}-api-config
