@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: imagemagick-policies
+data:
+  IMAGEMAGICK_POLICY_AREA: {{ .Values.ImageMagick.policy.area | quote }}
+  IMAGEMAGICK_POLICY_TEMPORARY_PATH: {{ .Values.ImageMagick.policy.temporaryPath | quote }}
+  IMAGEMAGICK_POLICY_DISK: {{ .Values.ImageMagick.policy.disk | quote }}
+  IMAGEMAGICK_POLICY_MAP: {{ .Values.ImageMagick.policy.map | quote }}
+  IMAGEMAGICK_POLICY_WIDTH: {{ .Values.ImageMagick.policy.width | quote }}
+  IMAGEMAGICK_POLICY_VERSION: {{ .Values.ImageMagick.policy.version | quote }}
