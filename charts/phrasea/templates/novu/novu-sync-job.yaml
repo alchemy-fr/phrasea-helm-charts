@@ -4,7 +4,8 @@ kind: Job
 metadata:
   name: novu-sync
   annotations:
-    "helm.sh/hook": "post-install,post-upgrade"
+    "helm.sh/hook": "post-upgrade"
+    "helm.sh/hook-weight": "100"
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 spec:
   template:
