@@ -253,6 +253,8 @@ env:
   value: {{ .Values.mailer.replyToDisplayName | quote }}
 - name: MAIL_ENVELOPE_FROM
   value: {{ .Values.mailer.envelopeFrom | quote }}
+- name: KC_REALM_HTML_DISPLAY_NAME
+  value: {{ .Values.keycloak.realm.htmlDisplayName | quote }}
 - name: KC_REALM_SUPPORTED_LOCALES
   value: {{ .Values.keycloak.realm.supportedLocales | quote }}
 - name: KC_REALM_DEFAULT_LOCALE

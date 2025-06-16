@@ -54,6 +54,7 @@ configurator:
 keycloak:
   realm:
     name: phrasea
+    htmlDisplayName: "<div style=\"font-size: 18px; text-transform: none; color: #000000\"><span>Phrasea Auth</span></div>"
     supportedLocales: "en,fr"
     defaultLocale: en
     loginRegistrationAllowed: true
