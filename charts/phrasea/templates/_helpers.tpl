@@ -280,9 +280,9 @@ env:
 - name: KC_REALM_CLIENT_SESSION_IDLE_TIMEOUT
   value: {{ .Values.keycloak.realm.clientSessionIdleTimeout | toString | quote }}
 - name: KC_REALM_CLIENT_SESSION_MAX_LIFESPAN
-  value: {{ .Values.keycloak.realm.clientSessionMaxLifespan | toString  | quote }}
+  value: {{ .Values.keycloak.realm.clientSessionMaxLifespan | toString | quote }}
 - name: KC_REALM_OFFLINE_SESSION_IDLE_TIMEOUT
-  value: {{ .Values.keycloak.realm.offlineSessionIdleTimeout | toString  | quote }}
+  value: {{ .Values.keycloak.realm.offlineSessionIdleTimeout | toString | quote }}
 - name: KC_REALM_OFFLINE_SESSION_MAX_LIFESPAN
   value: {{ .Values.keycloak.realm.offlineSessionMaxLifespan | toString | quote }}
 - name: KC_REALM_USER_EVENT_ENABLED
