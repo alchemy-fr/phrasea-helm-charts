@@ -64,16 +64,16 @@ keycloak:
     loginVerifyEmailAllowed: true
     loginEmailAsUsername: true
     loginEditUsername: false
-    ssoSessionIdleTimeout: 28800
-    ssoSessionMaxLifespan: 604800
-    clientSessionIdleTimeout: 28800
-    clientSessionMaxLifespan: 604800
-    offlineSessionIdleTimeout: 604800
-    offlineSessionMaxLifespan: 604800
+    ssoSessionIdleTimeout: "28800"
+    ssoSessionMaxLifespan: "604800"
+    clientSessionIdleTimeout: "28800"
+    clientSessionMaxLifespan: "604800"
+    offlineSessionIdleTimeout: "604800"
+    offlineSessionMaxLifespan: "604800"
     userEventEnabled: true
-    userEventExpiration: 950400
+    userEventExpiration: "950400"
     adminEventEnabled: true
-    adminEventExpiration: 1209600
+    adminEventExpiration: "1209600"
     loginCssBackground: "#f1f1f1"
     loginCssLogoBackground: "url('../../img/logo.png') no-repeat 40% 65%"
     loginDisplayDashboardLink: true

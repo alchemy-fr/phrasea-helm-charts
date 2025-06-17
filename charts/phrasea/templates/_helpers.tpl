@@ -274,25 +274,25 @@ env:
 - name: KC_REALM_LOGIN_EDIT_USERNAME
   value: {{ .Values.keycloak.realm.loginEditUsername | quote }}
 - name: KC_REALM_SSO_SESSION_IDLE_TIMEOUT
-  value: {{ .Values.keycloak.realm.ssoSessionIdleTimeout | quote }}
+  value: {{ .Values.keycloak.realm.ssoSessionIdleTimeout | toString | quote }}
 - name: KC_REALM_SSO_SESSION_MAX_LIFESPAN
-  value: {{ .Values.keycloak.realm.ssoSessionMaxLifespan | quote }}
+  value: {{ .Values.keycloak.realm.ssoSessionMaxLifespan | toString | quote }}
 - name: KC_REALM_CLIENT_SESSION_IDLE_TIMEOUT
-  value: {{ .Values.keycloak.realm.clientSessionIdleTimeout | quote }}
+  value: {{ .Values.keycloak.realm.clientSessionIdleTimeout | toString | quote }}
 - name: KC_REALM_CLIENT_SESSION_MAX_LIFESPAN
-  value: {{ .Values.keycloak.realm.clientSessionMaxLifespan | quote }}
+  value: {{ .Values.keycloak.realm.clientSessionMaxLifespan | toString  | quote }}
 - name: KC_REALM_OFFLINE_SESSION_IDLE_TIMEOUT
-  value: {{ .Values.keycloak.realm.offlineSessionIdleTimeout | quote }}
+  value: {{ .Values.keycloak.realm.offlineSessionIdleTimeout | toString  | quote }}
 - name: KC_REALM_OFFLINE_SESSION_MAX_LIFESPAN
-  value: {{ .Values.keycloak.realm.offlineSessionMaxLifespan | quote }}
+  value: {{ .Values.keycloak.realm.offlineSessionMaxLifespan | toString | quote }}
 - name: KC_REALM_USER_EVENT_ENABLED
   value: {{ .Values.keycloak.realm.userEventEnabled | quote }}
 - name: KC_REALM_USER_EVENT_EXPIRATION
-  value: {{ .Values.keycloak.realm.userEventExpiration | quote }}
+  value: {{ .Values.keycloak.realm.userEventExpiration | toString | quote }}
 - name: KC_REALM_ADMIN_EVENT_ENABLED
   value: {{ .Values.keycloak.realm.adminEventEnabled | quote }}
 - name: KC_REALM_ADMIN_EVENT_EXPIRATION
-  value: {{ .Values.keycloak.realm.adminEventExpiration | quote }} 
+  value: {{ .Values.keycloak.realm.adminEventExpiration | toString | quote }} 
 {{- range .Values._internal.services }}
 {{- $appName := . }}
 {{- with (index $.Values $appName) }}
