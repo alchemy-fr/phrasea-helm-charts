@@ -1,4 +1,5 @@
 {{- with .Values.soketi }}
+{{- if .enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -8,4 +9,5 @@ data:
   SOKETI_APP_ID: {{ required "Missing soketi.appId" .appId | quote }}
   SOKETI_KEY: {{ required "Missing soketi.key" .key | quote }}
 ---
+{{- end }}
 {{- end }}

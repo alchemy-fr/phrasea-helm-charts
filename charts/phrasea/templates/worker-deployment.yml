@@ -65,10 +65,12 @@ spec:
         {{- end }}
         - configMapRef:
             name: {{ $appName }}-api-config
+        {{- if $.Values.soketi.enabled }}
         - configMapRef:
             name: soketi
         - secretRef:
             name: soketi
+        {{- end }}
         {{- if .matomo }}
         {{- if .matomo.enabled }}
         - configMapRef:
