@@ -15,21 +15,11 @@
 {{- .Values.nameOverride | default "ps" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "volumes.configs" }}
-- name: configs
-  configMap:
-    name: {{ .Values.globalConfig.externalConfigmapName | default (printf "%s-configs" .Release.Name) }}
-{{- end }}
-
 {{- define "imagePullSecrets" }}
 {{- if .Values.image.pullSecret.enabled }}
 imagePullSecrets:
 - name: {{ .Values.image.pullSecret.name }}
 {{- end }}
-{{- end }}
-
-{{- define "annotation.checksum.configs" }}
-checksum/configs: {{ .Values.globalConfig.content | sha256sum }}
 {{- end }}
 
 {{- define "secretRef.adminOAuthClient" }}
@@ -115,43 +105,6 @@ gateway-tls
 {{- end }}
 {{- end }}
 
-{{- define "app.volumes" }}
-{{- $appName := .app -}}
-{{- $ctx := .ctx -}}
-{{- $glob := .glob -}}
-{{- if .glob.Values._internal.volumes }}
-{{- if hasKey $glob.Values._internal.volumes $appName }}
-{{- with (index $glob.Values._internal.volumes $appName) }}
-{{- range $key, $value := . }}
-- name: {{ $key }}
-{{- if $ctx.persistence.enabled }}
-  persistentVolumeClaim:
-    claimName: {{ $ctx.persistence.existingClaim | default (printf "%s-%s" $value.name (include "ps.fullname" $glob)) }}
-{{- else }}
-  emptyDir: {}
-{{- end }}
-{{- end }}
-{{- end }}
-{{- end }}
-{{- end }}
-{{- end }}
-
-{{- define "app.volumesMounts" }}
-{{- $appName := .app }}
-{{- $ctx := .ctx }}
-{{- $glob := .glob }}
-{{- if .glob.Values._internal.volumes }}
-{{- if hasKey .glob.Values._internal.volumes $appName }}
-{{- with (index .glob.Values._internal.volumes $appName) }}
-{{- range $key, $value := . }}
-- name: {{ $key }}
-  mountPath: {{ $value.mountPath }}
-{{- end }}
-{{- end }}
-{{- end }}
-{{- end }}
-{{- end }}
-
 {{- define "app.s3Storage.configMap" }}
 {{- $ctx := .ctx }}
 {{- $glob := .glob }}
@@ -227,9 +180,6 @@ name: configurator
 image: {{ .Values.repository.baseurl }}/ps-configurator:{{ .Values.repository.tag }}
 imagePullPolicy: {{ .Values.repository.imagePullPolicy }}
 terminationMessagePolicy: FallbackToLogsOnError
-volumeMounts:
-- name: configs
-  mountPath: /configs
 env:
 - name: VERIFY_SSL
   value: {{ .Values.security.verifySSL | quote }}
