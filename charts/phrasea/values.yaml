@@ -121,6 +121,9 @@ novu:
 
 databox:
   enabled: true
+  cronJob:
+    enabled: true
+    schedule: '0 3 * * *' # Daily at 3am
   api:
     replicas: 1
     ingress:
