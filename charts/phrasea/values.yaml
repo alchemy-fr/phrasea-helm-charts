@@ -521,12 +521,6 @@ _internal:
   - expose
   - uploader
   - dashboard
-  volumes:
-#    uploader:
-#      data:
-#        name: uploader-data
-#        mountPath: /var/data/upload
-#        uid: 1000
 
 elasticsearch:
   enabled: true

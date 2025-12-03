@@ -14,8 +14,6 @@ spec:
       labels:
         app: phrasea
         tier: novu-bridge
-      annotations:
-        {{- include "annotation.checksum.configs" $ | indent 8 }}
     spec:
       {{ include "imagePullSecrets" $ | indent 6 }}
       {{- if $.Values.nodeSelector }}

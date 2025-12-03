@@ -23,9 +23,6 @@ spec:
       {{- if $.Values.nodeSelector }}
       nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 8 }}
       {{- end }}
-      volumes:
-{{- include "volumes.configs" $ | indent 6 }}
-{{- include "app.volumes" $tplArgs | indent 6 }}
       containers:
       - name: {{ $appName }}-worker
         image: {{ $.Values.repository.baseurl }}/ps-{{ $appName }}-worker:{{ $.Values.repository.tag }}
@@ -40,10 +37,6 @@ spec:
             cpu: {{(index $.Values $appName).worker.resources.limits.cpu}}
         {{- end }}
         terminationMessagePolicy: FallbackToLogsOnError
-        volumeMounts:
-        - name: configs
-          mountPath: /configs
-{{- include "app.volumesMounts" $tplArgs | indent 8 }}
         env:
         {{- if (eq "databox" $appName) }}
         - name: SECRETS_SECRET_KEY

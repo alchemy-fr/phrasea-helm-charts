@@ -17,9 +17,6 @@ spec:
           {{- if $.Values.nodeSelector }}
           nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 12 }}
           {{- end }}
-          volumes:
-            {{- include "volumes.configs" $ | indent 12 }}
-            {{- include "app.volumes" $tplArgs | indent 12 }}
           containers:
           - name: {{ $appName }}-api-php
             image: {{ $.Values.repository.baseurl }}/ps-{{ $appName }}-api-php:{{ $.Values.repository.tag }}
@@ -27,10 +24,6 @@ spec:
             command:
               - bin/console
               - app:matomo:sync-phraseanet
-            volumeMounts:
-            - name: configs
-              mountPath: /configs
-            {{- include "app.volumesMounts" $tplArgs | indent 12 }}
             env:
             {{- include "envRef.phpApp" $tplArgs | indent 12 }}
             envFrom:

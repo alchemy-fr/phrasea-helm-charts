@@ -17,19 +17,12 @@ spec:
       {{- if $.Values.nodeSelector }}
       nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 8 }}
       {{- end }}
-      volumes:
-      {{- include "volumes.configs" $ | indent 6 }}
-      {{- include "app.volumes" $tplArgs | indent 6 }}
       containers:
       - name: {{ $appName }}-php-job
         image: {{ $.Values.repository.baseurl }}/ps-{{ $appName }}-api-php:{{ $.Values.repository.tag }}
         imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
         args: ["bin/migrate.sh"]
         terminationMessagePolicy: FallbackToLogsOnError
-        volumeMounts:
-        - name: configs
-          mountPath: /configs
-        {{- include "app.volumesMounts" $tplArgs | indent 8 }}
         env:
         {{- include "envRef.phpApp" $tplArgs | indent 8 }}
         envFrom:
