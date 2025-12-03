@@ -1,2 +1,4 @@
 charts/elasticsearch*
+charts/kibana*
+charts/logstash*
 charts/zippy*
