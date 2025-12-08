@@ -533,6 +533,7 @@ elasticsearch:
   url:
   indexPrefix: ""
   volumeClaimTemplate:
+    storageClassName:
     resources:
       requests:
         storage: 5Gi
