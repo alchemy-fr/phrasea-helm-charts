@@ -1,0 +1,44 @@
+{{- range .Values._internal.services }}
+{{- $appName := . }}
+{{- if and $.Values.stack.running (index $.Values $appName).enabled }}
+{{- if and (index $.Values $appName).cronJob (index $.Values $appName).cronJob.enabled }}
+{{- with (index $.Values $appName) }}
+{{- $tplArgs := dict "app" $appName "ctx" . "glob" $ }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ $appName }}-cron
+spec:
+  schedule: {{ (index $.Values $appName).cronJob.schedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          {{- include "imagePullSecrets" $ | indent 10 }}
+          {{- if $.Values.nodeSelector }}
+          nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 12 }}
+          {{- end }}
+          containers:
+          - name: {{ $appName }}-cronjob
+            image: {{ $.Values.repository.baseurl }}/ps-{{ $appName }}-worker:{{ $.Values.repository.tag }}
+            imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
+            args: ["bin/cron-script.sh"]
+            terminationMessagePolicy: FallbackToLogsOnError
+            env:
+            {{- include "envRef.phpApp" $tplArgs | indent 12 }}
+            envFrom:
+            {{- include "envFrom.phpApp" $ | indent 12 }}
+            {{- include "envFrom.rabbitmq" $ | indent 12 }}
+            {{- include "envFrom.postgresql" $ | indent 12 }}
+            {{- if .adminOAuthClient }}
+            - secretRef:
+                name: {{ .adminOAuthClient.externalSecretName | default (printf "%s-admin-oauth-client-secret" $appName) }}
+            {{- end }}
+            - configMapRef:
+                name: {{ $appName }}-api-config
+          restartPolicy: Never
+---
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

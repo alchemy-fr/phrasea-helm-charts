@@ -16,3 +16,12 @@ Phrasea is the modern descendant of Phraseanet, representing a complete rewrite 
 
 Each chart includes a `values.yaml` file, which you can customize according to your needs. For detailed configuration options, it is recommended to review the specific documentation of each chart.
 
+# Test chart syntax
+
+Run the following command to test the chart locally with Helm:
+
+```bash
+cd charts/phrasea
+helm dependency build
+helm template --debug my-phrasea-release --values=.dummy.values.yaml .
+```
