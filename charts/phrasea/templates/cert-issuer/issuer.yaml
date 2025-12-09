@@ -3,7 +3,7 @@
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
-  name: {{ template "ps.fullname" $ }}-letsencrypt
+  name: {{ required "Missing acme.clusterIssuerName" .clusterIssuerName }}-letsencrypt
 spec:
   acme:
     email: {{ required "Missing acme.email" .email | quote }}

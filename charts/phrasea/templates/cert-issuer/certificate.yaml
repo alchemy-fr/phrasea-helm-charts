@@ -9,7 +9,7 @@ spec:
     - '*.{{ required "Missing acme.rootHost" .rootHost }}'
     - {{ required "Missing acme.rootHost" .rootHost | quote }}
   issuerRef:
-    name: {{ template "ps.fullname" $ }}-letsencrypt
+    name: {{ required "Missing acme.clusterIssuerName" $.Values.acme.clusterIssuerName }}-letsencrypt
     kind: ClusterIssuer
   secretName: wildcard-tls
 {{- end }}
