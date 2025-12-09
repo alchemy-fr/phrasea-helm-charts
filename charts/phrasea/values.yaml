@@ -8,6 +8,7 @@ acme:
   email:
   production: false
   rootHost:
+  clusterIssuerName: "phrasea"  # ClusterIssuer name prefix (will be suffixed with -letsencrypt) - change this to deploy multiple instances on the same cluster
   gandi:
     apiToken:
 
@@ -43,7 +44,7 @@ configurator:
     bucketName: config
     # Can be used to support a single CloudFront distribution with multiple origins
     pathPrefix: ''
-    usePathStyleEndpoint: false
+    usePathStyleEndpoint: false # for a local minio setup, set this to false
     accessKey:
     secretKey:
     externalSecretKey:
@@ -90,6 +91,7 @@ keycloak:
     name: keycloak
   hostname:
   baseUrl:
+  internalBaseUrl:
   ingress:
     enabled: true
     annotations:
@@ -151,7 +153,7 @@ databox:
         bucketName: databox
         # Can be used to support a single CloudFront distribution with multiple origins
         pathPrefix: ''
-        usePathStyleEndpoint: false
+        usePathStyleEndpoint: false # for a local minio setup, set this to false
         accessKey:
         secretKey:
         externalSecretKey:
@@ -249,7 +251,7 @@ expose:
         bucketName: expose
         # Can be used to support a single CloudFront distribution with multiple origins
         pathPrefix: ''
-        usePathStyleEndpoint: false
+        usePathStyleEndpoint: false # for a local minio setup, set this to false
         accessKey:
         secretKey:
         externalSecretKey:
@@ -341,7 +343,7 @@ uploader:
         bucketName: uploader-deposit
         # Can be used to support a single CloudFront distribution with multiple origins
         pathPrefix: ''
-        usePathStyleEndpoint: false
+        usePathStyleEndpoint: false # for a local minio setup, set this to false
         accessKey:
         secretKey:
         externalSecretKey:
@@ -553,12 +555,19 @@ zippy:
 soketi:
   enabled: true
   fullnameOverride: phrasea-soketi
+  livenessProbe: null
+  readinessProbe: null
   host:
   appId: phrasea
   key:
   secret:
   service:
     port: 80
+  persistence:
+    enabled: false
+    storageClass:
+    accessMode: ReadWriteOnce
+    size: 1Gi
   app:
     extraEnv:
      - name: SOKETI_DEFAULT_APP_ID
