@@ -588,6 +588,8 @@ zippy:
 soketi:
   enabled: true
   fullnameOverride: phrasea-soketi
+  livenessProbe: null
+  readinessProbe: null
   host:
   appId: phrasea
   key:
