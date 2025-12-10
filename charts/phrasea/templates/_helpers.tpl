@@ -181,6 +181,8 @@ image: {{ .Values.repository.baseurl }}/ps-configurator:{{ .Values.repository.ta
 imagePullPolicy: {{ .Values.repository.imagePullPolicy }}
 terminationMessagePolicy: FallbackToLogsOnError
 env:
+- name: PHRASEA_DOMAIN
+  value: {{ .Values.stack.domain | quote }}
 - name: VERIFY_SSL
   value: {{ .Values.security.verifySSL | quote }}
 - name: VERIFY_HOST

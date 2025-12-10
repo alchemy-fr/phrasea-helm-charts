@@ -19,7 +19,7 @@ security:
 stack:
   # __SET_ME__ Custom stack name to distinguish multiple stacks
   name:
-  # Not implemented yet
+  # __SET_ME__ Used to define the domain for the default admin user.
   domain: 
   running: true
   runSetups: true
@@ -88,7 +88,8 @@ keycloak:
     # __SET_ME__
     password: __CHANGE_ME_obIaHz6cVTkQKHqLBj 
   defaultAdmin:
-    username: phrasea-admin
+    # __SET_ME__ - username must be in email format OR define stack.domain to auto-generate it
+    username: phrasea-admin@xxx.zz
     # __SET_ME__
     password: __CHANGE_ME_KFBsKzc7RupJhXkr
   database:
