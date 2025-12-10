@@ -30,7 +30,7 @@ spec:
         - /bin/sh
         - -c
         - |
-          set -e
+          set +e
           ELASTICSEARCH_URL=${ELASTICSEARCH_URL}
           PREFIX=${ELASTICSEARCH_INDEX_PREFIX}
 

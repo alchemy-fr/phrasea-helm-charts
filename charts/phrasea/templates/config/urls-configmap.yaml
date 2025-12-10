@@ -7,6 +7,7 @@ data:
   STACK_VERSION: {{ .Values.repository.tag | quote }}
   REPORT_API_URL: {{ required "Missing report.api.baseUrl" .Values.report.api.baseUrl | quote }}
   KEYCLOAK_URL: {{ required "Missing keycloak.baseUrl" .Values.keycloak.baseUrl | quote }}
+  KEYCLOAK_INTERNAL_URL: {{ required "Missing keycloak.internalBaseUrl" .Values.keycloak.internalBaseUrl | quote }}
   KEYCLOAK_REALM_NAME: {{ required "Missing mailer.dsn value" .Values.keycloak.realm.name | quote }}
   EXPOSE_API_URL: {{ required "Missing expose.api.baseUrl" .Values.expose.api.baseUrl | quote }}
   EXPOSE_CLIENT_URL: {{ required "Missing expose.client.baseUrl" .Values.expose.client.baseUrl | quote }}
