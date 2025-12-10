@@ -588,19 +588,12 @@ zippy:
 soketi:
   enabled: true
   fullnameOverride: phrasea-soketi
-  livenessProbe: null
-  readinessProbe: null
   host:
   appId: phrasea
   key:
   secret:
   service:
     port: 80
-  persistence:
-    enabled: false
-    storageClass:
-    accessMode: ReadWriteOnce
-    size: 1Gi
   app:
     extraEnv:
      - name: SOKETI_DEFAULT_APP_ID
