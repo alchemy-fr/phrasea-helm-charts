@@ -1,6 +1,6 @@
 repository:
   baseurl: alchemyfr
-  tag: latest
+  tag: latest # __SET_ME__ for a fixed version
   imagePullPolicy: IfNotPresent
 
 acme:
@@ -17,8 +17,8 @@ security:
   verifyHost: true
 
 stack:
-  # Custom stack name to distinguish multiple stacks
-  name:
+  name: # __SET_ME__ Custom stack name to distinguish multiple stacks
+  domain: # __SET_ME__ Custom stack name to distinguish multiple stacks
   running: true
   runSetups: true
   runMigrations: true
@@ -44,7 +44,7 @@ configurator:
     bucketName: config
     # Can be used to support a single CloudFront distribution with multiple origins
     pathPrefix: ''
-    usePathStyleEndpoint: false # for a local minio setup, set this to false
+    usePathStyleEndpoint: false # __SET_ME__ for a local minio setup, set this to false 
     accessKey:
     secretKey:
     externalSecretKey:
@@ -63,7 +63,7 @@ keycloak:
     loginRememberMeAllowed: true
     loginWithEmailAllowed: true
     loginVerifyEmailAllowed: true
-    loginEmailAsUsername: true
+    loginEmailAsUsername: false
     loginEditUsername: false
     ssoSessionIdleTimeout: "28800"
     ssoSessionMaxLifespan: "43200"
@@ -82,16 +82,16 @@ keycloak:
   autoConnectIdP:
   masterAdmin:
     username: admin
-    password: __CHANGE_ME_obIaHz6cVTkQKHqLBj
+    password: __CHANGE_ME_obIaHz6cVTkQKHqLBj # __SET_ME__
   defaultAdmin:
     username: phrasea-admin
-    password: __CHANGE_ME_KFBsKzc7RupJhXkr
+    password: __CHANGE_ME_KFBsKzc7RupJhXkr # __SET_ME__
   database:
     create: true
     name: keycloak
-  hostname:
-  baseUrl:
-  internalBaseUrl:
+  hostname: # __SET_ME__
+  baseUrl: # __SET_ME__
+  internalBaseUrl: http://keycloak
   ingress:
     enabled: true
     annotations:
@@ -108,8 +108,8 @@ auth:
 novu:
   enabled: true
   bridge:
-    hostname:
-    baseUrl:
+    hostname: # __SET_ME__
+    baseUrl:  # __SET_ME__
     ingress:
       enabled: true
       annotations: {}
@@ -135,8 +135,8 @@ databox:
       extraLabels: {}
       maxBodySize: 2G
       tls: []
-    hostname:
-    baseUrl:
+    hostname: # __SET_ME__
+    baseUrl: # __SET_ME__
     ressourcesquota: false
     resources:
       requests:
@@ -153,7 +153,7 @@ databox:
         bucketName: databox
         # Can be used to support a single CloudFront distribution with multiple origins
         pathPrefix: ''
-        usePathStyleEndpoint: false # for a local minio setup, set this to false
+        usePathStyleEndpoint: false # for a local minio setup, set this to false , for an external object storage, like aws S3 set this to true
         accessKey:
         secretKey:
         externalSecretKey:
@@ -177,8 +177,8 @@ databox:
     id: databox-admin
     secret: '__CHANGE_ME_9jZuZqkwf9qW881jTqG'
   client:
-    hostname:
-    baseUrl:
+    hostname: # __SET_ME__
+    baseUrl: # __SET_ME__
     ingress:
       enabled: true
       annotations: {}
@@ -233,8 +233,8 @@ expose:
       extraLabels: {}
       maxBodySize: 22G
       tls: []
-    hostname:
-    baseUrl:
+    hostname: # __SET_ME__
+    baseUrl: # __SET_ME__
     ressourcesquota: false
     resources:
       requests:
@@ -282,8 +282,8 @@ expose:
         cpu: "2000m"
         memory: "2048Mi"
   client:
-    hostname:
-    baseUrl:
+    hostname: # __SET_ME__
+    baseUrl:  # __SET_ME__
     ingress:
       enabled: true
       annotations: {}
@@ -321,8 +321,8 @@ uploader:
       extraLabels: {}
       maxBodySize: 22G
       tls: []
-    hostname:
-    baseUrl:
+    hostname: # __SET_ME__
+    baseUrl: # __SET_ME__
     ressourcesquota: false
     resources:
       requests:
@@ -365,8 +365,8 @@ uploader:
         cpu: "2000m"
         memory: "2048Mi"
   client:
-    hostname:
-    baseUrl:
+    hostname: # __SET_ME__
+    baseUrl: # __SET_ME__
     ingress:
       enabled: true
       annotations: {}
@@ -387,8 +387,8 @@ report:
   enabled: true
   replicas: 1
   api:
-    hostname: report-api
-    baseUrl: http://report-api
+    hostname: report-api # __SET_ME__
+    baseUrl: http://report-api  # __SET_ME__
     ressourcesquota: false
     resources:
       requests:
@@ -403,8 +403,8 @@ report:
 dashboard:
   enabled: true
   menuEnabled: true
-  hostname:
-  baseUrl:
+  hostname: # __SET_ME__
+  baseUrl: # __SET_ME__
   ingress:
     enabled: true
     annotations: {}
@@ -474,8 +474,8 @@ rabbitmq:
 
 minio:
   enabled: true
-  hostname:
-  baseUrl:
+  hostname: # __SET_ME__
+  baseUrl:  # __SET_ME__
   accessKey: '__CHANGE_ME_jw2G5OskVG2VVXIyHsuQJIo'
   secretKey: '__CHANGE_ME_bIYN#LuI9$ED9B0ck2scn'
   ingress:
@@ -543,8 +543,8 @@ elasticsearch:
 zippy:
   enabled: true
   ingress:
-    baseUrl: ""
-    hostname: ""
+    baseUrl: "" # __SET_ME__
+    hostname: "" # __SET_ME__
   rabbitmq:
     enabled: false
     username: phrasea
