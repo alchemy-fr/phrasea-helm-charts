@@ -18,7 +18,7 @@ security:
 
 stack:
   name: # __SET_ME__ Custom stack name to distinguish multiple stacks
-  domain: # __SET_ME__ Custom stack name to distinguish multiple stacks
+  domain: # Not implemented yet
   running: true
   runSetups: true
   runMigrations: true
@@ -44,7 +44,7 @@ configurator:
     bucketName: config
     # Can be used to support a single CloudFront distribution with multiple origins
     pathPrefix: ''
-    usePathStyleEndpoint: false # __SET_ME__ for a local minio setup, set this to false 
+    usePathStyleEndpoint: true # true for a local minio, false for an external object storage
     accessKey:
     secretKey:
     externalSecretKey:
@@ -153,7 +153,7 @@ databox:
         bucketName: databox
         # Can be used to support a single CloudFront distribution with multiple origins
         pathPrefix: ''
-        usePathStyleEndpoint: false # for a local minio setup, set this to false , for an external object storage, like aws S3 set this to true
+        usePathStyleEndpoint: true # true for a local minio, false for an external object storage
         accessKey:
         secretKey:
         externalSecretKey:
@@ -251,7 +251,7 @@ expose:
         bucketName: expose
         # Can be used to support a single CloudFront distribution with multiple origins
         pathPrefix: ''
-        usePathStyleEndpoint: false # for a local minio setup, set this to false
+        usePathStyleEndpoint: true # true for a local minio, false for an external object storage
         accessKey:
         secretKey:
         externalSecretKey:
@@ -343,7 +343,7 @@ uploader:
         bucketName: uploader-deposit
         # Can be used to support a single CloudFront distribution with multiple origins
         pathPrefix: ''
-        usePathStyleEndpoint: false # for a local minio setup, set this to false
+        usePathStyleEndpoint: true # true for a local minio, false for an external object storage
         accessKey:
         secretKey:
         externalSecretKey:
