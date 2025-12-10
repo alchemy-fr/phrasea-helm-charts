@@ -3,7 +3,7 @@
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {{ template "ps.fullname" $ }}-{{ $.Values.acme.clusterIssuerName }}-gandi-credentials
+  name: {{ template "ps.fullname" $ }}-gandi-credentials
   namespace: cert-manager
 stringData:
   api-token: {{ required "Missing acme.gandi.apiToken" .apiToken | quote }}

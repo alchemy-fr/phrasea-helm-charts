@@ -1,6 +1,7 @@
 repository:
   baseurl: alchemyfr
-  tag: latest # __SET_ME__ for a fixed version
+  # __SET_ME__ for a fixed version
+  tag: latest 
   imagePullPolicy: IfNotPresent
 
 acme:
@@ -8,7 +9,6 @@ acme:
   email:
   production: false
   rootHost:
-  clusterIssuerName: "phrasea"  # ClusterIssuer name prefix (will be suffixed with -letsencrypt) - change this to deploy multiple instances on the same cluster
   gandi:
     apiToken:
 
@@ -17,8 +17,10 @@ security:
   verifyHost: true
 
 stack:
-  name: # __SET_ME__ Custom stack name to distinguish multiple stacks
-  domain: # Not implemented yet
+  # __SET_ME__ Custom stack name to distinguish multiple stacks
+  name:
+  # Not implemented yet
+  domain: 
   running: true
   runSetups: true
   runMigrations: true
@@ -44,7 +46,8 @@ configurator:
     bucketName: config
     # Can be used to support a single CloudFront distribution with multiple origins
     pathPrefix: ''
-    usePathStyleEndpoint: true # true for a local minio, false for an external object storage
+    # true for a local minio, false for an external object storage
+    usePathStyleEndpoint: true 
     accessKey:
     secretKey:
     externalSecretKey:
@@ -82,15 +85,19 @@ keycloak:
   autoConnectIdP:
   masterAdmin:
     username: admin
-    password: __CHANGE_ME_obIaHz6cVTkQKHqLBj # __SET_ME__
+    # __SET_ME__
+    password: __CHANGE_ME_obIaHz6cVTkQKHqLBj 
   defaultAdmin:
     username: phrasea-admin
-    password: __CHANGE_ME_KFBsKzc7RupJhXkr # __SET_ME__
+    # __SET_ME__
+    password: __CHANGE_ME_KFBsKzc7RupJhXkr
   database:
     create: true
     name: keycloak
-  hostname: # __SET_ME__
-  baseUrl: # __SET_ME__
+  # __SET_ME__
+  hostname:
+  # __SET_ME__
+  baseUrl: 
   internalBaseUrl: http://keycloak
   ingress:
     enabled: true
@@ -108,8 +115,10 @@ auth:
 novu:
   enabled: true
   bridge:
-    hostname: # __SET_ME__
-    baseUrl:  # __SET_ME__
+    # __SET_ME__
+    hostname:
+    # __SET_ME__
+    baseUrl:
     ingress:
       enabled: true
       annotations: {}
@@ -125,7 +134,8 @@ databox:
   enabled: true
   cronJob:
     enabled: true
-    schedule: '0 3 * * *' # Daily at 3am
+    # Daily at 3am
+    schedule: '0 3 * * *'
   api:
     replicas: 1
     ingress:
@@ -135,8 +145,10 @@ databox:
       extraLabels: {}
       maxBodySize: 2G
       tls: []
-    hostname: # __SET_ME__
-    baseUrl: # __SET_ME__
+    # __SET_ME__
+    hostname:
+    # __SET_ME__
+    baseUrl:
     ressourcesquota: false
     resources:
       requests:
@@ -153,7 +165,8 @@ databox:
         bucketName: databox
         # Can be used to support a single CloudFront distribution with multiple origins
         pathPrefix: ''
-        usePathStyleEndpoint: true # true for a local minio, false for an external object storage
+        # true for a local minio, false for an external object storage
+        usePathStyleEndpoint: true
         accessKey:
         secretKey:
         externalSecretKey:
@@ -177,8 +190,10 @@ databox:
     id: databox-admin
     secret: '__CHANGE_ME_9jZuZqkwf9qW881jTqG'
   client:
-    hostname: # __SET_ME__
-    baseUrl: # __SET_ME__
+    # __SET_ME__
+    hostname:
+    # __SET_ME__
+    baseUrl:
     ingress:
       enabled: true
       annotations: {}
@@ -233,8 +248,10 @@ expose:
       extraLabels: {}
       maxBodySize: 22G
       tls: []
-    hostname: # __SET_ME__
-    baseUrl: # __SET_ME__
+    # __SET_ME__
+    hostname:
+    # __SET_ME__
+    baseUrl:
     ressourcesquota: false
     resources:
       requests:
@@ -251,7 +268,8 @@ expose:
         bucketName: expose
         # Can be used to support a single CloudFront distribution with multiple origins
         pathPrefix: ''
-        usePathStyleEndpoint: true # true for a local minio, false for an external object storage
+        # true for a local minio, false for an external object storage
+        usePathStyleEndpoint: true
         accessKey:
         secretKey:
         externalSecretKey:
@@ -282,8 +300,10 @@ expose:
         cpu: "2000m"
         memory: "2048Mi"
   client:
-    hostname: # __SET_ME__
-    baseUrl:  # __SET_ME__
+    # __SET_ME__
+    hostname:
+    # __SET_ME__
+    baseUrl:
     ingress:
       enabled: true
       annotations: {}
@@ -321,8 +341,10 @@ uploader:
       extraLabels: {}
       maxBodySize: 22G
       tls: []
-    hostname: # __SET_ME__
-    baseUrl: # __SET_ME__
+    # __SET_ME__  
+    hostname:
+    # __SET_ME__
+    baseUrl:
     ressourcesquota: false
     resources:
       requests:
@@ -343,7 +365,8 @@ uploader:
         bucketName: uploader-deposit
         # Can be used to support a single CloudFront distribution with multiple origins
         pathPrefix: ''
-        usePathStyleEndpoint: true # true for a local minio, false for an external object storage
+        # true for a local minio, false for an external object storage
+        usePathStyleEndpoint: true
         accessKey:
         secretKey:
         externalSecretKey:
@@ -365,8 +388,10 @@ uploader:
         cpu: "2000m"
         memory: "2048Mi"
   client:
-    hostname: # __SET_ME__
-    baseUrl: # __SET_ME__
+    # __SET_ME__
+    hostname:
+    # __SET_ME__
+    baseUrl:
     ingress:
       enabled: true
       annotations: {}
@@ -387,8 +412,10 @@ report:
   enabled: true
   replicas: 1
   api:
-    hostname: report-api # __SET_ME__
-    baseUrl: http://report-api  # __SET_ME__
+    # __SET_ME__
+    hostname: report-api
+    # __SET_ME__
+    baseUrl: http://report-api
     ressourcesquota: false
     resources:
       requests:
@@ -403,8 +430,10 @@ report:
 dashboard:
   enabled: true
   menuEnabled: true
-  hostname: # __SET_ME__
-  baseUrl: # __SET_ME__
+  # __SET_ME__
+  hostname:
+  # __SET_ME__
+  baseUrl:
   ingress:
     enabled: true
     annotations: {}
@@ -474,8 +503,10 @@ rabbitmq:
 
 minio:
   enabled: true
-  hostname: # __SET_ME__
-  baseUrl:  # __SET_ME__
+  # __SET_ME__
+  hostname:
+  # __SET_ME__
+  baseUrl:
   accessKey: '__CHANGE_ME_jw2G5OskVG2VVXIyHsuQJIo'
   secretKey: '__CHANGE_ME_bIYN#LuI9$ED9B0ck2scn'
   ingress:
@@ -543,8 +574,10 @@ elasticsearch:
 zippy:
   enabled: true
   ingress:
-    baseUrl: "" # __SET_ME__
-    hostname: "" # __SET_ME__
+    # __SET_ME__
+    baseUrl: ""
+    # __SET_ME__
+    hostname: ""
   rabbitmq:
     enabled: false
     username: phrasea
