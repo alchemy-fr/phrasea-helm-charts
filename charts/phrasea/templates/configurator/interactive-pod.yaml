@@ -1,0 +1,60 @@
+{{- if .Values.configurator.interactivePod.enabled }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: configurator-interactive
+  labels:
+    app: phrasea
+    tier: configurator-interactive
+spec:
+  {{- include "imagePullSecrets" . | indent 2 }}
+  {{- if .Values.nodeSelector }}
+  nodeSelector: {{ toYaml .Values.nodeSelector | nindent 4 }}
+  {{- end }}
+  containers:
+  - name: configurator-interactive
+    image: {{ .Values.repository.baseurl }}/ps-configurator:{{ .Values.repository.tag }}
+    imagePullPolicy: {{ .Values.repository.imagePullPolicy }}
+    stdin: true
+    stdinOnce: false
+    tty: true
+    command: ["/bin/sh"]
+    env:
+    - name: PS_HOST
+      valueFrom:
+        configMapKeyRef:
+          name: urls-config
+          key: PS_HOST
+    - name: RABBITMQ_HOST
+      value: {{ .Values.rabbitmq.host }}
+    - name: RABBITMQ_PORT
+      value: {{ .Values.rabbitmq.port | quote }}
+    - name: RABBITMQ_USER
+      valueFrom:
+        secretKeyRef:
+          name: {{ .Values.rabbitmq.externalSecretName | default "rabbitmq-secret" }}
+          key: RABBITMQ_USER
+    - name: RABBITMQ_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: {{ .Values.rabbitmq.externalSecretName | default "rabbitmq-secret" }}
+          key: RABBITMQ_PASSWORD
+    - name: POSTGRES_HOST
+      value: {{ .Values.postgresql.host }}
+    - name: POSTGRES_PORT
+      value: {{ .Values.postgresql.port | quote }}
+    - name: POSTGRES_USER
+      valueFrom:
+        secretKeyRef:
+          name: {{ .Values.postgresql.externalSecretName | default "postgresql-secret" }}
+          key: POSTGRES_USER
+    - name: POSTGRES_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: {{ .Values.postgresql.externalSecretName | default "postgresql-secret" }}
+          key: POSTGRES_PASSWORD
+    envFrom:
+    - configMapRef:
+        name: php-config
+  restartPolicy: Never
+{{- end }}
