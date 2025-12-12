@@ -128,7 +128,9 @@ novu:
   dashboardUrl: https://dashboard.novu.co
   apiHost: api.novu.co
   wsUrl: https://ws.novu.co
+  # __SET_ME__
   applicationIdentifier:
+  # __SET_ME__
   secretKey:
 
 databox:
@@ -184,7 +186,9 @@ databox:
         baseUrl:
         oauthToken:
       secrets:
+        # __SET_ME__
         publicKey:
+        # __SET_ME__
         secretKey:
   adminOAuthClient:
     externalSecretName:
@@ -528,6 +532,7 @@ minio:
     subPath:
   console:
     enabled: true
+    # __SET_ME__
     hostname:
     ingress:
       enabled: true
@@ -535,6 +540,7 @@ minio:
       extraLabels: {}
       tls: []
 
+# __SET_ME__ 
 ingress:
   tls:
     wildcard:
@@ -591,9 +597,12 @@ soketi:
   fullnameOverride: phrasea-soketi
   livenessProbe: null
   readinessProbe: null
+  # __SET_ME__
   host:
   appId: phrasea
+  # __SET_ME__
   key:
+  # __SET_ME__
   secret:
   service:
     port: 80
