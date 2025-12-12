@@ -504,7 +504,7 @@ rabbitmq:
     annotations: {}
     accessMode: ReadWriteOnce
     size: 20Gi
-    subPath:
+    subPath: ps_data
 
 minio:
   enabled: true
