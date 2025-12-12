@@ -647,7 +647,3 @@ ImageMagick:
     width: 48KP
     version: 7
 
-configurator:
-  interactivePod:
-    # Set to true to launch an interactive configurator pod for manual debugging/configuration
-    enabled: false
