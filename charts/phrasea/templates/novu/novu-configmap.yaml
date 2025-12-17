@@ -1,5 +1,4 @@
 {{- with .Values.novu }}
-{{- if .enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -15,5 +14,4 @@ data:
   NOVU_BRIDGE_URL: {{ required "Missing novu.bridge.baseUrl" .bridge.baseUrl | quote }}
   NOVU_WS_URL: {{ required "Missing novu.wsUrl" .wsUrl | quote }}
   NOVU_APPLICATION_IDENTIFIER: {{ required "Missing novu.applicationIdentifier" .applicationIdentifier | quote }}
-{{- end }}
 {{- end }}

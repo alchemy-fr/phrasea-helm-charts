@@ -36,8 +36,6 @@ spec:
         secretKeyRef:
           name: {{ .Values.postgresql.externalSecretName | default "postgresql-secret" }}
           key: POSTGRES_PASSWORD
-    - name: PGDATABASE
-      value: {{ .Values.configurator.database.name | quote }}
     envFrom:
     - configMapRef:
         name: php-config
