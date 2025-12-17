@@ -54,9 +54,10 @@ configurator:
     externalSecretMapping:
       accessKey: CONFIGURATOR_S3_ACCESS_KEY
       secretKey: CONFIGURATOR_S3_SECRET_KEY
-  interactivePod:
-    # Set to true to launch an interactive configurator pod for manual debugging/configuration
-    enabled: false
+
+interactivePod:
+  # Set to true to launch an interactive pod for debugging
+  enabled: false
 
 
 keycloak:
@@ -646,4 +647,3 @@ ImageMagick:
     map: 2GiB
     width: 48KP
     version: 7
-
