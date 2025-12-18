@@ -38,6 +38,8 @@ imagePullSecrets:
 {{- with .Values.ingress.tls.wildcard }}
 {{- if and .enabled .externalSecretName -}}
 {{- .externalSecretName -}}
+{{- else if $.Values.acme.enabled -}}
+{{- printf "%s-wildcard-tls" (include "ps.fullname" $) -}}
 {{- else -}}
 gateway-tls
 {{- end }}

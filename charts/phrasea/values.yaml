@@ -6,11 +6,56 @@ repository:
 
 acme:
   enabled: false
+  # Email for Let's Encrypt notifications
   email:
+  # Use production Let's Encrypt server (true) or staging (false)
   production: false
+  # Root domain for wildcard certificate (e.g., example.com generates *.example.com)
   rootHost:
+  # DNS provider for DNS-01 challenge (gandi, scaleway, route53, cloudflare)
+  provider: scaleway
+  
+  # Scaleway DNS configuration (https://www.scaleway.com/en/dns/)
+  scaleway:
+    # Scaleway Access Key (from IAM API Key)
+    accessKey:
+    # Scaleway Secret Key (from IAM API Key)
+    secretKey:
+    # Secret name if using existing secret
+    existingSecretName:
+    existingSecretAccessKeyKey: SCW_ACCESS_KEY
+    existingSecretSecretKeyKey: SCW_SECRET_KEY
+  
+  # Gandi LiveDNS v5 configuration
   gandi:
-    apiToken:
+    # Personal Access Token from https://account.gandi.net/en/users/USER/security
+    # Required permissions: "Manage domain name technical configurations"
+    personalAccessToken:
+    existingSecretName:
+    existingSecretKey: api-token
+  
+  # AWS Route53 configuration
+  route53:
+    region: eu-west-3
+    # IAM access key with Route53 permissions
+    accessKeyId:
+    secretAccessKey:
+    # Hosted Zone ID
+    hostedZoneId:
+    existingSecretName:
+    existingSecretKey: aws-credentials
+
+# __SET_ME__ TLS configuration
+ingress:
+  tls:
+    wildcard:
+      # Use cert-manager generated certificate default: phrasea-ps-wildcard-tls
+      externalSecretName:
+      enabled: false
+      # Use another generated certificate
+      crt:
+      key:
+
 
 security:
   verifySsl: true
@@ -545,12 +590,14 @@ minio:
       extraLabels: {}
       tls: []
 
-# __SET_ME__ 
+# __SET_ME__ TLS configuration
 ingress:
   tls:
     wildcard:
+      # Use cert-manager generated certificate eg: phrasea-ps-wildcard-tls
       externalSecretName:
       enabled: false
+      # Use another generated certificate
       crt:
       key:
 
