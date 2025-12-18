@@ -12,8 +12,8 @@ acme:
   production: false
   # Root domain for wildcard certificate (e.g., example.com generates *.example.com)
   rootHost:
-  # DNS provider for DNS-01 challenge (gandi, scaleway, route53, cloudflare)
-  provider: scaleway
+  # DNS provider for DNS-01 challenge (gandi, scaleway, route53)
+  provider:
   
   # Scaleway DNS configuration (https://www.scaleway.com/en/dns/)
   scaleway:
@@ -49,9 +49,10 @@ acme:
 ingress:
   tls:
     wildcard:
+      # set to true to enable TLS for wildcard domains (*.example.com)
+      enabled: false
       # Use cert-manager generated certificate default: phrasea-ps-wildcard-tls
       externalSecretName:
-      enabled: false
       # Use another generated certificate
       crt:
       key:
@@ -64,7 +65,7 @@ security:
 stack:
   # __SET_ME__ Custom stack name to distinguish multiple stacks
   name:
-  # __SET_ME__ Used to define the domain for the default admin user.
+  # __SET_ME__ Domain used to auto-generate all service URLs (e.g., example.com generates keycloak.example.com, databox.example.com, etc.)
   domain: 
   running: true
   runSetups: true
@@ -145,10 +146,8 @@ keycloak:
   database:
     create: true
     name: keycloak
-  # __SET_ME__
-  hostname:
-  # __SET_ME__
-  baseUrl: 
+  hostname: "keycloak.{{ .Values.stack.domain }}"
+  baseUrl: "https://keycloak.{{ .Values.stack.domain }}"
   internalBaseUrl: http://keycloak
   ingress:
     enabled: true
@@ -166,10 +165,8 @@ auth:
 novu:
   enabled: true
   bridge:
-    # __SET_ME__
-    hostname:
-    # __SET_ME__
-    baseUrl:
+    hostname: "bridge-novu.{{ .Values.stack.domain }}"
+    baseUrl: "https://bridge-novu.{{ .Values.stack.domain }}"
     ingress:
       enabled: true
       annotations: {}
@@ -198,10 +195,8 @@ databox:
       extraLabels: {}
       maxBodySize: 2G
       tls: []
-    # __SET_ME__
-    hostname:
-    # __SET_ME__
-    baseUrl:
+    hostname: "api-databox.{{ .Values.stack.domain }}"
+    baseUrl: "https://api-databox.{{ .Values.stack.domain }}"
     ressourcesquota: false
     resources:
       requests:
@@ -245,10 +240,8 @@ databox:
     id: databox-admin
     secret: '__CHANGE_ME_9jZuZqkwf9qW881jTqG'
   client:
-    # __SET_ME__
-    hostname:
-    # __SET_ME__
-    baseUrl:
+    hostname: "databox.{{ .Values.stack.domain }}"
+    baseUrl: "https://databox.{{ .Values.stack.domain }}"
     ingress:
       enabled: true
       annotations: {}
@@ -274,7 +267,7 @@ databox:
     uploaderTargetSlug: databox-uploader
   zippy:
     enabled: true
-    baseUrl: "{{ .Values.zippy.ingress.baseUrl }}"
+    baseUrl: "https://zippy.{{ .Values.stack.domain }}"
     clientId: databox
     clientSecret: __CHANGE_ME_MxWoVddUWq
   matomo:
@@ -303,10 +296,8 @@ expose:
       extraLabels: {}
       maxBodySize: 22G
       tls: []
-    # __SET_ME__
-    hostname:
-    # __SET_ME__
-    baseUrl:
+    hostname: "api-expose.{{ .Values.stack.domain }}"
+    baseUrl: "https://api-expose.{{ .Values.stack.domain }}"
     ressourcesquota: false
     resources:
       requests:
@@ -355,10 +346,8 @@ expose:
         cpu: "2000m"
         memory: "2048Mi"
   client:
-    # __SET_ME__
-    hostname:
-    # __SET_ME__
-    baseUrl:
+    hostname: "expose.{{ .Values.stack.domain }}"
+    baseUrl: "https://expose.{{ .Values.stack.domain }}"
     ingress:
       enabled: true
       annotations: {}
@@ -380,7 +369,7 @@ expose:
     name: expose
   zippy:
     enabled: true
-    baseUrl: "{{ .Values.zippy.ingress.baseUrl }}"
+    baseUrl: "https://zippy.{{ .Values.stack.domain }}"
     clientId: expose
     clientSecret: __CHANGE_ME_zEp1JbcjuQ
 
@@ -395,11 +384,9 @@ uploader:
         nginx.ingress.kubernetes.io/proxy-body-size: "22G"
       extraLabels: {}
       maxBodySize: 22G
-      tls: []
-    # __SET_ME__  
-    hostname:
-    # __SET_ME__
-    baseUrl:
+      tls: []  
+    hostname: "api-uploader.{{ .Values.stack.domain }}"
+    baseUrl: "https://api-uploader.{{ .Values.stack.domain }}"
     ressourcesquota: false
     resources:
       requests:
@@ -443,10 +430,8 @@ uploader:
         cpu: "2000m"
         memory: "2048Mi"
   client:
-    # __SET_ME__
-    hostname:
-    # __SET_ME__
-    baseUrl:
+    hostname: "uploader.{{ .Values.stack.domain }}"
+    baseUrl: "https://uploader.{{ .Values.stack.domain }}"
     ingress:
       enabled: true
       annotations: {}
@@ -467,9 +452,7 @@ report:
   enabled: true
   replicas: 1
   api:
-    # __SET_ME__
     hostname: report-api
-    # __SET_ME__
     baseUrl: http://report-api
     ressourcesquota: false
     resources:
@@ -485,10 +468,8 @@ report:
 dashboard:
   enabled: true
   menuEnabled: true
-  # __SET_ME__
-  hostname:
-  # __SET_ME__
-  baseUrl:
+  hostname: "dashboard.{{ .Values.stack.domain }}"
+  baseUrl: "https://dashboard.{{ .Values.stack.domain }}"
   ingress:
     enabled: true
     annotations: {}
@@ -502,6 +483,7 @@ dashboard:
     siteId:
     baseUrl:
 
+# __SET_ME__ Mailer configuration
 mailer:
   host:
   port: 
@@ -527,7 +509,7 @@ postgresql:
     annotations: {}
     accessMode: ReadWriteOnce
     size: 10Gi
-    subPath:
+    subPath: ps_data
 
 redis:
   enabled: true
@@ -558,11 +540,11 @@ rabbitmq:
 
 minio:
   enabled: true
+  hostname: "minio.{{ .Values.stack.domain }}"
+  baseUrl: "https://minio.{{ .Values.stack.domain }}"
   # __SET_ME__
-  hostname:
-  # __SET_ME__
-  baseUrl:
   accessKey: '__CHANGE_ME_jw2G5OskVG2VVXIyHsuQJIo'
+  # __SET_ME__
   secretKey: '__CHANGE_ME_bIYN#LuI9$ED9B0ck2scn'
   ingress:
     enabled: true
@@ -582,24 +564,12 @@ minio:
     subPath:
   console:
     enabled: true
-    # __SET_ME__
-    hostname:
+    hostname: "minio-console.{{ .Values.stack.domain }}"
     ingress:
       enabled: true
       annotations: {}
       extraLabels: {}
       tls: []
-
-# __SET_ME__ TLS configuration
-ingress:
-  tls:
-    wildcard:
-      # Use cert-manager generated certificate eg: phrasea-ps-wildcard-tls
-      externalSecretName:
-      enabled: false
-      # Use another generated certificate
-      crt:
-      key:
 
 globalConfig:
   externalConfigmapName:
@@ -634,9 +604,9 @@ zippy:
   enabled: true
   ingress:
     # __SET_ME__
-    baseUrl: ""
+    baseUrl:
     # __SET_ME__
-    hostname: ""
+    hostname:
   rabbitmq:
     enabled: false
     username: phrasea
@@ -649,8 +619,7 @@ soketi:
   fullnameOverride: phrasea-soketi
   livenessProbe: null
   readinessProbe: null
-  # __SET_ME__
-  host:
+  host: "soketi.{{ .Values.stack.domain }}"
   appId: phrasea
   # __SET_ME__
   key:

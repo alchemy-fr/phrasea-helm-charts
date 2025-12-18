@@ -194,19 +194,19 @@ env:
 - name: CONFIGURATOR_DB_NAME
   value: {{ .Values.configurator.database.name | quote }}
 - name: MAILER_HOST
-  value: {{ .Values.mailer.host | quote }}
+  value: {{ .Values.mailer.host | default "" | quote }}
 - name: MAILER_PORT
-  value: {{ .Values.mailer.port | quote }}
+  value: {{ .Values.mailer.port | default "" | quote }}
 - name: MAIL_FROM
-  value: {{ .Values.mailer.from | quote }}
+  value: {{ .Values.mailer.from | default "" | quote }}
 - name: MAIL_FROM_DISPLAY_NAME
   value: {{ .Values.mailer.fromDisplayName | default (printf " Phrasea No reply %s" .Values.stack.name) | quote }}
 - name: MAIL_REPLY_TO
-  value: {{ .Values.mailer.replyTo | quote }}
+  value: {{ .Values.mailer.replyTo | default "" | quote }}
 - name: MAIL_REPLY_TO_DISPLAY_NAME
-  value: {{ .Values.mailer.replyToDisplayName | quote }}
+  value: {{ .Values.mailer.replyToDisplayName | default "" | quote }}
 - name: MAIL_ENVELOPE_FROM
-  value: {{ .Values.mailer.envelopeFrom | quote }}
+  value: {{ .Values.mailer.envelopeFrom | default "" | quote }}
 - name: KC_REALM_HTML_DISPLAY_NAME
   value: {{ .Values.keycloak.realm.htmlDisplayName | quote }}
 - name: KC_REALM_SUPPORTED_LOCALES
