@@ -31,7 +31,7 @@ spec:
                 key: {{ .scaleway.existingSecretSecretKeyKey | default "SCW_SECRET_KEY" }}
         selector:
           dnsZones:
-            - {{ required "Missing acme.rootHost" .rootHost | quote }}
+            - {{ tpl (required "Missing acme.rootHost" .rootHost) $ | quote }}
 {{- end }}
 {{- end }}
 {{- end }}

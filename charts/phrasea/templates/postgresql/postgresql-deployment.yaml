@@ -1,5 +1,5 @@
 {{- with .Values.postgresql }}
-{{- if .enabled }}
+{{- if and $.Values.stack.running .enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:

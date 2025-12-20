@@ -1,8 +1,21 @@
 repository:
   baseurl: alchemyfr
   # __SET_ME__ for a fixed version
-  tag: latest 
+  tag: latest
   imagePullPolicy: IfNotPresent
+
+stack:
+  # __SET_ME__ Custom stack name to distinguish multiple stacks
+  name:
+  # __SET_ME__ Domain used to auto-generate all service URLs (e.g., example.com generates keycloak.example.com, databox.example.com, etc.)
+  domain: 
+  running: true
+  runSetups: true
+  runMigrations: true
+  runSynchronize: true
+
+# Override full name of the deployed resources (e.g., phrasea-stg) useful for multiple certbot in the same cluster.
+# fullnameOverride: phrasea-stg
 
 acme:
   enabled: false
@@ -11,7 +24,8 @@ acme:
   # Use production Let's Encrypt server (true) or staging (false)
   production: false
   # Root domain for wildcard certificate (e.g., example.com generates *.example.com)
-  rootHost:
+  # Uses stack.domain by default
+  rootHost: "{{ .Values.stack.domain }}"
   # DNS provider for DNS-01 challenge (gandi, scaleway, route53)
   provider:
   
@@ -51,9 +65,11 @@ ingress:
     wildcard:
       # set to true to enable TLS for wildcard domains (*.example.com)
       enabled: false
-      # Use cert-manager generated certificate default: phrasea-ps-wildcard-tls
+      # Name of the TLS secret containing the wildcard certificate
+      # Default: <release-name>-ps-wildcard-tls (e.g., phrasea-ps-wildcard-tls)
+      # With fullnameOverride: <fullnameOverride>-wildcard-tls (e.g., phrasea-stg-wildcard-tls)
       externalSecretName:
-      # Use another generated certificate
+      # Alternative: provide your own certificate and key
       crt:
       key:
 
@@ -62,15 +78,6 @@ security:
   verifySsl: true
   verifyHost: true
 
-stack:
-  # __SET_ME__ Custom stack name to distinguish multiple stacks
-  name:
-  # __SET_ME__ Domain used to auto-generate all service URLs (e.g., example.com generates keycloak.example.com, databox.example.com, etc.)
-  domain: 
-  running: true
-  runSetups: true
-  runMigrations: true
-  runSynchronize: true
 
 image:
   pullSecret:
@@ -157,7 +164,7 @@ keycloak:
     extraLabels: {}
     tls: []
   
-
+# __DEPRECATED__ keeped only for 2.0 migration purpose
 auth:
   database:
     name: auth
@@ -172,9 +179,9 @@ novu:
       annotations: {}
       extraLabels: {}
       tls: []
-  dashboardUrl: https://dashboard.novu.co
-  apiHost: api.novu.co
-  wsUrl: https://ws.novu.co
+  dashboardUrl: https://eu.dashboard-v2.novu.co
+  apiHost: eu.api.novu.co
+  wsUrl: https://eu.ws.novu.co
   # __SET_ME__
   applicationIdentifier:
   # __SET_ME__
@@ -622,9 +629,9 @@ soketi:
   host: "soketi.{{ .Values.stack.domain }}"
   appId: phrasea
   # __SET_ME__
-  key:
+  key: "__CHANGEME__k3yPhraseaSoketi"
   # __SET_ME__
-  secret:
+  secret: "__CHANGEME__s3cr3tPhraseaSoketi"
   service:
     port: 80
   app:

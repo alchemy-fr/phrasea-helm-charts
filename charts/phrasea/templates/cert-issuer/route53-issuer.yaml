@@ -34,7 +34,7 @@ spec:
             {{- end }}
         selector:
           dnsZones:
-            - {{ required "Missing acme.rootHost" .rootHost | quote }}
+            - {{ tpl (required "Missing acme.rootHost" .rootHost) $ | quote }}
 {{- end }}
 {{- end }}
 {{- end }}

@@ -10,8 +10,8 @@ metadata:
 spec:
   secretName: {{ template "ps.fullname" $ }}-wildcard-tls
   dnsNames:
-    - {{ required "Missing acme.rootHost" .rootHost | quote }}
-    - '*.{{ required "Missing acme.rootHost" .rootHost }}'
+    - {{ tpl (required "Missing acme.rootHost" .rootHost) $ | quote }}
+    - '*.{{ tpl (required "Missing acme.rootHost" .rootHost) $ }}'
   issuerRef:
     name: {{ template "ps.fullname" $ }}-letsencrypt
     kind: ClusterIssuer
