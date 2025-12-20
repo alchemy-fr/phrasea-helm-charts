@@ -1,4 +1,4 @@
-{{- if .Values.keycloak.enabled }}
+{{- if and .Values.keycloak.enabled $.Values.stack.running }}
 {{- if .Values.keycloak.database.create }}
 {{ $jobName := "create-keycloak-database" }}
 apiVersion: batch/v1
