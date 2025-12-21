@@ -37,8 +37,8 @@ acme:
     secretKey:
     # Secret name if using existing secret
     existingSecretName:
-    existingSecretAccessKeyKey: SCW_ACCESS_KEY
-    existingSecretSecretKeyKey: SCW_SECRET_KEY
+    existingSecretAccessKeyKey: 
+    existingSecretSecretKeyKey: 
   
   # Gandi LiveDNS v5 configuration
   gandi:
