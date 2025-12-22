@@ -94,7 +94,7 @@ configurator:
   database:
     name: configurator
   s3:
-    endpoint: "{{ .Values.minio.baseUrl }}"
+    endpoint: "https://minio.{{ .Values.stack.domain }}"
     region:
     bucketName: config
     # Can be used to support a single CloudFront distribution with multiple origins
@@ -144,7 +144,7 @@ keycloak:
   masterAdmin:
     username: admin
     # __SET_ME__
-    password: __CHANGE_ME_obIaHz6cVTkQKHqLBj 
+    password: __CHANGE_ME_obIaHz6cVTkQKHqLBj
   defaultAdmin:
     # __SET_ME__ - username must be in email format OR define stack.domain to auto-generate it
     username: phrasea-admin@xxx.zz
@@ -215,7 +215,7 @@ databox:
     config:
       requestSignatureTtl: 86400
       s3Storage:
-        endpoint: "{{ .Values.minio.baseUrl }}"
+        endpoint: "https://minio.{{ .Values.stack.domain }}"
         region:
         bucketName: databox
         # Can be used to support a single CloudFront distribution with multiple origins
@@ -239,9 +239,9 @@ databox:
         oauthToken:
       secrets:
         # __SET_ME__
-        publicKey:
+        publicKey: __CHANGE_ME__MIIBIjANBgkqh
         # __SET_ME__
-        secretKey:
+        secretKey: __CHANGE_ME__MIIEvQIBADANB
   adminOAuthClient:
     externalSecretName:
     id: databox-admin
@@ -316,7 +316,7 @@ expose:
     config:
       requestSignatureTtl: 86400
       s3Storage:
-        endpoint: "{{ .Values.minio.baseUrl }}"
+        endpoint: "https://minio.{{ .Values.stack.domain }}"
         region:
         bucketName: expose
         # Can be used to support a single CloudFront distribution with multiple origins
@@ -409,7 +409,7 @@ uploader:
       requestSignatureTtl: 3600
       allowedFileTypes: 'image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg),application/*(.pdf,.doc,.docx,.xls,.xlsx,.odt),video/*(.mpg,.mpeg,.mov,.avi,.mp3,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc)audio/*(.aac,.aiff,.wav)'
       s3Storage:
-        endpoint: "{{ .Values.minio.baseUrl }}"
+        endpoint: "https://minio.{{ .Values.stack.domain }}"
         region:
         bucketName: uploader-deposit
         # Can be used to support a single CloudFront distribution with multiple origins
