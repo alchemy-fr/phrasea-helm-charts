@@ -123,7 +123,7 @@ keycloak:
     loginResetPasswordAllowed: true
     loginRememberMeAllowed: true
     loginWithEmailAllowed: true
-    loginVerifyEmailAllowed: true
+    loginVerifyEmailAllowed: false
     loginEmailAsUsername: false
     loginEditUsername: false
     ssoSessionIdleTimeout: "28800"
