@@ -24,6 +24,15 @@ spec:
       - name: dashboard
         image: {{ $.Values.repository.baseurl }}/ps-dashboard:{{ $.Values.repository.tag }}
         imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
+        {{- if eq "true" (include "ps.resourcesquota" (dict "local" .resourcesquota "global" $.Values.resourcesquota)) }}
+        resources:
+          requests:
+            memory: {{ .resources.requests.memory | default "64Mi" }}
+            cpu: {{ .resources.requests.cpu | default "25m" }}
+          limits:
+            memory: {{ .resources.limits.memory | default "256Mi" }}
+            cpu: {{ .resources.limits.cpu | default "500m" }}
+        {{- end }}
         terminationMessagePolicy: FallbackToLogsOnError
         envFrom:
         - configMapRef:

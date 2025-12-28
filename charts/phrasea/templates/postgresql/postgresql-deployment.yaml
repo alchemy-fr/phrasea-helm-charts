@@ -29,6 +29,15 @@ spec:
       containers:
       - name: postgresql
         image: postgres:14.4-alpine
+        {{- if eq "true" (include "ps.resourcesquota" (dict "local" .resourcesquota "global" $.Values.resourcesquota)) }}
+        resources:
+          requests:
+            memory: {{ .resources.requests.memory | default "256Mi" }}
+            cpu: {{ .resources.requests.cpu | default "100m" }}
+          limits:
+            memory: {{ .resources.limits.memory | default "1Gi" }}
+            cpu: {{ .resources.limits.cpu | default "1000m" }}
+        {{- end }}
         terminationMessagePolicy: FallbackToLogsOnError
         volumeMounts:
         - name: data
@@ -41,5 +50,17 @@ spec:
         envFrom:
         - secretRef:
             name: {{ include "secretName.postgresql" $ }}
+        readinessProbe:
+          exec:
+            command:
+              - sh
+              - -c
+              - |
+                pg_isready -U $POSTGRES_USER -h 127.0.0.1 -p 5432
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 2
+          failureThreshold: 3
+          successThreshold: 1
 {{- end }}
 {{- end }}

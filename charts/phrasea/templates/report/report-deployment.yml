@@ -24,6 +24,15 @@ spec:
       - name: report-api
         image: {{ $.Values.repository.baseurl }}/ps-report-api:{{ $.Values.repository.tag }}
         imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
+        {{- if eq "true" (include "ps.resourcesquota" (dict "local" .api.resourcesquota "global" $.Values.resourcesquota)) }}
+        resources:
+          requests:
+            memory: {{ .api.resources.requests.memory | default "256Mi" }}
+            cpu: {{ .api.resources.requests.cpu | default "50m" }}
+          limits:
+            memory: {{ .api.resources.limits.memory | default "2048Mi" }}
+            cpu: {{ .api.resources.limits.cpu | default "2000m" }}
+        {{- end }}
         terminationMessagePolicy: FallbackToLogsOnError
         envFrom:
         - configMapRef:

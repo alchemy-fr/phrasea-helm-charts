@@ -1,3 +1,6 @@
+{{- if not .Values.elasticsearch.enabled }}
+# This job only runs when using an external/managed Elasticsearch service
+# When elasticsearch.enabled=true (local), the StatefulSet will be deleted with the stack
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -56,3 +59,4 @@ spec:
             curl -s -X DELETE "${ELASTICSEARCH_URL}/$INDEX"
           done
       restartPolicy: Never
+{{- end }}

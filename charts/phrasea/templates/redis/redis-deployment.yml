@@ -18,5 +18,14 @@ spec:
       containers:
       - name: redis
         image: redis:5.0.5-alpine
+        {{- if eq "true" (include "ps.resourcesquota" (dict "local" $.Values.redis.resourcesquota "global" $.Values.resourcesquota)) }}
+        resources:
+          requests:
+            memory: {{ $.Values.redis.resources.requests.memory | default "64Mi" }}
+            cpu: {{ $.Values.redis.resources.requests.cpu | default "25m" }}
+          limits:
+            memory: {{ $.Values.redis.resources.limits.memory | default "256Mi" }}
+            cpu: {{ $.Values.redis.resources.limits.cpu | default "500m" }}
+        {{- end }}
         terminationMessagePolicy: FallbackToLogsOnError
 {{- end }}

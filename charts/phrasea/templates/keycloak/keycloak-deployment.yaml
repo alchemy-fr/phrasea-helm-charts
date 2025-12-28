@@ -27,6 +27,15 @@ spec:
           - 'start'
           - '--optimized'
           imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
+          {{- if eq "true" (include "ps.resourcesquota" (dict "local" .resourcesquota "global" $.Values.resourcesquota)) }}
+          resources:
+            requests:
+              memory: {{ .resources.requests.memory | default "512Mi" }}
+              cpu: {{ .resources.requests.cpu | default "100m" }}
+            limits:
+              memory: {{ .resources.limits.memory | default "2Gi" }}
+              cpu: {{ .resources.limits.cpu | default "1000m" }}
+          {{- end }}
           terminationMessagePolicy: FallbackToLogsOnError
           envFrom:
             - secretRef:

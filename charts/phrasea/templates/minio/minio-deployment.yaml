@@ -21,6 +21,15 @@ spec:
       containers:
       - name: minio
         image: minio/minio
+        {{- if eq "true" (include "ps.resourcesquota" (dict "local" $.Values.minio.resourcesquota "global" $.Values.resourcesquota)) }}
+        resources:
+          requests:
+            memory: {{ $.Values.minio.resources.requests.memory | default "256Mi" }}
+            cpu: {{ $.Values.minio.resources.requests.cpu | default "50m" }}
+          limits:
+            memory: {{ $.Values.minio.resources.limits.memory | default "1Gi" }}
+            cpu: {{ $.Values.minio.resources.limits.cpu | default "1000m" }}
+        {{- end }}
         terminationMessagePolicy: FallbackToLogsOnError
         args:
         - "server"

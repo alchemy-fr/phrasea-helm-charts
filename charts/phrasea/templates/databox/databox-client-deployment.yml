@@ -23,6 +23,15 @@ spec:
       - name: databox-client
         image: {{ $.Values.repository.baseurl }}/ps-databox-client:{{ $.Values.repository.tag }}
         imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
+        {{- if eq "true" (include "ps.resourcesquota" (dict "local" $.Values.databox.client.resourcesquota "global" $.Values.resourcesquota)) }}
+        resources:
+          requests:
+            memory: {{ $.Values.databox.client.resources.requests.memory | default "64Mi" }}
+            cpu: {{ $.Values.databox.client.resources.requests.cpu | default "25m" }}
+          limits:
+            memory: {{ $.Values.databox.client.resources.limits.memory | default "256Mi" }}
+            cpu: {{ $.Values.databox.client.resources.limits.cpu | default "500m" }}
+        {{- end }}
         terminationMessagePolicy: FallbackToLogsOnError
         envFrom:
         - configMapRef:
