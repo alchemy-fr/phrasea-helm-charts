@@ -36,6 +36,14 @@ spec:
             memory: {{ (index $.Values $appName).api.resources.limits.memory | default "2048Mi" }}
             cpu: {{ (index $.Values $appName).api.resources.limits.cpu | default "2000m" }}
         {{- end }}
+        readinessProbe:
+          tcpSocket:
+            port: 9000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 2
+          failureThreshold: 3
+          successThreshold: 1
         terminationMessagePolicy: FallbackToLogsOnError
         env:
         {{- include "envRef.phpApp" $tplArgs | indent 8 }}
