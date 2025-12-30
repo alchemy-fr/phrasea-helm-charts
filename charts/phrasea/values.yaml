@@ -17,6 +17,9 @@ stack:
 # Override full name of the deployed resources (e.g., phrasea-stg) useful for multiple certbot in the same cluster.
 fullnameOverride: phrasea
 
+# Enable resource requests/limits for all deployments (required for cluster-autoscaler)
+resourcesquota: true
+
 acme:
   enabled: false
   # Email for Let's Encrypt notifications
@@ -37,8 +40,8 @@ acme:
     secretKey:
     # Secret name if using existing secret
     existingSecretName:
-    existingSecretAccessKeyKey: 
-    existingSecretSecretKeyKey: 
+    existingSecretAccessKeyKey:
+    existingSecretSecretKeyKey:
   
   # Gandi LiveDNS v5 configuration
   gandi:
@@ -50,7 +53,7 @@ acme:
   
   # AWS Route53 configuration
   route53:
-    region: eu-west-3
+    region:
     # IAM access key with Route53 permissions
     accessKeyId:
     secretAccessKey:
@@ -90,20 +93,18 @@ image:
 
 nodeSelector:
 
-# Enable resource requests/limits for all deployments (required for cluster-autoscaler)
-resourcesquota: false
-
 configurator:
   database:
     name: configurator
   s3:
     endpoint: "https://minio.{{ .Values.stack.domain }}"
     region:
+    # leave emtpy if bucketname is included in the endpoint (e.g. https://mybucket.s3.my-s3-provider.com)
     bucketName: config
+    # true for a local minio, false for an external object storage provider
+    usePathStyleEndpoint: true 
     # Can be used to support a single CloudFront distribution with multiple origins
     pathPrefix: ''
-    # true for a local minio, false for an external object storage
-    usePathStyleEndpoint: true 
     accessKey:
     secretKey:
     externalSecretKey:
@@ -239,11 +240,12 @@ databox:
       s3Storage:
         endpoint: "https://minio.{{ .Values.stack.domain }}"
         region:
+        # leave emtpy if bucketname is included in the endpoint (e.g. https://mybucket.s3.my-s3-provider.com)
         bucketName: databox
+        # true for a local minio, false for an external object storage provider
+        usePathStyleEndpoint: true 
         # Can be used to support a single CloudFront distribution with multiple origins
         pathPrefix: ''
-        # true for a local minio, false for an external object storage
-        usePathStyleEndpoint: true
         accessKey:
         secretKey:
         externalSecretKey:
@@ -351,11 +353,12 @@ expose:
       s3Storage:
         endpoint: "https://minio.{{ .Values.stack.domain }}"
         region:
+        # leave emtpy if bucketname is included in the endpoint (e.g. https://mybucket.s3.my-s3-provider.com)
         bucketName: expose
+        # true for a local minio, false for an external object storage provider
+        usePathStyleEndpoint: true
         # Can be used to support a single CloudFront distribution with multiple origins
         pathPrefix: ''
-        # true for a local minio, false for an external object storage
-        usePathStyleEndpoint: true
         accessKey:
         secretKey:
         externalSecretKey:
@@ -455,11 +458,12 @@ uploader:
       s3Storage:
         endpoint: "https://minio.{{ .Values.stack.domain }}"
         region:
-        bucketName: uploader-deposit
-        # Can be used to support a single CloudFront distribution with multiple origins
-        pathPrefix: ''
+        # leave emtpy if bucketname is included in the endpoint (e.g. https://mybucket.s3.my-s3-provider.com)
+        bucketName: uploader
         # true for a local minio, false for an external object storage
         usePathStyleEndpoint: true
+        # Can be used to support a single CloudFront distribution with multiple origins
+        pathPrefix: ''
         accessKey:
         secretKey:
         externalSecretKey:
@@ -697,6 +701,7 @@ _internal:
 elasticsearch:
   enabled: true
   replicas: 1
+  clusterName: elasticsearch-databox
   minimumMasterNodes: 1
   # Single replica mode: accept 'yellow' cluster status (shards cannot be replicated with only 1 node)
   # For multi-node cluster (replicas >= 3), comment this line to require 'green' status (default)
