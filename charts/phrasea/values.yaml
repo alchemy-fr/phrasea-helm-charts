@@ -21,7 +21,7 @@ stack:
 fullnameOverride: phrasea
 
 # Enable resource requests/limits for all deployments (required for cluster-autoscaler)
-resourcesquota: true
+resourceQuota: true
 
 acme:
   enabled: false
@@ -173,8 +173,8 @@ keycloak:
       nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
     extraLabels: {}
     tls: []
-  # Override global resourcesquota for this service (true/false), defaults to global value
-  # resourcesquota:
+  # Override global resourceQuota for this service (true/false), defaults to global value
+  # resourceQuota:
   resources:
     requests:
       cpu: "100m"
@@ -183,7 +183,7 @@ keycloak:
       cpu: "1000m"
       memory: "2Gi"
   
-# __DEPRECATED__ keeped only for 2.0 migration purpose
+# __DEPRECATED__ kept only for 2.0 migration purpose
 auth:
   database:
     name: auth
@@ -193,8 +193,8 @@ novu:
   bridge:
     hostname: "bridge-novu.{{ .Values.stack.domain }}"
     baseUrl: "https://bridge-novu.{{ .Values.stack.domain }}"
-    # Override global resourcesquota for this service (true/false), defaults to global value
-    # resourcesquota:
+    # Override global resourceQuota for this service (true/false), defaults to global value
+    # resourceQuota:
     resources:
       requests:
         cpu: "25m"
@@ -235,8 +235,8 @@ databox:
       tls: []
     hostname: "api-databox.{{ .Values.stack.domain }}"
     baseUrl: "https://api-databox.{{ .Values.stack.domain }}"
-    # Override global resourcesquota for this service (true/false), defaults to global value
-    # resourcesquota:
+    # Override global resourceQuota for this service (true/false), defaults to global value
+    # resourceQuota:
     resources:
       requests:
         cpu: "50m"
@@ -252,7 +252,6 @@ databox:
         # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
         endpoint: "https://minio.{{ .Values.stack.domain }}"
         region:
-        # leave emtpy if bucketname is included in the endpoint (e.g. https://mybucket.s3.my-s3-provider.com)
         bucketName: databox
         # true for a local minio, false for an external object storage provider
         usePathStyleEndpoint: true 
@@ -285,8 +284,8 @@ databox:
   client:
     hostname: "databox.{{ .Values.stack.domain }}"
     baseUrl: "https://databox.{{ .Values.stack.domain }}"
-    # Override global resourcesquota for this service (true/false), defaults to global value
-    # resourcesquota:
+    # Override global resourceQuota for this service (true/false), defaults to global value
+    # resourceQuota:
     resources:
       requests:
         cpu: "25m"
@@ -303,8 +302,8 @@ databox:
       id: databox-app
   worker:
     replicas: 1
-    # Override global resourcesquota for this service (true/false), defaults to global value
-    # resourcesquota:
+    # Override global resourceQuota for this service (true/false), defaults to global value
+    # resourceQuota:
     resources:
       requests:
         cpu: "100m"
@@ -354,8 +353,8 @@ expose:
       tls: []
     hostname: "api-expose.{{ .Values.stack.domain }}"
     baseUrl: "https://api-expose.{{ .Values.stack.domain }}"
-    # Override global resourcesquota for this service (true/false), defaults to global value
-    # resourcesquota:
+    # Override global resourceQuota for this service (true/false), defaults to global value
+    # resourceQuota:
     resources:
       requests:
         cpu: "50m"
@@ -371,7 +370,6 @@ expose:
         # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
         endpoint: "https://minio.{{ .Values.stack.domain }}"
         region:
-        # leave emtpy if bucketname is included in the endpoint (e.g. https://mybucket.s3.my-s3-provider.com)
         bucketName: expose
         # true for a local minio, false for an external object storage provider
         usePathStyleEndpoint: true
@@ -398,8 +396,8 @@ expose:
     secret: '__CHANGE_ME_71EuDQ2H$ei3sHwIB0sfy'
   worker:
     replicas: 1
-    # Override global resourcesquota for this service (true/false), defaults to global value
-    # resourcesquota:
+    # Override global resourceQuota for this service (true/false), defaults to global value
+    # resourceQuota:
     resources:
       requests:
         cpu: "50m"
@@ -410,8 +408,8 @@ expose:
   client:
     hostname: "expose.{{ .Values.stack.domain }}"
     baseUrl: "https://expose.{{ .Values.stack.domain }}"
-    # Override global resourcesquota for this service (true/false), defaults to global value
-    # resourcesquota:
+    # Override global resourceQuota for this service (true/false), defaults to global value
+    # resourceQuota:
     resources:
       requests:
         cpu: "25m"
@@ -458,8 +456,8 @@ uploader:
       tls: []  
     hostname: "api-uploader.{{ .Values.stack.domain }}"
     baseUrl: "https://api-uploader.{{ .Values.stack.domain }}"
-    # Override global resourcesquota for this service (true/false), defaults to global value
-    # resourcesquota:
+    # Override global resourceQuota for this service (true/false), defaults to global value
+    # resourceQuota:
     resources:
       requests:
         cpu: "50m"
@@ -478,8 +476,7 @@ uploader:
         # Example: https://s3.my-s3-provider.com
         # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
         endpoint: "https://minio.{{ .Values.stack.domain }}"
-        region:
-        # leave emtpy if bucketname is included in the endpoint (e.g. https://mybucket.s3.my-s3-provider.com)
+        region:        
         bucketName: uploader
         # true for a local minio, false for an external object storage
         usePathStyleEndpoint: true
@@ -497,8 +494,8 @@ uploader:
     secret: '__CHANGE_ME_p@P@CSnZi3sHwIB0sfy'
   worker:
     replicas: 1
-    # Override global resourcesquota for this service (true/false), defaults to global value
-    # resourcesquota:
+    # Override global resourceQuota for this service (true/false), defaults to global value
+    # resourceQuota:
     resources:
       requests:
         cpu: "50m"
@@ -509,8 +506,8 @@ uploader:
   client:
     hostname: "uploader.{{ .Values.stack.domain }}"
     baseUrl: "https://uploader.{{ .Values.stack.domain }}"
-    # Override global resourcesquota for this service (true/false), defaults to global value
-    # resourcesquota:
+    # Override global resourceQuota for this service (true/false), defaults to global value
+    # resourceQuota:
     resources:
       requests:
         cpu: "25m"
@@ -540,8 +537,8 @@ report:
   api:
     hostname: report-api
     baseUrl: http://report-api
-    # Override global resourcesquota for this service (true/false), defaults to global value
-    # resourcesquota:
+    # Override global resourceQuota for this service (true/false), defaults to global value
+    # resourceQuota:
     resources:
       requests:
         cpu: "50m"
@@ -557,8 +554,8 @@ dashboard:
   menuEnabled: true
   hostname: "dashboard.{{ .Values.stack.domain }}"
   baseUrl: "https://dashboard.{{ .Values.stack.domain }}"
-  # Override global resourcesquota for this service (true/false), defaults to global value
-  # resourcesquota:
+  # Override global resourceQuota for this service (true/false), defaults to global value
+  # resourceQuota:
   resources:
     requests:
       cpu: "25m"
@@ -598,8 +595,8 @@ postgresql:
   port: 5432
   user: phrasea
   password: '__CHANGE_ME_iHdBtyVGmT9Zj6shv'
-  # Override global resourcesquota for this service (true/false), defaults to global value
-  # resourcesquota:
+  # Override global resourceQuota for this service (true/false), defaults to global value
+  # resourceQuota:
   resources:
     requests:
       cpu: "100m"
@@ -618,8 +615,8 @@ postgresql:
 
 redis:
   enabled: true
-  # Override global resourcesquota for this service (true/false), defaults to global value
-  # resourcesquota:
+  # Override global resourceQuota for this service (true/false), defaults to global value
+  # resourceQuota:
   resources:
     requests:
       cpu: "25m"
@@ -640,8 +637,8 @@ rabbitmq:
   erlangCookie: 'H#75$3CjoTKn3129DNwcqlHvhfqs15'
   epmdPort: 55950
   nodeName: rabbit@rabbitmq
-  # Override global resourcesquota for this service (true/false), defaults to global value
-  # resourcesquota:
+  # Override global resourceQuota for this service (true/false), defaults to global value
+  # resourceQuota:
   resources:
     requests:
       cpu: "100m"
@@ -669,8 +666,8 @@ minio:
   accessKey: '__CHANGE_ME_jw2G5OskVG2VVXIyHsuQJIo'
   # __SET_ME__
   secretKey: '__CHANGE_ME_bIYN#LuI9$ED9B0ck2scn'
-  # Override global resourcesquota for this service (true/false), defaults to global value
-  # resourcesquota:
+  # Override global resourceQuota for this service (true/false), defaults to global value
+  # resourceQuota:
   resources:
     requests:
       cpu: "50m"

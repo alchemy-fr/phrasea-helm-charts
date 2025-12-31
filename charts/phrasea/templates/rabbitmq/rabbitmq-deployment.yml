@@ -36,7 +36,7 @@ spec:
       containers:
       - name: rabbitmq
         image: {{ .image }}
-        {{- if eq "true" (include "ps.resourcesquota" (dict "local" .resourcesquota "global" $.Values.resourcesquota)) }}
+        {{- if eq "true" (include "ps.resourceQuota" (dict "local" .resourceQuota "global" $.Values.resourceQuota)) }}
         resources:
           requests:
             memory: {{ .resources.requests.memory | default "256Mi" }}

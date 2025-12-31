@@ -27,7 +27,7 @@ spec:
       - name: {{ $appName }}-worker
         image: {{ $.Values.repository.baseurl }}/ps-{{ $appName }}-worker:{{ $.Values.repository.tag }}
         imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
-        {{- if eq "true" (include "ps.resourcesquota" (dict "local" (index $.Values $appName).worker.resourcesquota "global" $.Values.resourcesquota)) }}
+        {{- if eq "true" (include "ps.resourceQuota" (dict "local" (index $.Values $appName).worker.resourceQuota "global" $.Values.resourceQuota)) }}
         resources:
           requests:
             memory: {{ (index $.Values $appName).worker.resources.requests.memory | default "256Mi" }}

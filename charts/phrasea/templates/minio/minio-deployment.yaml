@@ -21,7 +21,7 @@ spec:
       containers:
       - name: minio
         image: minio/minio
-        {{- if eq "true" (include "ps.resourcesquota" (dict "local" $.Values.minio.resourcesquota "global" $.Values.resourcesquota)) }}
+        {{- if eq "true" (include "ps.resourceQuota" (dict "local" $.Values.minio.resourceQuota "global" $.Values.resourceQuota)) }}
         resources:
           requests:
             memory: {{ $.Values.minio.resources.requests.memory | default "256Mi" }}

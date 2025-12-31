@@ -23,7 +23,7 @@ spec:
       - name: uploader-client
         image: {{ $.Values.repository.baseurl }}/ps-uploader-client:{{ $.Values.repository.tag }}
         imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
-        {{- if eq "true" (include "ps.resourcesquota" (dict "local" $.Values.uploader.client.resourcesquota "global" $.Values.resourcesquota)) }}
+        {{- if eq "true" (include "ps.resourceQuota" (dict "local" $.Values.uploader.client.resourceQuota "global" $.Values.resourceQuota)) }}
         resources:
           requests:
             memory: {{ $.Values.uploader.client.resources.requests.memory | default "64Mi" }}

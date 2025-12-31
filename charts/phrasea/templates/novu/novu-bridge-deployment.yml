@@ -21,7 +21,7 @@ spec:
       {{- end }}
       containers:
       - name: novu-bridge
-        {{- if eq "true" (include "ps.resourcesquota" (dict "local" $.Values.novu.bridge.resourcesquota "global" $.Values.resourcesquota)) }}
+        {{- if eq "true" (include "ps.resourceQuota" (dict "local" $.Values.novu.bridge.resourceQuota "global" $.Values.resourceQuota)) }}
         resources:
           requests:
             memory: {{ $.Values.novu.bridge.resources.requests.memory | default "128Mi" }}

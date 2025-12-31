@@ -1,9 +1,9 @@
 {{/*
-Check if resourcesquota is enabled for a component.
+Check if resourceQuota is enabled for a component.
 Uses component-level value if defined, otherwise falls back to global value.
-Usage: {{ include "ps.resourcesquota" (dict "local" .resourcesquota "global" $.Values.resourcesquota) }}
+Usage: {{ include "ps.resourceQuota" (dict "local" .resourceQuota "global" $.Values.resourceQuota) }}
 */}}
-{{- define "ps.resourcesquota" -}}
+{{- define "ps.resourceQuota" -}}
 {{- if not (kindIs "invalid" .local) -}}
 {{- .local -}}
 {{- else -}}

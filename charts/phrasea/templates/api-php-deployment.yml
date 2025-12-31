@@ -27,7 +27,7 @@ spec:
       - name: {{ $appName }}-api-php
         image: {{ $.Values.repository.baseurl }}/ps-{{ $appName }}-api-php:{{ $.Values.repository.tag }}
         imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
-        {{- if eq "true" (include "ps.resourcesquota" (dict "local" (index $.Values $appName).api.resourcesquota "global" $.Values.resourcesquota)) }}
+        {{- if eq "true" (include "ps.resourceQuota" (dict "local" (index $.Values $appName).api.resourceQuota "global" $.Values.resourceQuota)) }}
         resources:
           requests:
             memory: {{ (index $.Values $appName).api.resources.requests.memory | default "256Mi" }}
