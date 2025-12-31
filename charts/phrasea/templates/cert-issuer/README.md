@@ -14,7 +14,7 @@ Automatic TLS certificate management using cert-manager with Let's Encrypt DNS-0
 This chart supports automatic TLS certificate issuance via DNS-01 challenges with the following providers:
 
 - **Scaleway DNS** - Requires webhook from `https://helm.scw.cloud/`
-- **Gandi LiveDNS v5** - Requires webhook from `https://bwolf.github.io/cert-manager-webhook-gandi`
+- **Gandi LiveDNS v5** - WIP  Requires webhook from `https://bwolf.github.io/cert-manager-webhook-gandi`
 - **AWS Route53** - Native cert-manager support (no webhook required)
 
 ## Configuration
@@ -137,7 +137,9 @@ kubectl logs -n cert-manager deploy/cert-manager --tail=100
 - Verify credentials are correctly configured in the secret
 
 **Email forbidden domain error:**
-- Change `acme.email` to a valid email address (not example.com)### Staging vs Production
+- Change `acme.email` to a valid email address (not example.com)
+
+### Staging vs Production
 
 Use staging environment for testing to avoid rate limits:
 

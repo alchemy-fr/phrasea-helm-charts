@@ -156,7 +156,7 @@ keycloak:
     # __SET_ME__
     password: __CHANGE_ME_obIaHz6cVTkQKHqLBj
   defaultAdmin:
-    # __SET_ME__ - username must be in email format OR define stack.domain to auto-generate it
+    # __SET_ME__  username must be in email format OR define stack.domain to auto-generate it
     username: phrasea-admin@xxx.zz
     # __SET_ME__
     password: __CHANGE_ME_KFBsKzc7RupJhXkr
@@ -274,9 +274,9 @@ databox:
         oauthToken:
       secrets:
         # __SET_ME__ sodium public/private key pair
-        publicKey: __CHANGE_ME__MIIBIjANBgkqh
+        publicKey:
         # __SET_ME__
-        secretKey: __CHANGE_ME__MIIEvQIBADANB
+        secretKey:
   adminOAuthClient:
     externalSecretName:
     id: databox-admin
@@ -763,9 +763,9 @@ soketi:
   host: "soketi.{{ .Values.stack.domain }}"
   appId: phrasea
   # __SET_ME__
-  key: "__CHANGEME__k3yPhraseaSoketi"
+  key: "__CHANGE_ME_k3yPhraseaSoketi"
   # __SET_ME__
-  secret: "__CHANGEME__s3cr3tPhraseaSoketi"
+  secret: "__CHANGE_ME_s3cr3tPhraseaSoketi"
   service:
     port: 80
   app:
