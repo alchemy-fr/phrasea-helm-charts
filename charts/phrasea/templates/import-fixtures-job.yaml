@@ -1,0 +1,51 @@
+{{- if and .Values.stack.runSetups }}
+{{- range .Values._internal.services }}
+{{ $appName := . }}
+{{- with (index $.Values $appName)  }}
+{{ $tplArgs := dict "app" $appName "ctx" . "glob" $ }}
+{{- if (index $.Values $appName).importFixtures }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $appName }}-import-fixtures
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "15"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    spec:
+      {{ include "imagePullSecrets" $ | indent 6 }}
+      {{- if $.Values.nodeSelector }}
+      nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: {{ $appName }}-php-job
+        image: {{ $.Values.repository.baseurl }}/ps-{{ $appName }}-api-php:{{ $.Values.repository.tag }}
+        imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
+        args: ["bin/dev/reset-db-fixtures.sh"]
+        terminationMessagePolicy: FallbackToLogsOnError
+        env:
+        {{- include "envRef.phpApp" $tplArgs | indent 8 }}
+        {{- include "envRef.configuratorSecrets" $ | indent 8 }}
+        envFrom:
+        {{- include "envFrom.phpApp" $ | indent 8 }}
+        {{- include "envFrom.rabbitmq" $ | indent 8 }}
+        {{- include "envFrom.postgresql" $ | indent 8 }}
+        {{- if .adminOAuthClient }}
+        - secretRef:
+            name: {{ .adminOAuthClient.externalSecretName | default (printf "%s-admin-oauth-client-secret" $appName) }}
+        {{- end }}
+        {{- if eq $appName "databox" }}
+        - secretRef:
+            name: {{ $appName }}-secrets
+        {{- end }}
+        - configMapRef:
+            name: {{ $appName }}-api-config
+      restartPolicy: Never
+  backoffLimit: 10
+---
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

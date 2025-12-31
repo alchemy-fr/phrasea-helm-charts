@@ -25,7 +25,11 @@ spec:
       {{- end }}
       containers:
       - {{- include "configurator.containerSpecs" $ | nindent 8 }}
+        {{- if $.Values.stack.preset }}
+        args: ["bin/setup.sh", "{{ $.Values.stack.preset }}"]
+        {{- else }}
         args: ["bin/setup.sh"]
+        {{- end }}
       restartPolicy: Never
   backoffLimit: 0
 ---

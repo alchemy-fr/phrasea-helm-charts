@@ -8,11 +8,14 @@ stack:
   # __SET_ME__ Custom stack name to distinguish multiple stacks
   name:
   # __SET_ME__ Domain used to auto-generate all service URLs (e.g., example.com generates keycloak.example.com, databox.example.com, etc.)
-  domain: 
+  domain:
+  # "prod" if empty, can be "test" 
+  preset:
   running: true
   runSetups: true
   runMigrations: true
   runSynchronize: true
+
 
 # Override full name of the deployed resources (e.g., phrasea-stg) useful for multiple certbot in the same cluster.
 fullnameOverride: phrasea
@@ -97,11 +100,14 @@ configurator:
   database:
     name: configurator
   s3:
+    # When using an external object storage provider, set the "endpoint" to the root domain of the service.
+    # Example: https://s3.my-s3-provider.com
+    # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
     endpoint: "https://minio.{{ .Values.stack.domain }}"
+    # require for some object storage providers
     region:
-    # leave emtpy if bucketname is included in the endpoint (e.g. https://mybucket.s3.my-s3-provider.com)
     bucketName: config
-    # true for a local minio, false for an external object storage provider
+    # True for a local minio, false for an external object storage provider
     usePathStyleEndpoint: true 
     # Can be used to support a single CloudFront distribution with multiple origins
     pathPrefix: ''
@@ -211,6 +217,9 @@ novu:
 
 databox:
   enabled: true
+  # this option enable the import of fixtures after setup
+  # warning: this will erase existing data in databases.
+  importFixtures: false
   cronJob:
     enabled: true
     # Daily at 3am
@@ -238,6 +247,9 @@ databox:
     config:
       requestSignatureTtl: 86400
       s3Storage:
+        # When using an external object storage provider, set the "endpoint" to the root domain of the service.
+        # Example: https://s3.my-s3-provider.com
+        # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
         endpoint: "https://minio.{{ .Values.stack.domain }}"
         region:
         # leave emtpy if bucketname is included in the endpoint (e.g. https://mybucket.s3.my-s3-provider.com)
@@ -262,7 +274,7 @@ databox:
         baseUrl:
         oauthToken:
       secrets:
-        # __SET_ME__
+        # __SET_ME__ sodium public/private key pair
         publicKey: __CHANGE_ME__MIIBIjANBgkqh
         # __SET_ME__
         secretKey: __CHANGE_ME__MIIEvQIBADANB
@@ -318,6 +330,9 @@ databox:
 
 expose:
   enabled: true
+  # this option enable the import of fixtures after setup
+  # warning: this will erase existing data in databases.
+  importFixtures: false
   matomo:
     enabled: false
     siteId:
@@ -351,6 +366,9 @@ expose:
     config:
       requestSignatureTtl: 86400
       s3Storage:
+        # When using an external object storage provider, set the "endpoint" to the root domain of the service.
+        # Example: https://s3.my-s3-provider.com
+        # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
         endpoint: "https://minio.{{ .Values.stack.domain }}"
         region:
         # leave emtpy if bucketname is included in the endpoint (e.g. https://mybucket.s3.my-s3-provider.com)
@@ -456,6 +474,9 @@ uploader:
       requestSignatureTtl: 3600
       allowedFileTypes: 'image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg),application/*(.pdf,.doc,.docx,.xls,.xlsx,.odt),video/*(.mpg,.mpeg,.mov,.avi,.mp3,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc)audio/*(.aac,.aiff,.wav)'
       s3Storage:
+        # When using an external object storage provider, set the "endpoint" to the root domain of the service.
+        # Example: https://s3.my-s3-provider.com
+        # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
         endpoint: "https://minio.{{ .Values.stack.domain }}"
         region:
         # leave emtpy if bucketname is included in the endpoint (e.g. https://mybucket.s3.my-s3-provider.com)
@@ -697,6 +718,8 @@ _internal:
   - expose
   - uploader
   - dashboard
+  fixtures:
+  - databox
 
 elasticsearch:
   enabled: true
