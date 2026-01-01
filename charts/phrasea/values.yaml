@@ -1,6 +1,6 @@
 repository:
   baseurl: alchemyfr
-  # __SET_ME__ for a fixed version
+  # __SET_ME__  Set has fixed version, do not use "latest" in production
   tag: latest
   imagePullPolicy: IfNotPresent
 
@@ -132,7 +132,7 @@ keycloak:
     loginRegistrationAllowed: true
     loginResetPasswordAllowed: true
     loginRememberMeAllowed: true
-    loginWithEmailAllowed: true
+    loginWithEmailAllowed: false
     loginVerifyEmailAllowed: false
     loginEmailAsUsername: false
     loginEditUsername: false
@@ -575,6 +575,31 @@ dashboard:
     enabled: false
     siteId:
     baseUrl:
+
+documentation:
+  enabled: true
+  # this permit to override the documentation image repository
+  # to do , push documentation image to app registry eg. alchemyfr
+  image:
+    repository: ghcr.io/alchemy-fr
+    tag: latest
+    pullPolicy: IfNotPresent
+  hostname: "docs.{{ .Values.stack.domain }}"
+  baseUrl: "https://docs.{{ .Values.stack.domain }}"
+  # Override global resourceQuota for this service (true/false), defaults to global value
+  # resourceQuota:
+  resources:
+    requests:
+      cpu: "25m"
+      memory: "64Mi"
+    limits:
+      cpu: "500m"
+      memory: "256Mi"
+  ingress:
+    enabled: true
+    annotations: {}
+    extraLabels: {}
+    tls: []
 
 # __SET_ME__ Mailer configuration
 mailer:

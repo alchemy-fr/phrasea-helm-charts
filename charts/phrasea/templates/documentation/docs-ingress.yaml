@@ -1,0 +1,48 @@
+{{- if and $.Values.stack.running $.Values.documentation.enabled }}
+{{- with .Values.documentation }}
+{{- if .ingress.enabled }}
+{{- $ingressNode := . }}
+apiVersion: {{ template "ingress.apiVersion" $ }}
+kind: Ingress
+metadata:
+  name: documentation-ingress
+{{- if .ingress.annotations }}
+  annotations:
+{{ toYaml .ingress.annotations | indent 4 }}
+{{- end }}
+{{- if .ingress.extraLabels }}
+  labels:
+{{ toYaml .ingress.extraLabels | indent 4 }}
+{{- end }}
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: {{ tpl .hostname $ }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: phrasea-documentation
+            port:
+              number: 80
+{{- if .ingress.tls }}
+{{- $tlsNode := .ingress.tls -}}
+{{- range $value := $tlsNode }}
+  {{- if not (hasKey $value "hosts") }}
+    {{- $hosts := list $ingressNode.hostname }}
+    {{- $_ := set $value "hosts" $hosts }}
+  {{- end -}}
+{{- end }}
+  tls:
+{{ toYaml $tlsNode | indent 2 }}
+{{- else if $.Values.ingress.tls.wildcard.enabled }}
+  tls:
+  - hosts:
+    - {{ tpl .hostname $ }}
+    secretName: {{ include "secretRef.ingress.tls.wildcard" $ }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
