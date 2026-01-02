@@ -6,7 +6,7 @@ metadata:
   name: rabbitmq-config
   annotations:
     "helm.sh/hook": "pre-install,pre-upgrade"
-    "helm.sh/hook-weight": "-20"
+    "helm.sh/hook-weight": "-210"
 data:
   RABBITMQ_NODENAME: {{ .nodeName | quote }}
   RABBITMQ_ERLANG_COOKIE: {{ .erlangCookie | quote }}

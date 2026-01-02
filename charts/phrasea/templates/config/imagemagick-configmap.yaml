@@ -4,7 +4,7 @@ metadata:
   name: imagemagick-policies
   annotations:
     "helm.sh/hook": "pre-install,pre-upgrade"
-    "helm.sh/hook-weight": "-20"
+    "helm.sh/hook-weight": "-40"
 data:
   IMAGEMAGICK_POLICY_AREA: {{ .Values.ImageMagick.policy.area | quote }}
   IMAGEMAGICK_POLICY_TEMPORARY_PATH: {{ .Values.ImageMagick.policy.temporaryPath | quote }}

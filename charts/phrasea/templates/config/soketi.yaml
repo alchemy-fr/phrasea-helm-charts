@@ -6,7 +6,7 @@ metadata:
   name: soketi
   annotations:
     "helm.sh/hook": "pre-install,pre-upgrade"
-    "helm.sh/hook-weight": "-20"
+    "helm.sh/hook-weight": "-50"
 data:
   SOKETI_HOST: {{ required "Missing soketi.host" .host | quote }}
   SOKETI_APP_ID: {{ required "Missing soketi.appId" .appId | quote }}

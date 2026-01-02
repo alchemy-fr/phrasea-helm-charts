@@ -6,7 +6,7 @@ metadata:
   name: expose-api-config
   annotations:
     "helm.sh/hook": "pre-install,pre-upgrade"
-    "helm.sh/hook-weight": "-20"
+    "helm.sh/hook-weight": "-90"
 data:
   MAPBOX_TOKEN: {{ .client.mapbox.token | quote }}
   S3_REQUEST_SIGNATURE_TTL: {{ .api.config.requestSignatureTtl | quote }}
