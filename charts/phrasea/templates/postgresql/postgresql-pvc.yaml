@@ -7,6 +7,12 @@ metadata:
 {{- if .persistence.annotations }}
   annotations:
 {{ toYaml .persistence.annotations | indent 4 }}
+    "helm.sh/hook": "pre-install,pre-upgrade"
+    "helm.sh/hook-weight": "-220"
+{{- else }}
+  annotations:
+    "helm.sh/hook": "pre-install,pre-upgrade"
+    "helm.sh/hook-weight": "-220"
 {{- end }}
   name: {{ template "ps.fullname" $ }}-postgresql
   labels:
