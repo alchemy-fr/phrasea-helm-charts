@@ -4,6 +4,9 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: rabbitmq-config
+  annotations:
+    "helm.sh/hook": "pre-install,pre-upgrade"
+    "helm.sh/hook-weight": "-20"
 data:
   RABBITMQ_NODENAME: {{ .nodeName | quote }}
   RABBITMQ_ERLANG_COOKIE: {{ .erlangCookie | quote }}
