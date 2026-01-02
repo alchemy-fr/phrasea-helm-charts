@@ -7,7 +7,7 @@ metadata:
   name: dashboard-client-config
   annotations:
     "helm.sh/hook": "pre-install,pre-upgrade"
-    "helm.sh/hook-weight": "-60"
+    "helm.sh/hook-weight": "-270"
 data:
   {{- include "app.client.configMap" $tplArgs | indent 2 }}
 {{- end }}

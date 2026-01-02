@@ -4,7 +4,7 @@ metadata:
   name: php-config
   annotations:
     "helm.sh/hook": "pre-install,pre-upgrade"
-    "helm.sh/hook-weight": "-19"
+    "helm.sh/hook-weight": "-295"
 data:
   APP_ENV: prod
   {{- if not .Values.security.verifySsl }}
