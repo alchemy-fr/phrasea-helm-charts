@@ -9,8 +9,6 @@ stack:
   name:
   # __SET_ME__ Domain used to auto-generate all service URLs (e.g., example.com generates keycloak.example.com, databox.example.com, etc.)
   domain:
-  # "prod" if empty, can be "test" 
-  preset:
   running: true
   runSetups: true
   runMigrations: true
@@ -99,6 +97,8 @@ nodeSelector:
 configurator:
   database:
     name: configurator
+  # can be "test","dev" 
+  presets:
   s3:
     # When using an external object storage provider, set the "endpoint" to the root domain of the service.
     # Example: https://s3.my-s3-provider.com
@@ -577,12 +577,12 @@ dashboard:
     baseUrl:
 
 documentation:
-  enabled: true
-  # this permit to override the documentation image repository
-  # to do , push documentation image to app registry eg. alchemyfr
+  # true for including a documentation inside the deployment 
+  enabled: false
+  # documentation image repository.
   image:
-    repository: ghcr.io/alchemy-fr
-    tag: latest
+    repository:
+    tag: 
     pullPolicy: IfNotPresent
   hostname: "docs.{{ .Values.stack.domain }}"
   baseUrl: "https://docs.{{ .Values.stack.domain }}"
