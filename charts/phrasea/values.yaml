@@ -740,8 +740,6 @@ _internal:
   - expose
   - uploader
   - dashboard
-  fixtures:
-  - databox
 
 elasticsearch:
   enabled: true
