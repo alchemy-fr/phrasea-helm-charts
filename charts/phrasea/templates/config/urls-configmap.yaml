@@ -17,5 +17,5 @@ data:
   UPLOADER_CLIENT_URL: {{ tpl (.Values.uploader.client.baseUrl | required "Missing uploader.client.baseUrl") . | quote }}
   DASHBOARD_URL: {{ tpl (.Values.dashboard.baseUrl | required "Missing dashboard.baseUrl") . | quote }}
   DASHBOARD_CLIENT_URL: {{ tpl (.Values.dashboard.baseUrl | required "Missing dashboard.baseUrl") . | quote }}
-  DOCUMENTATION_URL: {{ tpl (.Values.documentation.url | default "https://docs.phrasea.com") . | quote }}
+  DOCUMENTATION_URL: {{ if .Values.documentation.enabled }}{{ tpl (.Values.documentation.baseUrl) . | quote }}{{ else }}"https://docs.phrasea.com"{{ end }}
   DISPLAY_SERVICES_MENU: {{ ternary "true" "false" .Values.dashboard.menuEnabled | quote }}

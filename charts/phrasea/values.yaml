@@ -760,9 +760,14 @@ elasticsearch:
       memory: "2Gi"
   volumeClaimTemplate:
     storageClassName:
+    accessModes: ["ReadWriteOnce"]
     resources:
       requests:
         storage: 5Gi
+  persistence:
+    enabled: true
+    storageClass:
+    size: 5Gi
 
 zippy:
   enabled: true
