@@ -154,9 +154,9 @@ AUTO_CONNECT_IDP: {{ $glob.Values.keycloak.autoConnectIdP | quote }}
 SENTRY_DSN: {{ required "Missing sentry.clientDsn" $glob.Values.sentry.clientDsn | quote }}
 SENTRY_ENVIRONMENT: {{ required "Missing sentry.environment" $glob.Values.sentry.environment | quote }}
 {{- end }}
-{{- if $ctx.matomo.enabled }}
-MATOMO_URL: {{ required "Missing matomo.baseUrl" $ctx.matomo.baseUrl | quote }}
-MATOMO_SITE_ID: {{ required "Missing matomo.siteId" $ctx.matomo.siteId | quote }}
+{{- if $glob.Values.matomo.enabled }}
+MATOMO_URL: {{ required "Missing matomo.baseUrl" $glob.Values.matomo.baseUrl | quote }}
+MATOMO_SITE_ID: {{ required "Missing matomo.siteId" $glob.Values.matomo.siteId | quote }}
 {{- end }}
 {{- if $ctx.client }}
 {{- if $ctx.client.csp }}
