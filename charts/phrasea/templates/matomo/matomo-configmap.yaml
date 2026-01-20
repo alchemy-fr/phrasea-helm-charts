@@ -1,7 +1,5 @@
-{{- if .Values.expose.enabled }}
-{{- with .Values.expose }}
-{{- if .matomo.enabled }}
-{{- with .matomo }}
+{{- if .Values.matomo.enabled }}
+{{- with .Values.matomo }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -9,7 +7,5 @@ metadata:
 data:
   MATOMO_URL: {{ .baseUrl | quote }}
   MATOMO_SITE_ID: {{ .siteId | quote }}
-{{- end }}
-{{- end }}
 {{- end }}
 {{- end }}

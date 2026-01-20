@@ -44,4 +44,8 @@ spec:
             name: databox-client-config
         - configMapRef:
             name: configurator-s3
+        {{- if $.Values.matomo.enabled }}
+        - configMapRef:
+            name: matomo
+        {{- end }}
 {{- end }}

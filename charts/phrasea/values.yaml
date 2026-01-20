@@ -322,24 +322,12 @@ databox:
     baseUrl: "https://zippy.{{ .Values.stack.domain }}"
     clientId: databox
     clientSecret: __CHANGE_ME_MxWoVddUWq
-  matomo:
-    enabled: false
-    siteId:
-    baseUrl:
 
 expose:
   enabled: true
   # this option enable the import of fixtures after setup
   # warning: this will erase existing data in databases.
   importFixtures: false
-  matomo:
-    enabled: false
-    siteId:
-    baseUrl:
-    authToken:
-    syncPhraseanet:
-      enabled: false
-      schedule: '30 5 * * *'
   api:
     replicas: 1
     subnet: 0.0.0.0/0
@@ -528,8 +516,6 @@ uploader:
     name: uploader
   matomo:
     enabled: false
-    siteId:
-    baseUrl:
 
 report:
   enabled: true
@@ -573,8 +559,6 @@ dashboard:
       id: dashboard-app
   matomo:
     enabled: false
-    siteId:
-    baseUrl:
 
 documentation:
   # true for including a documentation inside the deployment 
@@ -813,6 +797,15 @@ soketi:
          secretKeyRef:
            name: soketi
            key: SOKETI_SECRET
+
+matomo:
+  enabled: false
+  baseUrl:
+  siteId:
+  authToken:
+  syncPhraseanet:
+    enabled: false
+    schedule: '30 5 * * *'
 
 newrelic:
   enabled: false

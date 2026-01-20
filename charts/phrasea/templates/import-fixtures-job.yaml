@@ -23,7 +23,7 @@ spec:
       - name: {{ $appName }}-php-job
         image: {{ $.Values.repository.baseurl }}/ps-{{ $appName }}-api-php:{{ $.Values.repository.tag }}
         imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
-        args: ["bin/dev/reset-db-fixtures.sh"]
+        args: ["bin/console hautelook:fixtures:load --append --no-interaction"]
         terminationMessagePolicy: FallbackToLogsOnError
         env:
         {{- include "envRef.phpApp" $tplArgs | indent 8 }}

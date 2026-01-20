@@ -74,8 +74,8 @@ spec:
         - secretRef:
             name: soketi
         {{- end }}
-        {{- if .matomo }}
-        {{- if .matomo.enabled }}
+        {{- if $.Values.matomo }}
+        {{- if $.Values.matomo.enabled }}
         - configMapRef:
             name: matomo
         - secretRef:
