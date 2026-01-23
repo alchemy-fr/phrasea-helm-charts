@@ -1,0 +1,12 @@
+{{- if and $.Values.stack.running .Values.soketi.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: soketi
+data:
+  SOKETI_HOST: {{ tpl .Values.soketi.host . | quote }}
+  SOKETI_APP_ID: {{ required "Missing soketi.appId" $.Values.soketi.appId | quote }}
+  SOKETI_KEY: {{ required "Missing soketi.key" $.Values.soketi.key | quote }}
+  SOKETI_PORT: "6001"
+  SOKETI_MODE: {{ $.Values.soketi.app.mode | default "full" | quote }}
+{{- end }}

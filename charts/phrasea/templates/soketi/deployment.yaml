@@ -1,0 +1,83 @@
+{{- if and $.Values.stack.running .Values.soketi.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: phrasea-soketi
+  labels:
+    app: phrasea
+    tier: soketi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: phrasea
+      tier: soketi
+  template:
+    metadata:
+      labels:
+        app: phrasea
+        tier: soketi
+    spec:
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+
+      containers:
+        - name: soketi
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          image: "{{ .Values.soketi.app.image.repository }}:{{ .Values.soketi.app.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.soketi.app.image.pullPolicy }}
+          ports:
+            - name: soketi
+              containerPort: 6001
+              protocol: TCP
+          {{- with .Values.soketi.app.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: SOKETI_PORT
+              value: "6001"
+            - name: SOKETI_MODE
+              value: {{ .Values.soketi.app.mode | default "full" }}
+            - name: SOKETI_DEFAULT_APP_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: soketi
+                  key: SOKETI_APP_ID
+            - name: SOKETI_DEFAULT_APP_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: soketi
+                  key: SOKETI_KEY
+            - name: SOKETI_DEFAULT_APP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: soketi-secret
+                  key: SOKETI_SECRET
+            - name: SOKETI_DEFAULT_APP_MAX_CONNS 
+              value: "{{ .Values.soketi.app.maxConnections | default "100" }}"
+            {{- with .Values.soketi.app.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.soketi.app.resources | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: pm2
+              mountPath: /home/node/.pm2
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: pm2
+          emptyDir: {}
+{{- end }}
