@@ -63,7 +63,7 @@ spec:
                 secretKeyRef:
                   name: soketi-secret
                   key: SOKETI_SECRET
-            - name: SOKETI_DEFAULT_APP_MAX_CONNS 
+            - name: SOKETI_DEFAULT_APP_MAX_CONNS
               value: "{{ .Values.soketi.app.maxConnections | default "100" }}"
             {{- with .Values.soketi.app.extraEnv }}
             {{- toYaml . | nindent 12 }}
