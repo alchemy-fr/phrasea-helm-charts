@@ -5,7 +5,7 @@ zippy:
 
 soketi:
   key: "soketi-key"
-  secret: "soketi-secret"
+  secret: "soketi"
   host: "soketi.local"
 
 novu:
