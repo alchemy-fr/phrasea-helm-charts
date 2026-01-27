@@ -561,7 +561,7 @@ dashboard:
     enabled: false
 
 documentation:
-  # true for including a documentation inside the deployment 
+  # true for including documentation inside the deployment 
   enabled: false
   # documentation image repository.
   image:
