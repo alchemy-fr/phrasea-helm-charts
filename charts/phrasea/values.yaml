@@ -104,7 +104,7 @@ configurator:
     # Example: https://s3.my-s3-provider.com
     # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
     endpoint: "https://minio.{{ .Values.stack.domain }}"
-    # require for some object storage providers
+    # required for some object storage providers
     region:
     bucketName: config
     # True for a local minio, false for an external object storage provider
