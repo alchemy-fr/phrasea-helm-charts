@@ -1,6 +1,6 @@
 repository:
   baseurl: alchemyfr
-  # __SET_ME__  Set has fixed version, do not use "latest" in production
+  # __SET_ME__  Set a fixed version, do not use "latest" in production
   tag: latest
   imagePullPolicy: IfNotPresent
 
