@@ -9,7 +9,7 @@ zippy:
 
 soketi:
   key: "soketi-key"
-  secret: "soketi"
+  secret: "soketi-secret"
 
 
 novu:

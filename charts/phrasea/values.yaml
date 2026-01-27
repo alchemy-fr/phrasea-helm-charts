@@ -160,6 +160,8 @@ keycloak:
     username: phrasea-admin@xxx.zz
     # __SET_ME__
     password: __CHANGE_ME_KFBsKzc7RupJhXkr
+    # set to true to keep the password as is (do not force change at first login)
+    keycloak_admin_definitive_password: false
   database:
     create: true
     name: keycloak
