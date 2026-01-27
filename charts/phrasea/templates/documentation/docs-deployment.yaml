@@ -16,7 +16,7 @@ spec:
       containers:
         - name: phrasea-documentation
           # override documentation image with documentation.image section if provided
-          # to do , push documentation images to same repository as app image repository
+          # to do, push documentation images to same repository as app image repository
           image: "{{ .Values.documentation.image.repository | default .Values.repository.baseurl }}/phrasea-documentation:{{ .Values.documentation.image.tag | default .Values.repository.tag }}"
           imagePullPolicy: {{ .Values.documentation.image.pullPolicy | default .Values.repository.imagePullPolicy }}
           ports:
