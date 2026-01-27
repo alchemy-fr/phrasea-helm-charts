@@ -9,8 +9,8 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - port: 6001
-      targetPort: 6001
+    - port: 80
+      targetPort: {{ $.Values.soketi.servicePort }}
       protocol: TCP
       name: soketi
   selector:

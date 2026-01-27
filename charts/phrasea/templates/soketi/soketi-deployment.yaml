@@ -50,6 +50,21 @@ spec:
               value: {{ .Values.soketi.app.mode | default "full" }}
             - name: SOKETI_DEFAULT_APP_MAX_CONNS
               value: "{{ .Values.soketi.app.maxConnections | default "100" }}"
+            - name: SOKETI_DEFAULT_APP_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: soketi
+                  key: SOKETI_APP_ID
+            - name: SOKETI_DEFAULT_APP_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: soketi
+                  key: SOKETI_KEY
+            - name: SOKETI_DEFAULT_APP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: soketi
+                  key: SOKETI_SECRET
             {{- with .Values.soketi.app.extraEnv }}
             {{- toYaml . | nindent 12 }}
             {{- end }}

@@ -28,5 +28,5 @@ spec:
               service:
                 name: soketi
                 port:
-                  number: 6001
+                  number: {{ $.Values.soketi.servicePort }}
 {{- end }}

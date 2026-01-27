@@ -770,6 +770,7 @@ zippy:
 soketi:
   enabled: true
   host: "soketi.{{ .Values.stack.domain }}"
+  servicePort: 6001
   appId: phrasea
   # __SET_ME__
   key: "__CHANGE_ME_k3yPhraseaSoketi"
@@ -799,22 +800,7 @@ soketi:
       limits:
         cpu: 250m
         memory: 256Mi
-    extraEnv:
-     - name: SOKETI_APP_ID
-       valueFrom:
-         configMapKeyRef:
-           name: soketi
-           key: SOKETI_APP_ID
-     - name: SOKETI_APP_KEY
-       valueFrom:
-         configMapKeyRef:
-           name: soketi
-           key: SOKETI_KEY
-     - name: SOKETI_APP_SECRET
-       valueFrom:
-         secretKeyRef:
-           name: soketi
-           key: SOKETI_SECRET
+    extraEnv: {}
   ingress:
     enabled: false
     annotations: {}
