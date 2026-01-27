@@ -97,7 +97,7 @@ nodeSelector:
 configurator:
   database:
     name: configurator
-  # can be "test","dev" 
+  # can be "test", "dev" 
   presets:
   s3:
     # When using an external object storage provider, set the "endpoint" to the root domain of the service.
