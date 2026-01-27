@@ -23,7 +23,11 @@ spec:
       - name: {{ $appName }}-php-job
         image: {{ $.Values.repository.baseurl }}/ps-{{ $appName }}-api-php:{{ $.Values.repository.tag }}
         imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
-        args: ["bin/console hautelook:fixtures:load --append --no-interaction"]
+        args: 
+          - /srv/app/bin/console
+          - hautelook:fixtures:load
+          - --append
+          - --no-interaction
         terminationMessagePolicy: FallbackToLogsOnError
         env:
         {{- include "envRef.phpApp" $tplArgs | indent 8 }}
