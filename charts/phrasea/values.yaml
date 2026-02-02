@@ -190,6 +190,9 @@ auth:
   database:
     name: auth
 
+notifications:
+  enabled: true
+  
 novu:
   enabled: true
   bridge:

@@ -1,3 +1,4 @@
+{{- if and $.Values.stack.running $.Values.novu.enabled $.Values.notifications.enabled}}
 {{- with .Values.novu }}
 apiVersion: v1
 kind: ConfigMap
@@ -15,3 +16,5 @@ data:
   NOVU_WS_URL: {{ required "Missing novu.wsUrl" .wsUrl | quote }}
   NOVU_APPLICATION_IDENTIFIER: {{ required "Missing novu.applicationIdentifier" .applicationIdentifier | quote }}
 {{- end }}
+{{- end }}
+

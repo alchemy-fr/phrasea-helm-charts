@@ -22,4 +22,3 @@ databox:
       secrets:
         publicKey: "databox-public-key"
         secretKey: "databox-secret-key"
-

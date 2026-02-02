@@ -1,4 +1,4 @@
-{{- if and $.Values.stack.running .Values.novu.enabled }}
+{{- if and $.Values.stack.running $.Values.novu.enabled $.Values.notifications.enabled }}
 {{- with .Values.novu.bridge }}
 {{- if .ingress.enabled }}
 {{- $ingressNode := . }}
