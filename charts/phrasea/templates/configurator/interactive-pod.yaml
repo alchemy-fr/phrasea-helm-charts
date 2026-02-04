@@ -2,28 +2,28 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: configurator-interactive
+  name: interactive-pod
   labels:
     app: phrasea
-    tier: configurator-interactive
+    tier: interactive-pod
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: phrasea
-      tier: configurator-interactive
+      tier: interactive-pod
   template:
     metadata:
       labels:
         app: phrasea
-        tier: configurator-interactive
+        tier: interactive-pod
     spec:
       {{- include "imagePullSecrets" . | indent 6 }}
       {{- if .Values.nodeSelector }}
       nodeSelector: {{ toYaml .Values.nodeSelector | nindent 8 }}
       {{- end }}
       containers:
-      - name: configurator-interactive
+      - name: interactive-pod
         image: alpine:latest
         imagePullPolicy: IfNotPresent
         stdin: true

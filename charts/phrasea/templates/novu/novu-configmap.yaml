@@ -17,4 +17,3 @@ data:
   NOVU_APPLICATION_IDENTIFIER: {{ required "Missing novu.applicationIdentifier" .applicationIdentifier | quote }}
 {{- end }}
 {{- end }}
-
