@@ -36,6 +36,8 @@ spec:
         terminationMessagePolicy: FallbackToLogsOnError
         envFrom:
         - configMapRef:
+            name: client-config
+        - configMapRef:
             name: urls-config
         - configMapRef:
             name: novu

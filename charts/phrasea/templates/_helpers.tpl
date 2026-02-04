@@ -114,6 +114,8 @@ gateway-tls
 {{- end }}
 - name: CONFIGURATOR_DB_NAME
   value: {{ $glob.Values.configurator.database.name | quote }}
+- name: CONFIGURATOR_SERVICE_WAIT_TIMEOUT
+  value: {{ $glob.Values.configurator.serviceWaitTimeout | quote }}
 {{- if $ctx.database }}
 - name: DB_NAME
   value: {{ $ctx.database.name | quote }}

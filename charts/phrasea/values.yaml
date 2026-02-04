@@ -95,10 +95,11 @@ image:
 nodeSelector:
 
 configurator:
+  # can be "test", "dev"
+  presets:
+  serviceWaitTimeout: 60
   database:
     name: configurator
-  # can be "test", "dev" 
-  presets:
   s3:
     # When using an external object storage provider, set the "endpoint" to the root domain of the service.
     # Example: https://s3.my-s3-provider.com
@@ -519,8 +520,6 @@ uploader:
     vhost: uploader
   database:
     name: uploader
-  matomo:
-    enabled: false
 
 report:
   enabled: true
@@ -562,8 +561,6 @@ dashboard:
   client:
     oauthClient:
       id: dashboard-app
-  matomo:
-    enabled: false
 
 documentation:
   # true for including documentation inside the deployment 
@@ -815,6 +812,7 @@ matomo:
   baseUrl:
   siteId:
   authToken:
+  mediaPluginEnabled: false
   syncPhraseanet:
     enabled: false
     schedule: '30 5 * * *'

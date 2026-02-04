@@ -8,6 +8,7 @@ data:
   VERIFY_SSL: "false"
   {{- end }}
   TRUSTED_PROXIES: 127.0.0.1,REMOTE_ADDR
+  NOTIFICATIONS_ENABLED: {{ ternary "true" "false" .Values.notifications.enabled | quote }}
 {{- if .Values.newrelic.enabled }}
   NEWRELIC_ENABLED: "1"
   NEWRELIC_LICENSE_KEY: {{ required "Missing newrelic.licenceKey" .Values.newrelic.licenceKey | quote }}
