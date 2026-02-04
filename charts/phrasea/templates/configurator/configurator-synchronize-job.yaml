@@ -1,4 +1,3 @@
-
 {{- if and $.Values.stack.running $.Values.stack.runSynchronize}}
 apiVersion: batch/v1
 kind: Job

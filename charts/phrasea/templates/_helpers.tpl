@@ -263,12 +263,46 @@ env:
 - name: KC_REALM_ADMIN_EVENT_ENABLED
   value: {{ .Values.keycloak.realm.adminEventEnabled | quote }}
 - name: KC_REALM_ADMIN_EVENT_EXPIRATION
-  value: {{ .Values.keycloak.realm.adminEventExpiration | toString | quote }} 
+  value: {{ .Values.keycloak.realm.adminEventExpiration | toString | quote }}
+- name: RABBITMQ_CONSOLE_URL
+  value: {{ .Values.rabbitmq.consoleUrl | quote }}
+- name: CONFIGURATOR_S3_BUCKET_NAME
+  value: {{ .Values.configurator.s3.bucketName | quote }}
+- name: S3_ENDPOINT
+  value: {{ tpl .Values.configurator.s3.endpoint . | quote }}
+- name: S3_USE_PATH_STYLE_ENDPOINT
+  value: {{ .Values.configurator.s3.usePathStyleEndpoint | quote }}
+- name: S3_ACCESS_KEY
+  value: {{ .Values.configurator.s3.accessKey | quote }}
+- name: S3_SECRET_KEY
+  value: {{ .Values.configurator.s3.secretKey | quote }}
+- name: S3_REGION
+  value: {{ .Values.configurator.s3.region | quote }}
+- name: S3_PATH_PREFIX
+  value: {{ .Values.configurator.s3.pathPrefix | quote }}
+- name: VERIFY_SSL
+  value: {{ .Values.security.verifySsl | quote }}
+- name: POSTGRES_HOST
+  value: {{ .Values.postgresql.host | quote }}
+- name: POSTGRES_PORT
+  value: {{ .Values.postgresql.port | quote }}
+- name: POSTGRES_USER
+  value: {{ .Values.postgresql.user | quote }}
+- name: POSTGRES_PASSWORD
+  value: {{ .Values.postgresql.password | quote }}
+- name: REPORT_DB_NAME
+  value: {{ .Values.report.databaseName | quote }}
+- name: KEYCLOAK_DB_NAME
+  value: {{ .Values.keycloak.database.name | quote }}
 {{- range .Values._internal.services }}
 {{- $appName := . }}
 {{- with (index $.Values $appName) }}
 - name: {{ upper $appName }}_DB_NAME
   value: {{ .database.name | quote }}
+- name: {{ upper $appName }}_RABBITMQ_VHOST
+  value: {{ .rabbitmq.vhost | quote }}
+- name: {{ upper $appName }}_S3_BUCKET_NAME
+  value: {{ .api.config.s3Storage.bucketName | quote }}
 {{- if .adminOAuthClient }}
 - name: {{ upper $appName }}_ADMIN_CLIENT_ID
   value: {{ .adminOAuthClient.id | quote }}
