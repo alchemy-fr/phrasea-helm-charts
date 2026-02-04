@@ -17,7 +17,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: {{ .hostname }}
+  - host: {{ tpl .hostname $ }}
     http:
       paths:
       {{- include "ingress.rule_path" (dict "_" $ "name" "dashboard" "port" 80) | indent 6 }}
@@ -34,7 +34,7 @@ spec:
 {{- else if $.Values.ingress.tls.wildcard.enabled }}
   tls:
   - hosts:
-    - {{ .hostname }}
+    - {{ tpl .hostname $ }}
     secretName: {{ include "secretRef.ingress.tls.wildcard" $ }}
 {{- end }}
 {{- end }}

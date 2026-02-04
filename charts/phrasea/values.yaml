@@ -1,30 +1,87 @@
 repository:
   baseurl: alchemyfr
-  # __SET_ME__ for a fixed version
-  tag: latest 
+  # __SET_ME__  Set a fixed version, do not use "latest" in production
+  tag: latest
   imagePullPolicy: IfNotPresent
+
+stack:
+  # __SET_ME__ Custom stack name to distinguish multiple stacks
+  name:
+  # __SET_ME__ Domain used to auto-generate all service URLs (e.g., example.com generates keycloak.example.com, databox.example.com, etc.)
+  domain:
+  running: true
+  runSetups: true
+  runMigrations: true
+  runSynchronize: true
+
+
+# Override full name of the deployed resources (e.g., phrasea-stg) useful for multiple certbot in the same cluster.
+fullnameOverride: phrasea
+
+# Enable resource requests/limits for all deployments (required for cluster-autoscaler)
+resourceQuota: true
 
 acme:
   enabled: false
+  # Email for Let's Encrypt notifications
   email:
+  # Use production Let's Encrypt server (true) or staging (false)
   production: false
-  rootHost:
+  # Root domain for wildcard certificate (e.g., example.com generates *.example.com)
+  # Uses stack.domain by default
+  rootHost: "{{ .Values.stack.domain }}"
+  # DNS provider for DNS-01 challenge (gandi, scaleway, route53)
+  provider:
+  
+  # Scaleway DNS configuration (https://www.scaleway.com/en/dns/)
+  scaleway:
+    # Scaleway Access Key (from IAM API Key)
+    accessKey:
+    # Scaleway Secret Key (from IAM API Key)
+    secretKey:
+    # Secret name if using existing secret
+    existingSecretName:
+    existingSecretAccessKeyKey:
+    existingSecretSecretKeyKey:
+  
+  # Gandi LiveDNS v5 configuration
   gandi:
-    apiToken:
+    # Personal Access Token from https://account.gandi.net/en/users/USER/security
+    # Required permissions: "Manage domain name technical configurations"
+    personalAccessToken:
+    existingSecretName:
+    existingSecretKey:
+  
+  # AWS Route53 configuration
+  route53:
+    region:
+    # IAM access key with Route53 permissions
+    accessKeyId:
+    secretAccessKey:
+    # Hosted Zone ID
+    hostedZoneId:
+    existingSecretName:
+    existingSecretKey:
+
+# __SET_ME__ TLS configuration
+ingress:
+  tls:
+    wildcard:
+      # set to true to enable TLS for wildcard domains (*.example.com)
+      enabled: false
+      # Name of the TLS secret containing the wildcard certificate
+      # Default: <release-name>-ps-wildcard-tls (e.g., phrasea-ps-wildcard-tls)
+      # With fullnameOverride: <fullnameOverride>-wildcard-tls (e.g., phrasea-stg-wildcard-tls)
+      externalSecretName:
+      # Alternative: provide your own certificate and key
+      crt:
+      key:
+
 
 security:
   verifySsl: true
   verifyHost: true
 
-stack:
-  # __SET_ME__ Custom stack name to distinguish multiple stacks
-  name:
-  # __SET_ME__ Used to define the domain for the default admin user.
-  domain: 
-  running: true
-  runSetups: true
-  runMigrations: true
-  runSynchronize: true
 
 image:
   pullSecret:
@@ -40,20 +97,31 @@ nodeSelector:
 configurator:
   database:
     name: configurator
+  # can be "test", "dev" 
+  presets:
   s3:
-    endpoint: "{{ .Values.minio.baseUrl }}"
+    # When using an external object storage provider, set the "endpoint" to the root domain of the service.
+    # Example: https://s3.my-s3-provider.com
+    # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
+    endpoint: "https://minio.{{ .Values.stack.domain }}"
+    # required for some object storage providers
     region:
     bucketName: config
+    # True for a local minio, false for an external object storage provider
+    usePathStyleEndpoint: true 
     # Can be used to support a single CloudFront distribution with multiple origins
     pathPrefix: ''
-    # true for a local minio, false for an external object storage
-    usePathStyleEndpoint: true 
     accessKey:
     secretKey:
     externalSecretKey:
     externalSecretMapping:
       accessKey: CONFIGURATOR_S3_ACCESS_KEY
       secretKey: CONFIGURATOR_S3_SECRET_KEY
+
+interactivePod:
+  # Set to true to launch an interactive pod for debugging
+  enabled: false
+
 
 keycloak:
   realm:
@@ -64,8 +132,8 @@ keycloak:
     loginRegistrationAllowed: true
     loginResetPasswordAllowed: true
     loginRememberMeAllowed: true
-    loginWithEmailAllowed: true
-    loginVerifyEmailAllowed: true
+    loginWithEmailAllowed: false
+    loginVerifyEmailAllowed: false
     loginEmailAsUsername: false
     loginEditUsername: false
     ssoSessionIdleTimeout: "28800"
@@ -86,19 +154,19 @@ keycloak:
   masterAdmin:
     username: admin
     # __SET_ME__
-    password: __CHANGE_ME_obIaHz6cVTkQKHqLBj 
+    password: __CHANGE_ME_obIaHz6cVTkQKHqLBj
   defaultAdmin:
-    # __SET_ME__ - username must be in email format OR define stack.domain to auto-generate it
+    # __SET_ME__  username must be in email format OR define stack.domain to auto-generate it
     username: phrasea-admin@xxx.zz
     # __SET_ME__
     password: __CHANGE_ME_KFBsKzc7RupJhXkr
+    # set to true to keep the password as is (do not force change at first login)
+    keycloakAdminDefinitivePassword: false
   database:
     create: true
     name: keycloak
-  # __SET_ME__
-  hostname:
-  # __SET_ME__
-  baseUrl: 
+  hostname: "keycloak.{{ .Values.stack.domain }}"
+  baseUrl: "https://keycloak.{{ .Values.stack.domain }}"
   internalBaseUrl: http://keycloak
   ingress:
     enabled: true
@@ -107,32 +175,56 @@ keycloak:
       nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
     extraLabels: {}
     tls: []
+  # Override global resourceQuota for this service (true/false), defaults to global value
+  # resourceQuota:
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
   
-
+# __DEPRECATED__ kept only for 2.0 migration purpose
 auth:
   database:
     name: auth
 
+notifications:
+  enabled: true
+  
 novu:
   enabled: true
   bridge:
-    # __SET_ME__
-    hostname:
-    # __SET_ME__
-    baseUrl:
+    hostname: "bridge-novu.{{ .Values.stack.domain }}"
+    baseUrl: "https://bridge-novu.{{ .Values.stack.domain }}"
+    # Override global resourceQuota for this service (true/false), defaults to global value
+    # resourceQuota:
+    resources:
+      requests:
+        cpu: "25m"
+        memory: "128Mi"
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
     ingress:
       enabled: true
       annotations: {}
       extraLabels: {}
       tls: []
-  dashboardUrl: https://dashboard.novu.co
-  apiHost: api.novu.co
-  wsUrl: https://ws.novu.co
+  dashboardUrl: https://eu.dashboard-v2.novu.co
+  apiHost: eu.api.novu.co
+  wsUrl: https://eu.ws.novu.co
+  # __SET_ME__
   applicationIdentifier:
+  # __SET_ME__
   secretKey:
 
 databox:
   enabled: true
+  # this option enable the import of fixtures after setup
+  # warning: this will erase existing data in databases.
+  importFixtures: false
   cronJob:
     enabled: true
     # Daily at 3am
@@ -146,11 +238,10 @@ databox:
       extraLabels: {}
       maxBodySize: 2G
       tls: []
-    # __SET_ME__
-    hostname:
-    # __SET_ME__
-    baseUrl:
-    ressourcesquota: false
+    hostname: "api-databox.{{ .Values.stack.domain }}"
+    baseUrl: "https://api-databox.{{ .Values.stack.domain }}"
+    # Override global resourceQuota for this service (true/false), defaults to global value
+    # resourceQuota:
     resources:
       requests:
         cpu: "50m"
@@ -161,13 +252,16 @@ databox:
     config:
       requestSignatureTtl: 86400
       s3Storage:
-        endpoint: "{{ .Values.minio.baseUrl }}"
+        # When using an external object storage provider, set the "endpoint" to the root domain of the service.
+        # Example: https://s3.my-s3-provider.com
+        # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
+        endpoint: "https://minio.{{ .Values.stack.domain }}"
         region:
         bucketName: databox
+        # true for a local minio, false for an external object storage provider
+        usePathStyleEndpoint: true 
         # Can be used to support a single CloudFront distribution with multiple origins
         pathPrefix: ''
-        # true for a local minio, false for an external object storage
-        usePathStyleEndpoint: true
         accessKey:
         secretKey:
         externalSecretKey:
@@ -184,17 +278,26 @@ databox:
         baseUrl:
         oauthToken:
       secrets:
+        # __SET_ME__ sodium public/private key pair
         publicKey:
+        # __SET_ME__
         secretKey:
   adminOAuthClient:
     externalSecretName:
     id: databox-admin
     secret: '__CHANGE_ME_9jZuZqkwf9qW881jTqG'
   client:
-    # __SET_ME__
-    hostname:
-    # __SET_ME__
-    baseUrl:
+    hostname: "databox.{{ .Values.stack.domain }}"
+    baseUrl: "https://databox.{{ .Values.stack.domain }}"
+    # Override global resourceQuota for this service (true/false), defaults to global value
+    # resourceQuota:
+    resources:
+      requests:
+        cpu: "25m"
+        memory: "64Mi"
+      limits:
+        cpu: "500m"
+        memory: "256Mi"
     ingress:
       enabled: true
       annotations: {}
@@ -204,14 +307,15 @@ databox:
       id: databox-app
   worker:
     replicas: 1
-    ressourcesquota: false
+    # Override global resourceQuota for this service (true/false), defaults to global value
+    # resourceQuota:
     resources:
       requests:
-        cpu: "50m"
-        memory: "256Mi"
+        cpu: "100m"
+        memory: "512Mi"
       limits:
         cpu: "2000m"
-        memory: "2048Mi"
+        memory: "4Gi"
   rabbitmq:
     vhost: databox
   database:
@@ -220,24 +324,15 @@ databox:
     uploaderTargetSlug: databox-uploader
   zippy:
     enabled: true
-    baseUrl: "{{ .Values.zippy.ingress.baseUrl }}"
+    baseUrl: "https://zippy.{{ .Values.stack.domain }}"
     clientId: databox
     clientSecret: __CHANGE_ME_MxWoVddUWq
-  matomo:
-    enabled: false
-    siteId:
-    baseUrl:
 
 expose:
   enabled: true
-  matomo:
-    enabled: false
-    siteId:
-    baseUrl:
-    authToken:
-    syncPhraseanet:
-      enabled: false
-      schedule: '30 5 * * *'
+  # this option enable the import of fixtures after setup
+  # warning: this will erase existing data in databases.
+  importFixtures: false
   api:
     replicas: 1
     subnet: 0.0.0.0/0
@@ -249,11 +344,10 @@ expose:
       extraLabels: {}
       maxBodySize: 22G
       tls: []
-    # __SET_ME__
-    hostname:
-    # __SET_ME__
-    baseUrl:
-    ressourcesquota: false
+    hostname: "api-expose.{{ .Values.stack.domain }}"
+    baseUrl: "https://api-expose.{{ .Values.stack.domain }}"
+    # Override global resourceQuota for this service (true/false), defaults to global value
+    # resourceQuota:
     resources:
       requests:
         cpu: "50m"
@@ -264,13 +358,16 @@ expose:
     config:
       requestSignatureTtl: 86400
       s3Storage:
-        endpoint: "{{ .Values.minio.baseUrl }}"
+        # When using an external object storage provider, set the "endpoint" to the root domain of the service.
+        # Example: https://s3.my-s3-provider.com
+        # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
+        endpoint: "https://minio.{{ .Values.stack.domain }}"
         region:
         bucketName: expose
+        # true for a local minio, false for an external object storage provider
+        usePathStyleEndpoint: true
         # Can be used to support a single CloudFront distribution with multiple origins
         pathPrefix: ''
-        # true for a local minio, false for an external object storage
-        usePathStyleEndpoint: true
         accessKey:
         secretKey:
         externalSecretKey:
@@ -292,7 +389,8 @@ expose:
     secret: '__CHANGE_ME_71EuDQ2H$ei3sHwIB0sfy'
   worker:
     replicas: 1
-    ressourcesquota: false
+    # Override global resourceQuota for this service (true/false), defaults to global value
+    # resourceQuota:
     resources:
       requests:
         cpu: "50m"
@@ -301,10 +399,17 @@ expose:
         cpu: "2000m"
         memory: "2048Mi"
   client:
-    # __SET_ME__
-    hostname:
-    # __SET_ME__
-    baseUrl:
+    hostname: "expose.{{ .Values.stack.domain }}"
+    baseUrl: "https://expose.{{ .Values.stack.domain }}"
+    # Override global resourceQuota for this service (true/false), defaults to global value
+    # resourceQuota:
+    resources:
+      requests:
+        cpu: "25m"
+        memory: "64Mi"
+      limits:
+        cpu: "500m"
+        memory: "256Mi"
     ingress:
       enabled: true
       annotations: {}
@@ -326,7 +431,7 @@ expose:
     name: expose
   zippy:
     enabled: true
-    baseUrl: "{{ .Values.zippy.ingress.baseUrl }}"
+    baseUrl: "https://zippy.{{ .Values.stack.domain }}"
     clientId: expose
     clientSecret: __CHANGE_ME_zEp1JbcjuQ
 
@@ -341,12 +446,11 @@ uploader:
         nginx.ingress.kubernetes.io/proxy-body-size: "22G"
       extraLabels: {}
       maxBodySize: 22G
-      tls: []
-    # __SET_ME__  
-    hostname:
-    # __SET_ME__
-    baseUrl:
-    ressourcesquota: false
+      tls: []  
+    hostname: "api-uploader.{{ .Values.stack.domain }}"
+    baseUrl: "https://api-uploader.{{ .Values.stack.domain }}"
+    # Override global resourceQuota for this service (true/false), defaults to global value
+    # resourceQuota:
     resources:
       requests:
         cpu: "50m"
@@ -361,13 +465,16 @@ uploader:
       requestSignatureTtl: 3600
       allowedFileTypes: 'image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg),application/*(.pdf,.doc,.docx,.xls,.xlsx,.odt),video/*(.mpg,.mpeg,.mov,.avi,.mp3,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc)audio/*(.aac,.aiff,.wav)'
       s3Storage:
-        endpoint: "{{ .Values.minio.baseUrl }}"
-        region:
-        bucketName: uploader-deposit
-        # Can be used to support a single CloudFront distribution with multiple origins
-        pathPrefix: ''
+        # When using an external object storage provider, set the "endpoint" to the root domain of the service.
+        # Example: https://s3.my-s3-provider.com
+        # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
+        endpoint: "https://minio.{{ .Values.stack.domain }}"
+        region:        
+        bucketName: uploader
         # true for a local minio, false for an external object storage
         usePathStyleEndpoint: true
+        # Can be used to support a single CloudFront distribution with multiple origins
+        pathPrefix: ''
         accessKey:
         secretKey:
         externalSecretKey:
@@ -380,7 +487,8 @@ uploader:
     secret: '__CHANGE_ME_p@P@CSnZi3sHwIB0sfy'
   worker:
     replicas: 1
-    ressourcesquota: false
+    # Override global resourceQuota for this service (true/false), defaults to global value
+    # resourceQuota:
     resources:
       requests:
         cpu: "50m"
@@ -389,10 +497,17 @@ uploader:
         cpu: "2000m"
         memory: "2048Mi"
   client:
-    # __SET_ME__
-    hostname:
-    # __SET_ME__
-    baseUrl:
+    hostname: "uploader.{{ .Values.stack.domain }}"
+    baseUrl: "https://uploader.{{ .Values.stack.domain }}"
+    # Override global resourceQuota for this service (true/false), defaults to global value
+    # resourceQuota:
+    resources:
+      requests:
+        cpu: "25m"
+        memory: "64Mi"
+      limits:
+        cpu: "500m"
+        memory: "256Mi"
     ingress:
       enabled: true
       annotations: {}
@@ -406,18 +521,15 @@ uploader:
     name: uploader
   matomo:
     enabled: false
-    siteId:
-    baseUrl:
 
 report:
   enabled: true
   replicas: 1
   api:
-    # __SET_ME__
     hostname: report-api
-    # __SET_ME__
     baseUrl: http://report-api
-    ressourcesquota: false
+    # Override global resourceQuota for this service (true/false), defaults to global value
+    # resourceQuota:
     resources:
       requests:
         cpu: "50m"
@@ -431,10 +543,17 @@ report:
 dashboard:
   enabled: true
   menuEnabled: true
-  # __SET_ME__
-  hostname:
-  # __SET_ME__
-  baseUrl:
+  hostname: "dashboard.{{ .Values.stack.domain }}"
+  baseUrl: "https://dashboard.{{ .Values.stack.domain }}"
+  # Override global resourceQuota for this service (true/false), defaults to global value
+  # resourceQuota:
+  resources:
+    requests:
+      cpu: "25m"
+      memory: "64Mi"
+    limits:
+      cpu: "500m"
+      memory: "256Mi"
   ingress:
     enabled: true
     annotations: {}
@@ -445,9 +564,33 @@ dashboard:
       id: dashboard-app
   matomo:
     enabled: false
-    siteId:
-    baseUrl:
 
+documentation:
+  # true for including documentation inside the deployment 
+  enabled: false
+  # documentation image repository.
+  image:
+    repository:
+    tag: 
+    pullPolicy: IfNotPresent
+  hostname: "docs.{{ .Values.stack.domain }}"
+  baseUrl: "https://docs.{{ .Values.stack.domain }}"
+  # Override global resourceQuota for this service (true/false), defaults to global value
+  # resourceQuota:
+  resources:
+    requests:
+      cpu: "25m"
+      memory: "64Mi"
+    limits:
+      cpu: "500m"
+      memory: "256Mi"
+  ingress:
+    enabled: true
+    annotations: {}
+    extraLabels: {}
+    tls: []
+
+# __SET_ME__ Mailer configuration
 mailer:
   host:
   port: 
@@ -466,6 +609,15 @@ postgresql:
   port: 5432
   user: phrasea
   password: '__CHANGE_ME_iHdBtyVGmT9Zj6shv'
+  # Override global resourceQuota for this service (true/false), defaults to global value
+  # resourceQuota:
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
   persistence:
     enabled: true
     existingClaim:
@@ -473,10 +625,19 @@ postgresql:
     annotations: {}
     accessMode: ReadWriteOnce
     size: 10Gi
-    subPath:
+    subPath: ps_data
 
 redis:
   enabled: true
+  # Override global resourceQuota for this service (true/false), defaults to global value
+  # resourceQuota:
+  resources:
+    requests:
+      cpu: "25m"
+      memory: "64Mi"
+    limits:
+      cpu: "500m"
+      memory: "256Mi"
 
 rabbitmq:
   enabled: true
@@ -490,6 +651,15 @@ rabbitmq:
   erlangCookie: 'H#75$3CjoTKn3129DNwcqlHvhfqs15'
   epmdPort: 55950
   nodeName: rabbit@rabbitmq
+  # Override global resourceQuota for this service (true/false), defaults to global value
+  # resourceQuota:
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
   securityContext:
     runAsUser: 
     runAsGroup:   
@@ -500,16 +670,25 @@ rabbitmq:
     annotations: {}
     accessMode: ReadWriteOnce
     size: 20Gi
-    subPath:
+    subPath: ps_data
 
 minio:
   enabled: true
+  hostname: "minio.{{ .Values.stack.domain }}"
+  baseUrl: "https://minio.{{ .Values.stack.domain }}"
   # __SET_ME__
-  hostname:
-  # __SET_ME__
-  baseUrl:
   accessKey: '__CHANGE_ME_jw2G5OskVG2VVXIyHsuQJIo'
+  # __SET_ME__
   secretKey: '__CHANGE_ME_bIYN#LuI9$ED9B0ck2scn'
+  # Override global resourceQuota for this service (true/false), defaults to global value
+  # resourceQuota:
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "256Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
   ingress:
     enabled: true
     annotations:
@@ -528,20 +707,12 @@ minio:
     subPath:
   console:
     enabled: true
-    hostname:
+    hostname: "minio-console.{{ .Values.stack.domain }}"
     ingress:
       enabled: true
       annotations: {}
       extraLabels: {}
       tls: []
-
-ingress:
-  tls:
-    wildcard:
-      externalSecretName:
-      enabled: false
-      crt:
-      key:
 
 globalConfig:
   externalConfigmapName:
@@ -564,21 +735,36 @@ elasticsearch:
   replicas: 1
   clusterName: elasticsearch-databox
   minimumMasterNodes: 1
+  # Single replica mode: accept 'yellow' cluster status (shards cannot be replicated with only 1 node)
+  # For multi-node cluster (replicas >= 3), comment this line to require 'green' status (default)
+  clusterHealthCheckParams: "wait_for_status=yellow&timeout=1s"
   url:
   indexPrefix: ""
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"
   volumeClaimTemplate:
     storageClassName:
+    accessModes: ["ReadWriteOnce"]
     resources:
       requests:
         storage: 5Gi
+  persistence:
+    enabled: true
+    storageClass:
+    size: 5Gi
 
 zippy:
   enabled: true
   ingress:
     # __SET_ME__
-    baseUrl: ""
+    baseUrl:
     # __SET_ME__
-    hostname: ""
+    hostname:
   rabbitmq:
     enabled: false
     username: phrasea
@@ -588,32 +774,50 @@ zippy:
 
 soketi:
   enabled: true
-  fullnameOverride: phrasea-soketi
-  livenessProbe: null
-  readinessProbe: null
-  host:
+  host: "soketi.{{ .Values.stack.domain }}"
+  servicePort: 6001
   appId: phrasea
-  key:
-  secret:
-  service:
-    port: 80
+  # __SET_ME__
+  key: "__CHANGE_ME_k3yPhraseaSoketi"
+  # __SET_ME__
+  secret: "__CHANGE_ME_s3cr3tPhraseaSoketi"
+  # Use external secret for production
+  externalSecretName:
   app:
-    extraEnv:
-     - name: SOKETI_DEFAULT_APP_ID
-       valueFrom:
-         configMapKeyRef:
-           name: soketi
-           key: SOKETI_APP_ID
-     - name: SOKETI_DEFAULT_APP_KEY
-       valueFrom:
-         configMapKeyRef:
-           name: soketi
-           key: SOKETI_KEY
-     - name: SOKETI_DEFAULT_APP_SECRET
-       valueFrom:
-         secretKeyRef:
-           name: soketi
-           key: SOKETI_SECRET
+    image:
+      repository: quay.io/soketi/soketi
+      pullPolicy: IfNotPresent
+      tag: "1.6-16-debian"
+    mode: full
+    maxConnections: 200
+    command:
+      - node
+      - --max-old-space-size=256
+      - --max_old_space_size=256
+      - --optimize_for_size
+      - --optimize-for-size
+      - /app/bin/server.js
+      - start
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 250m
+        memory: 256Mi
+    extraEnv: {}
+  ingress:
+    enabled: false
+    annotations: {}
+
+matomo:
+  enabled: false
+  baseUrl:
+  siteId:
+  authToken:
+  syncPhraseanet:
+    enabled: false
+    schedule: '30 5 * * *'
 
 newrelic:
   enabled: false

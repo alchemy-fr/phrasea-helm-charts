@@ -1,0 +1,19 @@
+{{- if and $.Values.stack.running .Values.soketi.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: soketi
+  labels:
+    app: phrasea
+    tier: soketi
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: {{ $.Values.soketi.servicePort }}
+      protocol: TCP
+      name: soketi
+  selector:
+    app: phrasea
+    tier: soketi
+{{- end }}

@@ -23,6 +23,15 @@ spec:
       - name: expose-client
         image: {{ $.Values.repository.baseurl }}/ps-expose-client:{{ $.Values.repository.tag }}
         imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
+        {{- if eq "true" (include "ps.resourceQuota" (dict "local" $.Values.expose.client.resourceQuota "global" $.Values.resourceQuota)) }}
+        resources:
+          requests:
+            memory: {{ $.Values.expose.client.resources.requests.memory | default "64Mi" }}
+            cpu: {{ $.Values.expose.client.resources.requests.cpu | default "25m" }}
+          limits:
+            memory: {{ $.Values.expose.client.resources.limits.memory | default "256Mi" }}
+            cpu: {{ $.Values.expose.client.resources.limits.cpu | default "500m" }}
+        {{- end }}
         terminationMessagePolicy: FallbackToLogsOnError
         envFrom:
         - configMapRef:

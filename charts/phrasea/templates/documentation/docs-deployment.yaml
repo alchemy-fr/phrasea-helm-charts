@@ -1,0 +1,32 @@
+{{- if and $.Values.stack.running $.Values.documentation.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: phrasea-documentation
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: phrasea-documentation
+  template:
+    metadata:
+      labels:
+        app: phrasea-documentation
+    spec:
+      containers:
+        - name: phrasea-documentation
+          # override documentation image with documentation.image section if provided
+          # to do, push documentation images to same repository as app image repository
+          image: "{{ .Values.documentation.image.repository | default .Values.repository.baseurl }}/phrasea-documentation:{{ .Values.documentation.image.tag | default .Values.repository.tag }}"
+          imagePullPolicy: {{ .Values.documentation.image.pullPolicy | default .Values.repository.imagePullPolicy }}
+          ports:
+            - containerPort: 80
+          env:
+          resources:
+            limits:
+              cpu: {{ .Values.documentation.resources.limits.cpu }}
+              memory: {{ .Values.documentation.resources.limits.memory }}
+            requests:
+              cpu: {{ .Values.documentation.resources.requests.cpu }}
+              memory: {{ .Values.documentation.resources.requests.memory }}
+{{- end }}

@@ -27,6 +27,15 @@ spec:
           - 'start'
           - '--optimized'
           imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
+          {{- if eq "true" (include "ps.resourceQuota" (dict "local" .resourceQuota "global" $.Values.resourceQuota)) }}
+          resources:
+            requests:
+              memory: {{ .resources.requests.memory | default "512Mi" }}
+              cpu: {{ .resources.requests.cpu | default "100m" }}
+            limits:
+              memory: {{ .resources.limits.memory | default "2Gi" }}
+              cpu: {{ .resources.limits.cpu | default "1000m" }}
+          {{- end }}
           terminationMessagePolicy: FallbackToLogsOnError
           envFrom:
             - secretRef:
@@ -41,7 +50,7 @@ spec:
           - name: KC_PROXY_HEADERS
             value: xforwarded
           - name: KC_HOSTNAME
-            value: {{ .baseUrl | quote }}
+            value: {{ tpl .baseUrl $ | quote }}
           - name: KC_DB
             value: postgres
           - name: KC_LOGIN_CSS_BACKGROUND

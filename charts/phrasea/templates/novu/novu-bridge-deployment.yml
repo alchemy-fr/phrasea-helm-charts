@@ -1,4 +1,4 @@
-{{- if and $.Values.stack.running .Values.novu.enabled }}
+{{- if and $.Values.stack.running $.Values.novu.enabled $.Values.notifications.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -21,5 +21,14 @@ spec:
       {{- end }}
       containers:
       - name: novu-bridge
+        {{- if eq "true" (include "ps.resourceQuota" (dict "local" $.Values.novu.bridge.resourceQuota "global" $.Values.resourceQuota)) }}
+        resources:
+          requests:
+            memory: {{ $.Values.novu.bridge.resources.requests.memory | default "128Mi" }}
+            cpu: {{ $.Values.novu.bridge.resources.requests.cpu | default "25m" }}
+          limits:
+            memory: {{ $.Values.novu.bridge.resources.limits.memory | default "512Mi" }}
+            cpu: {{ $.Values.novu.bridge.resources.limits.cpu | default "500m" }}
+        {{- end }}
         {{- include "novuBridge.containerSpecs" $ | nindent 8 }}
 {{- end }}

@@ -18,7 +18,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: {{ required "Missing minio.console.hostname" .hostname }}
+  - host: {{ tpl (.hostname | required "Missing minio.console.hostname") $ }}
     http:
       paths:
       {{- include "ingress.rule_path" (dict "_" $ "name" "minio-console" "port" 9001) | indent 6 }}
@@ -35,7 +35,7 @@ spec:
 {{- else if $.Values.ingress.tls.wildcard.enabled }}
   tls:
   - hosts:
-    - {{ .hostname }}
+    - {{ tpl .hostname $ }}
     secretName: {{ include "secretRef.ingress.tls.wildcard" $ }}
 {{- end }}
 {{- end }}

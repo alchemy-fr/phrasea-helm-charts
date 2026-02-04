@@ -27,15 +27,23 @@ spec:
       - name: {{ $appName }}-api-php
         image: {{ $.Values.repository.baseurl }}/ps-{{ $appName }}-api-php:{{ $.Values.repository.tag }}
         imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
-        {{- if (index $.Values $appName).resourcesquota }}
+        {{- if eq "true" (include "ps.resourceQuota" (dict "local" (index $.Values $appName).api.resourceQuota "global" $.Values.resourceQuota)) }}
         resources:
           requests:
-            memory: {{(index $.Values $appName).api.resources.requests.memory}}
-            cpu: {{(index $.Values $appName).api.resources.requests.cpu}}
+            memory: {{ (index $.Values $appName).api.resources.requests.memory | default "256Mi" }}
+            cpu: {{ (index $.Values $appName).api.resources.requests.cpu | default "50m" }}
           limits:
-            memory: {{(index $.Values $appName).api.resources.limits.memory}}
-            cpu: {{(index $.Values $appName).api.resources.limits.cpu}}
+            memory: {{ (index $.Values $appName).api.resources.limits.memory | default "2048Mi" }}
+            cpu: {{ (index $.Values $appName).api.resources.limits.cpu | default "2000m" }}
         {{- end }}
+        readinessProbe:
+          tcpSocket:
+            port: 9000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 2
+          failureThreshold: 3
+          successThreshold: 1
         terminationMessagePolicy: FallbackToLogsOnError
         env:
         {{- include "envRef.phpApp" $tplArgs | indent 8 }}
@@ -66,8 +74,8 @@ spec:
         - secretRef:
             name: soketi
         {{- end }}
-        {{- if .matomo }}
-        {{- if .matomo.enabled }}
+        {{- if $.Values.matomo }}
+        {{- if $.Values.matomo.enabled }}
         - configMapRef:
             name: matomo
         - secretRef:

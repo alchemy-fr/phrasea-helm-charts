@@ -26,6 +26,15 @@ spec:
       - name: {{ $appName }}-api-nginx
         image: {{ $.Values.repository.baseurl }}/ps-{{ $appName }}-api-nginx:{{ $.Values.repository.tag }}
         imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
+        {{- if eq "true" (include "ps.resourceQuota" (dict "local" (index $.Values $appName).api.resourceQuota "global" $.Values.resourceQuota)) }}
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "25m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        {{- end }}
         terminationMessagePolicy: FallbackToLogsOnError
         env:
       {{- if .api.subnet }}

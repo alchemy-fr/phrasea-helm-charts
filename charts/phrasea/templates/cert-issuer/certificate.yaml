@@ -3,14 +3,26 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: wildcard-certificate
+  name: {{ template "ps.fullname" $ }}-wildcard-certificate
+  labels:
+    app: phrasea
+    component: cert-manager
 spec:
+  secretName: {{ template "ps.fullname" $ }}-wildcard-tls
   dnsNames:
-    - '*.{{ required "Missing acme.rootHost" .rootHost }}'
-    - {{ required "Missing acme.rootHost" .rootHost | quote }}
+    - {{ tpl (required "Missing acme.rootHost" .rootHost) $ | quote }}
+    - '*.{{ tpl (required "Missing acme.rootHost" .rootHost) $ }}'
   issuerRef:
     name: {{ template "ps.fullname" $ }}-letsencrypt
     kind: ClusterIssuer
-  secretName: wildcard-tls
+    group: cert-manager.io
+  # Certificate will be renewed 30 days before expiration
+  renewBefore: 720h # 30 days
+  # Private key settings
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+    rotationPolicy: Always
 {{- end }}
 {{- end }}

@@ -1,3 +1,7 @@
+stack:
+  domain: "local"
+  tlsEnabled: false
+
 zippy:
   ingress:
     baseUrl: "https://zippy.local"
@@ -6,55 +10,15 @@ zippy:
 soketi:
   key: "soketi-key"
   secret: "soketi-secret"
-  host: "soketi.local"
+
 
 novu:
   secretKey: "novu-secret"
-  bridge:
-    hostname: "novu-bridge.local"
-    baseUrl: "https://novu-bridge.local"
   applicationIdentifier: "novu-app-id"
-
-
-minio:
-  hostname: "minio.local"
-  console:
-    hostname: "minio-console.local"
-
-keycloak:
-  hostname: "keycloak.local"
-  baseUrl: "https://keycloak.local"
-
-expose:
-  client:
-    hostname: "expose-client.local"
-    baseUrl: "https://expose-client.local"
-  api:
-    hostname: "expose-api.local"
-    baseUrl: "https://expose-api.local"
-
-uploader:
-  client:
-    hostname: "uploader-client.local"
-    baseUrl: "https://uploader-client.local"
-  api:
-    hostname: "uploader-api.local"
-    baseUrl: "https://uploader-api.local"
 
 databox:
   api:
-    hostname: "databox-api.local"
-    baseUrl: "https://databox-api.local"
     config:
       secrets:
         publicKey: "databox-public-key"
         secretKey: "databox-secret-key"
-  client:
-    hostname: "databox-client.local"
-    baseUrl: "https://databox-client.local"
-
-dashboard:
-  baseUrl: "https://dashboard.local"
-  hostname: "dashboard.local"
-
-

@@ -1,3 +1,16 @@
+{{/*
+Check if resourceQuota is enabled for a component.
+Uses component-level value if defined, otherwise falls back to global value.
+Usage: {{ include "ps.resourceQuota" (dict "local" .resourceQuota "global" $.Values.resourceQuota) }}
+*/}}
+{{- define "ps.resourceQuota" -}}
+{{- if not (kindIs "invalid" .local) -}}
+{{- .local -}}
+{{- else -}}
+{{- .global | default false -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "ps.fullname" -}}
 {{- if .Values.fullnameOverride -}}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
@@ -38,6 +51,8 @@ imagePullSecrets:
 {{- with .Values.ingress.tls.wildcard }}
 {{- if and .enabled .externalSecretName -}}
 {{- .externalSecretName -}}
+{{- else if $.Values.acme.enabled -}}
+{{- printf "%s-wildcard-tls" (include "ps.fullname" $) -}}
 {{- else -}}
 gateway-tls
 {{- end }}
@@ -139,9 +154,9 @@ AUTO_CONNECT_IDP: {{ $glob.Values.keycloak.autoConnectIdP | quote }}
 SENTRY_DSN: {{ required "Missing sentry.clientDsn" $glob.Values.sentry.clientDsn | quote }}
 SENTRY_ENVIRONMENT: {{ required "Missing sentry.environment" $glob.Values.sentry.environment | quote }}
 {{- end }}
-{{- if $ctx.matomo.enabled }}
-MATOMO_URL: {{ required "Missing matomo.baseUrl" $ctx.matomo.baseUrl | quote }}
-MATOMO_SITE_ID: {{ required "Missing matomo.siteId" $ctx.matomo.siteId | quote }}
+{{- if $glob.Values.matomo.enabled }}
+MATOMO_URL: {{ required "Missing matomo.baseUrl" $glob.Values.matomo.baseUrl | quote }}
+MATOMO_SITE_ID: {{ required "Missing matomo.siteId" $glob.Values.matomo.siteId | quote }}
 {{- end }}
 {{- if $ctx.client }}
 {{- if $ctx.client.csp }}
@@ -192,19 +207,21 @@ env:
 - name: CONFIGURATOR_DB_NAME
   value: {{ .Values.configurator.database.name | quote }}
 - name: MAILER_HOST
-  value: {{ .Values.mailer.host | quote }}
+  value: {{ .Values.mailer.host | default "" | quote }}
 - name: MAILER_PORT
-  value: {{ .Values.mailer.port | quote }}
+  value: {{ .Values.mailer.port | default "" | quote }}
 - name: MAIL_FROM
-  value: {{ .Values.mailer.from | quote }}
+  value: {{ .Values.mailer.from | default "" | quote }}
 - name: MAIL_FROM_DISPLAY_NAME
   value: {{ .Values.mailer.fromDisplayName | default (printf " Phrasea No reply %s" .Values.stack.name) | quote }}
 - name: MAIL_REPLY_TO
-  value: {{ .Values.mailer.replyTo | quote }}
+  value: {{ .Values.mailer.replyTo | default "" | quote }}
 - name: MAIL_REPLY_TO_DISPLAY_NAME
-  value: {{ .Values.mailer.replyToDisplayName | quote }}
+  value: {{ .Values.mailer.replyToDisplayName | default "" | quote }}
 - name: MAIL_ENVELOPE_FROM
-  value: {{ .Values.mailer.envelopeFrom | quote }}
+  value: {{ .Values.mailer.envelopeFrom | default "" | quote }}
+- name: KEYCLOAK_ADMIN_DEFINITIVE_PASSWORD
+  value: {{ .Values.keycloak.defaultAdmin.keycloakAdminDefinitivePassword | default false | quote }}
 - name: KC_REALM_HTML_DISPLAY_NAME
   value: {{ .Values.keycloak.realm.htmlDisplayName | quote }}
 - name: KC_REALM_SUPPORTED_LOCALES

@@ -1,0 +1,40 @@
+{{- if .Values.acme.enabled }}
+{{- with .Values.acme }}
+{{- if eq .provider "route53" }}
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ template "ps.fullname" $ }}-letsencrypt
+  labels:
+    app: phrasea
+    component: cert-manager
+    provider: route53
+spec:
+  acme:
+    email: {{ required "Missing acme.email" .email | quote }}
+    server: {{ ternary "https://acme-v02.api.letsencrypt.org/directory" "https://acme-staging-v02.api.letsencrypt.org/directory" .production | quote }}
+    privateKeySecretRef:
+      name: {{ template "ps.fullname" $ }}-acme-account-key
+    solvers:
+      # AWS Route53 DNS-01 solver (native cert-manager)
+      - dns01:
+          route53:
+            region: {{ .route53.region | default "eu-west-3" }}
+            {{- if .route53.hostedZoneId }}
+            hostedZoneID: {{ .route53.hostedZoneId | quote }}
+            {{- end }}
+            {{- if or .route53.accessKeyId .route53.existingSecretName }}
+            accessKeyIDSecretRef:
+              name: {{ .route53.existingSecretName | default (printf "%s-route53-credentials" (include "ps.fullname" $)) }}
+              key: access-key-id
+            secretAccessKeySecretRef:
+              name: {{ .route53.existingSecretName | default (printf "%s-route53-credentials" (include "ps.fullname" $)) }}
+              key: secret-access-key
+            {{- end }}
+        selector:
+          dnsZones:
+            - {{ tpl (required "Missing acme.rootHost" .rootHost) $ | quote }}
+{{- end }}
+{{- end }}
+{{- end }}

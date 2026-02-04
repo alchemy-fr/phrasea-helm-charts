@@ -1,0 +1,32 @@
+{{- if and $.Values.stack.running $.Values.soketi.enabled $.Values.soketi.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: soketi
+  labels:
+    app: phrasea
+    tier: soketi
+  {{- with $.Values.soketi.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if $.Values.ingress.tls.wildcard.enabled }}
+  tls:
+    - hosts:
+        - {{ tpl $.Values.soketi.host $ | quote }}
+      secretName: {{ $.Values.ingress.tls.wildcard.externalSecretName | default (printf "%s-ps-wildcard-tls" $.Values.fullnameOverride) }}
+  {{- end }}
+  ingressClassName: nginx
+  rules:
+    - host: {{ tpl $.Values.soketi.host $ | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: soketi
+                port:
+                  number: {{ $.Values.soketi.servicePort }}
+{{- end }}

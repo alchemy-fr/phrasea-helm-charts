@@ -1,0 +1,68 @@
+{{- if and $.Values.stack.running $.Values.interactivePod.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: interactive-pod
+  labels:
+    app: phrasea
+    tier: interactive-pod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: phrasea
+      tier: interactive-pod
+  template:
+    metadata:
+      labels:
+        app: phrasea
+        tier: interactive-pod
+    spec:
+      {{- include "imagePullSecrets" . | indent 6 }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector: {{ toYaml .Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: interactive-pod
+        image: alpine:latest
+        imagePullPolicy: IfNotPresent
+        stdin: true
+        stdinOnce: false
+        tty: true
+        command: ["/bin/sh"]
+        args: ["-c", "apk add --no-cache curl jq postgresql-client zsh && /bin/zsh"]
+        env:
+        - name: PGHOST
+          value: {{ .Values.postgresql.host | quote }}
+        - name: PGPORT
+          value: {{ .Values.postgresql.port | quote }}
+        - name: PGUSER
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.postgresql.externalSecretName | default "postgresql-secret" }}
+              key: POSTGRES_USER
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.postgresql.externalSecretName | default "postgresql-secret" }}
+              key: POSTGRES_PASSWORD
+        envFrom:
+        - configMapRef:
+            name: php-config
+        - configMapRef:
+            name: postgresql-php-config
+        - configMapRef:
+            name: rabbitmq-php-config
+        - secretRef:
+            name: {{ include "secretName.postgresql" . }}
+        - secretRef:
+            name: {{ include "secretName.rabbitmq" . }}
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      restartPolicy: Always
+{{- end }}

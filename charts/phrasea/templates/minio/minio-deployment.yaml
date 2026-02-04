@@ -21,6 +21,15 @@ spec:
       containers:
       - name: minio
         image: minio/minio
+        {{- if eq "true" (include "ps.resourceQuota" (dict "local" $.Values.minio.resourceQuota "global" $.Values.resourceQuota)) }}
+        resources:
+          requests:
+            memory: {{ $.Values.minio.resources.requests.memory | default "256Mi" }}
+            cpu: {{ $.Values.minio.resources.requests.cpu | default "50m" }}
+          limits:
+            memory: {{ $.Values.minio.resources.limits.memory | default "1Gi" }}
+            cpu: {{ $.Values.minio.resources.limits.cpu | default "1000m" }}
+        {{- end }}
         terminationMessagePolicy: FallbackToLogsOnError
         args:
         - "server"
@@ -30,7 +39,7 @@ spec:
         env:
           {{- if .Values.minio.console.enabled }}
           - name: MINIO_BROWSER_REDIRECT_URL
-            value: https://{{ .Values.minio.console.hostname }}
+            value: {{ printf "https://%s" (tpl .Values.minio.console.hostname $) | quote }}
           {{- end }}
         envFrom:
           - secretRef:

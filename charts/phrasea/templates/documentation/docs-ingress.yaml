@@ -1,11 +1,11 @@
-{{- if and $.Values.stack.running $.Values.novu.enabled $.Values.notifications.enabled }}
-{{- with .Values.novu.bridge }}
+{{- if and $.Values.stack.running $.Values.documentation.enabled }}
+{{- with .Values.documentation }}
 {{- if .ingress.enabled }}
 {{- $ingressNode := . }}
 apiVersion: {{ template "ingress.apiVersion" $ }}
 kind: Ingress
 metadata:
-  name: novu-bridge
+  name: documentation-ingress
 {{- if .ingress.annotations }}
   annotations:
 {{ toYaml .ingress.annotations | indent 4 }}
@@ -17,10 +17,16 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: {{ tpl (required "Missing novu.bridge.hostname" .hostname) $ | quote }}
+  - host: {{ tpl .hostname $ }}
     http:
       paths:
-      {{- include "ingress.rule_path" (dict "_" $ "name" "novu-bridge" "port" 80) | indent 6 }}
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: phrasea-documentation
+            port:
+              number: 80
 {{- if .ingress.tls }}
 {{- $tlsNode := .ingress.tls -}}
 {{- range $value := $tlsNode }}

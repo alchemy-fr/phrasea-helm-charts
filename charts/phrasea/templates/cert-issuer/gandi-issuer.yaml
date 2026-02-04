@@ -1,0 +1,35 @@
+{{- if .Values.acme.enabled }}
+{{- with .Values.acme }}
+{{- if eq .provider "gandi" }}
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ template "ps.fullname" $ }}-letsencrypt
+  labels:
+    app: phrasea
+    component: cert-manager
+    provider: gandi
+spec:
+  acme:
+    email: {{ required "Missing acme.email" .email | quote }}
+    server: {{ ternary "https://acme-v02.api.letsencrypt.org/directory" "https://acme-staging-v02.api.letsencrypt.org/directory" .production | quote }}
+    privateKeySecretRef:
+      name: {{ template "ps.fullname" $ }}-acme-account-key
+    solvers:
+      # Gandi LiveDNS v5 with Personal Access Token
+      - dns01:
+          webhook:
+            groupName: acme.gandi.livedns
+            solverName: gandi-livedns
+            config:
+              apiTokenSecretRef:
+                name: {{ .gandi.existingSecretName | default (printf "%s-gandi-credentials" (include "ps.fullname" $)) }}
+                key: {{ .gandi.existingSecretKey | default "api-token" }}
+              apiEndpoint: https://api.gandi.net
+        selector:
+          dnsZones:
+            - {{ tpl (required "Missing acme.rootHost" .rootHost) $ | quote }}
+{{- end }}
+{{- end }}
+{{- end }}

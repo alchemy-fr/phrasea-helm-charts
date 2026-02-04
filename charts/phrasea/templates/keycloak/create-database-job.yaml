@@ -1,4 +1,4 @@
-{{- if .Values.keycloak.enabled }}
+{{- if and .Values.keycloak.enabled $.Values.stack.running }}
 {{- if .Values.keycloak.database.create }}
 {{ $jobName := "create-keycloak-database" }}
 apiVersion: batch/v1
@@ -29,6 +29,12 @@ spec:
         - secretRef:
             name: {{ .Values.postgresql.externalSecretName | default "postgresql-secret" }}
       restartPolicy: Never
+      {{- if $.Values.postgresql.enabled }}
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox
+        command: ['sh', '-c', 'until nc -z {{ .Values.postgresql.host }} {{ .Values.postgresql.port }}; do sleep 2; done']
+      {{- end }}
   backoffLimit: 10
 {{- end }}
 {{- end }}
