@@ -206,6 +206,10 @@ env:
   value: {{ .Values.security.verifyHost | quote }}
 - name: AUTH_DB_NAME
   value: {{ .Values.auth.database.name | quote }}
+{{- range $key, $value := .Values.configurator.configure }}
+- name: CONFIGURATOR_CONFIGURE_{{ upper $key }}
+  value: {{ $value | quote }}
+{{- end }}
 - name: CONFIGURATOR_DB_NAME
   value: {{ .Values.configurator.database.name | quote }}
 - name: MAILER_HOST

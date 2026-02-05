@@ -97,6 +97,12 @@ nodeSelector:
 configurator:
   # can be "test", "dev"
   presets:
+  configure:
+    database: true
+    keycloak: true
+    minio: false
+    rabbitmq: true
+    s3: true
   serviceWaitTimeout: 60
   database:
     name: configurator
@@ -536,7 +542,6 @@ report:
         cpu: "2000m"
         memory: "2048Mi"
   databaseName: report
-  createDatabase: true
 
 dashboard:
   enabled: true
