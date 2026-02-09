@@ -19,7 +19,7 @@ spec:
       {{- end }}
       containers:
       - name: {{ $appName }}-php-job
-        image: {{ $.Values.repository.baseurl }}/ps-{{ $appName }}-api-php:{{ $.Values.repository.tag }}
+        image: {{ $.Values.repository.baseUrl }}/ps-{{ $appName }}-api-php:{{ $.Values.repository.tag }}
         imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
         args: ["bin/migrate.sh"]
         terminationMessagePolicy: FallbackToLogsOnError

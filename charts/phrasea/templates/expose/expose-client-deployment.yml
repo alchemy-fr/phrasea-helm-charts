@@ -21,7 +21,7 @@ spec:
       {{- end }}
       containers:
       - name: expose-client
-        image: {{ $.Values.repository.baseurl }}/ps-expose-client:{{ $.Values.repository.tag }}
+        image: {{ $.Values.repository.baseUrl }}/ps-expose-client:{{ $.Values.repository.tag }}
         imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
         {{- if eq "true" (include "ps.resourceQuota" (dict "local" $.Values.expose.client.resourceQuota "global" $.Values.resourceQuota)) }}
         resources:

@@ -17,7 +17,7 @@ spec:
           {{- end }}
           containers:
           - name: {{ $appName }}-api-php
-            image: {{ $.Values.repository.baseurl }}/ps-{{ $appName }}-api-php:{{ $.Values.repository.tag }}
+            image: {{ $.Values.repository.baseUrl }}/ps-{{ $appName }}-api-php:{{ $.Values.repository.tag }}
             imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
             command:
               - bin/console

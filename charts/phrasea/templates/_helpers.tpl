@@ -80,10 +80,12 @@ gateway-tls
     name: urls-config
 - configMapRef:
     name: configurator-s3
+{{- if and .Values.notifications.enabled .Values.novu.enabled }}
 - configMapRef:
     name: novu
 - secretRef:
     name: novu
+{{- end }}
 {{- end }}
 
 {{- define "envRef.phpApp" }}
@@ -114,8 +116,6 @@ gateway-tls
 {{- end }}
 - name: CONFIGURATOR_DB_NAME
   value: {{ $glob.Values.configurator.database.name | quote }}
-- name: CONFIGURATOR_SERVICE_WAIT_TIMEOUT
-  value: {{ $glob.Values.configurator.serviceWaitTimeout | quote }}
 {{- if $ctx.database }}
 - name: DB_NAME
   value: {{ $ctx.database.name | quote }}
@@ -194,16 +194,18 @@ networking.k8s.io/v1beta1
 
 {{- define "configurator.containerSpecs" -}}
 name: configurator
-image: {{ .Values.repository.baseurl }}/ps-configurator:{{ .Values.repository.tag }}
+image: {{ .Values.repository.baseUrl }}/ps-configurator:{{ .Values.repository.tag }}
 imagePullPolicy: {{ .Values.repository.imagePullPolicy }}
 terminationMessagePolicy: FallbackToLogsOnError
 env:
 - name: PHRASEA_DOMAIN
   value: {{ .Values.stack.domain | quote }}
+{{- if not .Values.security.verifySSL }}
 - name: VERIFY_SSL
-  value: {{ .Values.security.verifySSL | quote }}
+  value: "false"
+{{- end }}
 - name: VERIFY_HOST
-  value: {{ .Values.security.verifyHost | quote }}
+  value: {{ .Values.security.verifyHost | default true | quote }}
 - name: AUTH_DB_NAME
   value: {{ .Values.auth.database.name | quote }}
 {{- range $key, $value := .Values.configurator.configure }}
@@ -212,6 +214,8 @@ env:
 {{- end }}
 - name: CONFIGURATOR_DB_NAME
   value: {{ .Values.configurator.database.name | quote }}
+- name: CONFIGURATOR_SERVICE_WAIT_TIMEOUT
+  value: {{ .Values.configurator.serviceWaitTimeout | quote }}
 - name: MAILER_HOST
   value: {{ .Values.mailer.host | default "" | quote }}
 - name: MAILER_PORT
@@ -274,30 +278,32 @@ env:
   value: {{ .Values.configurator.s3.bucketName | quote }}
 - name: S3_ENDPOINT
   value: {{ tpl .Values.configurator.s3.endpoint . | quote }}
+{{- if .Values.minio.enabled }}
+- name: S3_INTERNAL_URL
+  value: {{ .Values.minio.internalBaseUrl | required "Missing minio.internalBaseUrl" | quote }}
+{{- end }}
 - name: S3_USE_PATH_STYLE_ENDPOINT
-  value: {{ .Values.configurator.s3.usePathStyleEndpoint | quote }}
+  value: {{ .Values.configurator.s3.usePathStyleEndpoint | default false | quote }}
 - name: S3_ACCESS_KEY
-  value: {{ .Values.configurator.s3.accessKey | quote }}
+  value: {{ tpl .Values.configurator.s3.accessKey . | required "Missing configurator.s3.accessKey" | quote }}
 - name: S3_SECRET_KEY
-  value: {{ .Values.configurator.s3.secretKey | quote }}
+  value: {{ tpl .Values.configurator.s3.secretKey . | required "Missing configurator.s3.secretKey" | quote }}
 - name: S3_REGION
-  value: {{ .Values.configurator.s3.region | quote }}
+  value: {{ .Values.configurator.s3.region | default "eu-west-3" | quote }}
 - name: S3_PATH_PREFIX
-  value: {{ .Values.configurator.s3.pathPrefix | quote }}
-- name: VERIFY_SSL
-  value: {{ .Values.security.verifySsl | quote }}
+  value: {{ .Values.configurator.s3.pathPrefix | default "" | quote }}
 - name: POSTGRES_HOST
-  value: {{ .Values.postgresql.host | quote }}
+  value: {{ .Values.postgresql.host | required "Missing postgresql.host" | quote }}
 - name: POSTGRES_PORT
-  value: {{ .Values.postgresql.port | quote }}
+  value: {{ .Values.postgresql.port | required "Missing postgresql.port" | quote }}
 - name: POSTGRES_USER
-  value: {{ .Values.postgresql.user | quote }}
+  value: {{ .Values.postgresql.user | required "Missing postgresql.user" | quote }}
 - name: POSTGRES_PASSWORD
-  value: {{ .Values.postgresql.password | quote }}
+  value: {{ .Values.postgresql.password | required "Missing postgresql.password" | quote }}
 - name: REPORT_DB_NAME
-  value: {{ .Values.report.databaseName | quote }}
+  value: {{ .Values.report.databaseName | required "Missing report.databaseName" | quote }}
 - name: KEYCLOAK_DB_NAME
-  value: {{ .Values.keycloak.database.name | quote }}
+  value: {{ .Values.keycloak.database.name | required "Missing keycloak.database.name" | quote }}
 {{- range .Values._internal.services }}
 {{- $appName := . }}
 {{- with (index $.Values $appName) }}
@@ -348,7 +354,7 @@ envFrom:
 {{- end }}
 
 {{- define "novuBridge.containerSpecs" -}}
-image: {{ .Values.repository.baseurl }}/ps-novu-bridge:{{ .Values.repository.tag }}
+image: {{ .Values.repository.baseUrl }}/ps-novu-bridge:{{ .Values.repository.tag }}
 {{- if not (eq "latest" .Values.repository.tag) }}
 imagePullPolicy:  {{ .Values.repository.imagePullPolicy }}
 {{- end }}

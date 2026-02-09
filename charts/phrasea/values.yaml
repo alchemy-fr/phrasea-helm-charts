@@ -1,5 +1,5 @@
 repository:
-  baseurl: alchemyfr
+  baseUrl: alchemyfr
   # __SET_ME__  Set a fixed version, do not use "latest" in production
   tag: latest
   imagePullPolicy: IfNotPresent
@@ -103,14 +103,14 @@ configurator:
     minio: false
     rabbitmq: true
     s3: true
-  serviceWaitTimeout: 60
+  serviceWaitTimeout: 300
   database:
     name: configurator
   s3:
     # When using an external object storage provider, set the "endpoint" to the root domain of the service.
     # Example: https://s3.my-s3-provider.com
     # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
-    endpoint: "https://minio.{{ .Values.stack.domain }}"
+    endpoint: "{{ tpl .Values.minio.baseUrl . }}"
     # required for some object storage providers
     region:
     bucketName: config
@@ -118,8 +118,8 @@ configurator:
     usePathStyleEndpoint: true 
     # Can be used to support a single CloudFront distribution with multiple origins
     pathPrefix: ''
-    accessKey:
-    secretKey:
+    accessKey: "{{ .Values.minio.accessKey }}"
+    secretKey: "{{ .Values.minio.secretKey }}"
     externalSecretKey:
     externalSecretMapping:
       accessKey: CONFIGURATOR_S3_ACCESS_KEY
@@ -261,15 +261,15 @@ databox:
         # When using an external object storage provider, set the "endpoint" to the root domain of the service.
         # Example: https://s3.my-s3-provider.com
         # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
-        endpoint: "https://minio.{{ .Values.stack.domain }}"
+        endpoint: "{{ tpl .Values.minio.baseUrl . }}"
         region:
         bucketName: databox
         # true for a local minio, false for an external object storage provider
         usePathStyleEndpoint: true 
         # Can be used to support a single CloudFront distribution with multiple origins
         pathPrefix: ''
-        accessKey:
-        secretKey:
+        accessKey: "{{ .Values.minio.accessKey }}"
+        secretKey: "{{ .Values.minio.secretKey }}"
         externalSecretKey:
         externalSecretMapping:
           accessKey: S3_ACCESS_KEY
@@ -367,15 +367,15 @@ expose:
         # When using an external object storage provider, set the "endpoint" to the root domain of the service.
         # Example: https://s3.my-s3-provider.com
         # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
-        endpoint: "https://minio.{{ .Values.stack.domain }}"
+        endpoint: "{{ tpl .Values.minio.baseUrl . }}"
         region:
         bucketName: expose
         # true for a local minio, false for an external object storage provider
         usePathStyleEndpoint: true
         # Can be used to support a single CloudFront distribution with multiple origins
         pathPrefix: ''
-        accessKey:
-        secretKey:
+        accessKey: "{{ .Values.minio.accessKey }}"
+        secretKey: "{{ .Values.minio.secretKey }}"
         externalSecretKey:
         externalSecretMapping:
           accessKey: S3_ACCESS_KEY
@@ -474,15 +474,15 @@ uploader:
         # When using an external object storage provider, set the "endpoint" to the root domain of the service.
         # Example: https://s3.my-s3-provider.com
         # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
-        endpoint: "https://minio.{{ .Values.stack.domain }}"
-        region:        
+        endpoint: "{{ tpl .Values.minio.baseUrl . }}"
+        region:
         bucketName: uploader
         # true for a local minio, false for an external object storage
         usePathStyleEndpoint: true
         # Can be used to support a single CloudFront distribution with multiple origins
         pathPrefix: ''
-        accessKey:
-        secretKey:
+        accessKey: "{{ .Values.minio.accessKey }}"
+        secretKey: "{{ .Values.minio.secretKey }}"
         externalSecretKey:
         externalSecretMapping:
           accessKey: S3_ACCESS_KEY
@@ -663,8 +663,8 @@ rabbitmq:
       cpu: "1000m"
       memory: "1Gi"
   securityContext:
-    runAsUser: 
-    runAsGroup:   
+    runAsUser:
+    runAsGroup:
   persistence:
     enabled: true
     existingClaim:
@@ -672,12 +672,12 @@ rabbitmq:
     annotations: {}
     accessMode: ReadWriteOnce
     size: 20Gi
-    subPath: ps_data
 
 minio:
   enabled: true
   hostname: "minio.{{ .Values.stack.domain }}"
-  baseUrl: "https://minio.{{ .Values.stack.domain }}"
+  baseUrl: "https://{{ tpl .Values.minio.hostname . }}"
+  internalBaseUrl: "http://minio:80"
   # __SET_ME__
   accessKey: '__CHANGE_ME_jw2G5OskVG2VVXIyHsuQJIo'
   # __SET_ME__
@@ -733,6 +733,7 @@ _internal:
   - dashboard
 
 elasticsearch:
+  imageTag: 7.17.28
   enabled: true
   replicas: 1
   clusterName: elasticsearch-databox

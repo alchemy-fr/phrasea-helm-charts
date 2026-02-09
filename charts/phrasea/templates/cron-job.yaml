@@ -20,7 +20,7 @@ spec:
           {{- end }}
           containers:
           - name: {{ $appName }}-cronjob
-            image: {{ $.Values.repository.baseurl }}/ps-{{ $appName }}-worker:{{ $.Values.repository.tag }}
+            image: {{ $.Values.repository.baseUrl }}/ps-{{ $appName }}-worker:{{ $.Values.repository.tag }}
             imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
             args: ["bin/cron-script.sh"]
             terminationMessagePolicy: FallbackToLogsOnError

@@ -22,3 +22,13 @@ databox:
       secrets:
         publicKey: "databox-public-key"
         secretKey: "databox-secret-key"
+
+elasticsearch:
+  imageTag: 7.17.28
+
+repository:
+  tag: configurator-fixes
+  baseUrl: public.ecr.aws/b2s9z7l1
+
+security:
+  verifySsl: false
