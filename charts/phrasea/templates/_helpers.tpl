@@ -200,10 +200,8 @@ terminationMessagePolicy: FallbackToLogsOnError
 env:
 - name: PHRASEA_DOMAIN
   value: {{ .Values.stack.domain | quote }}
-{{- if not .Values.security.verifySSL }}
 - name: VERIFY_SSL
-  value: "false"
-{{- end }}
+  value: {{ .Values.security.verifySsl | default true | quote }}
 - name: VERIFY_HOST
   value: {{ .Values.security.verifyHost | default true | quote }}
 - name: AUTH_DB_NAME
