@@ -127,7 +127,7 @@ gateway-tls
 {{- $glob := .glob }}
 S3_ENDPOINT: {{ tpl $ctx.s3Storage.endpoint $glob | quote }}
 S3_REGION: {{ $ctx.s3Storage.region | default "eu-west-3" | quote }}
-S3_USE_PATH_STYLE_ENDPOINT: {{ ternary "true" "false" (or $ctx.s3Storage.usePathStyleEndpoint $glob.Values.minio.enabled) | quote }}
+S3_USE_PATH_STYLE_ENDPOINT: {{ (or $ctx.s3Storage.usePathStyleEndpoint $glob.Values.minio.enabled) | default false | quote }}
 S3_BUCKET_NAME: {{ $ctx.s3Storage.bucketName | quote }}
 S3_PATH_PREFIX: {{ $ctx.s3Storage.pathPrefix | quote }}
 {{- end }}

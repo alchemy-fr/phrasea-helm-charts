@@ -429,7 +429,6 @@ expose:
       token: "define-me"
     logoUrl: ""
     logoAlt: ""
-    sidebarDefaultOpen: false
     disableIndexPage: false
   rabbitmq:
     vhost: expose

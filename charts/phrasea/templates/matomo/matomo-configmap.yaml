@@ -7,6 +7,6 @@ metadata:
 data:
   MATOMO_URL: {{ .baseUrl | quote }}
   MATOMO_SITE_ID: {{ .siteId | quote }}
-  MATOMO_MEDIA_PLUGIN_ENABLED: {{ ternary "true" "false" .mediaPluginEnabled | quote }}
+  MATOMO_MEDIA_PLUGIN_ENABLED: {{ .mediaPluginEnabled | default false | quote }}
 {{- end }}
 {{- end }}

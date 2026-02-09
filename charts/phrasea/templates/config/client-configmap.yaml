@@ -3,4 +3,4 @@ kind: ConfigMap
 metadata:
   name: client-config
 data:
-  NOTIFICATIONS_ENABLED: {{ ternary "true" "false" (default false .Values.notifications.enabled) | quote }}
+  NOTIFICATIONS_ENABLED: {{ .Values.notifications.enabled | default false | quote }}
