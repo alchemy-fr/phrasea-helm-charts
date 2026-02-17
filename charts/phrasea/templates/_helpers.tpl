@@ -228,8 +228,8 @@ env:
   value: {{ .Values.mailer.replyToDisplayName | default "" | quote }}
 - name: MAIL_ENVELOPE_FROM
   value: {{ .Values.mailer.envelopeFrom | default "" | quote }}
-- name: KEYCLOAK_ADMIN_DEFINITIVE_PASSWORD
-  value: {{ .Values.keycloak.defaultAdmin.keycloakAdminDefinitivePassword | default false | quote }}
+- name: KEYCLOAK_ADMIN_PASSWORD_IS_DEFINITIVE
+  value: {{ .Values.keycloak.defaultAdmin.passwordIsDefinitive | default false | quote }}
 - name: KC_REALM_HTML_DISPLAY_NAME
   value: {{ .Values.keycloak.realm.htmlDisplayName | quote }}
 - name: KC_REALM_SUPPORTED_LOCALES
