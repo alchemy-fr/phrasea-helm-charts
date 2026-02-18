@@ -16,16 +16,9 @@ spec:
       {{- if $.Values.nodeSelector }}
       nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 8 }}
       {{- end }}
-      {{- if $.Values.postgresql.enabled }}
-      initContainers:
-      - name: wait-for-postgres
-        image: busybox
-        command: ['sh', '-c', 'until nc -z postgresql 5432; do sleep 2; done']
-      {{- end }}
       containers:
       - {{- include "configurator.containerSpecs" $ | nindent 8 }}
         args: ["bin/migrate.sh"]
-        terminationMessagePolicy: FallbackToLogsOnError
       restartPolicy: Never
   backoffLimit: 3
 ---

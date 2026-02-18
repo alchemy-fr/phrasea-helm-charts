@@ -22,7 +22,7 @@ spec:
       {{- end }}
       containers:
         - name: keycloak
-          image: {{ $.Values.repository.baseurl }}/ps-keycloak:{{ $.Values.repository.tag }}
+          image: {{ $.Values.repository.baseUrl }}/ps-keycloak:{{ $.Values.repository.tag }}
           args:
           - 'start'
           - '--optimized'

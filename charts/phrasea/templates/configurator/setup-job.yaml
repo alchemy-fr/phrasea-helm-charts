@@ -8,7 +8,7 @@ metadata:
   name: {{ $appName }}-setup
   annotations:
     "helm.sh/hook": post-install
-    "helm.sh/hook-weight": "6"
+    "helm.sh/hook-weight": "4"
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 spec:
   template:
@@ -16,12 +16,6 @@ spec:
       {{- include "imagePullSecrets" $ | indent 6 }}
       {{- if $.Values.nodeSelector }}
       nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 8 }}
-      {{- end }}
-      {{- if $.Values.postgresql.enabled }}
-      initContainers:
-      - name: wait-for-postgres
-        image: busybox
-        command: ['sh', '-c', 'until nc -z postgresql 5432; do sleep 2; done']
       {{- end }}
       containers:
       - {{- include "configurator.containerSpecs" $ | nindent 8 }}

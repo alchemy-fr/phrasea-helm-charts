@@ -24,7 +24,7 @@ spec:
       {{- end }}
       containers:
       - name: {{ $appName }}-api-nginx
-        image: {{ $.Values.repository.baseurl }}/ps-{{ $appName }}-api-nginx:{{ $.Values.repository.tag }}
+        image: {{ $.Values.repository.baseUrl }}/ps-{{ $appName }}-api-nginx:{{ $.Values.repository.tag }}
         imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
         {{- if eq "true" (include "ps.resourceQuota" (dict "local" (index $.Values $appName).api.resourceQuota "global" $.Values.resourceQuota)) }}
         resources:

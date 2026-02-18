@@ -22,7 +22,7 @@ spec:
       {{- end }}
       containers:
       - name: report-api
-        image: {{ $.Values.repository.baseurl }}/ps-report-api:{{ $.Values.repository.tag }}
+        image: {{ $.Values.repository.baseUrl }}/ps-report-api:{{ $.Values.repository.tag }}
         imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
         {{- if eq "true" (include "ps.resourceQuota" (dict "local" .api.resourceQuota "global" $.Values.resourceQuota)) }}
         resources:

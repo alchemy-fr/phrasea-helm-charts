@@ -80,10 +80,12 @@ gateway-tls
     name: urls-config
 - configMapRef:
     name: configurator-s3
+{{- if and .Values.notifications.enabled .Values.novu.enabled }}
 - configMapRef:
     name: novu
 - secretRef:
     name: novu
+{{- end }}
 {{- end }}
 
 {{- define "envRef.phpApp" }}
@@ -125,7 +127,7 @@ gateway-tls
 {{- $glob := .glob }}
 S3_ENDPOINT: {{ tpl $ctx.s3Storage.endpoint $glob | quote }}
 S3_REGION: {{ $ctx.s3Storage.region | default "eu-west-3" | quote }}
-S3_USE_PATH_STYLE_ENDPOINT: {{ ternary "true" "false" (or $ctx.s3Storage.usePathStyleEndpoint $glob.Values.minio.enabled) | quote }}
+S3_USE_PATH_STYLE_ENDPOINT: {{ (or $ctx.s3Storage.usePathStyleEndpoint $glob.Values.minio.enabled) | default false | quote }}
 S3_BUCKET_NAME: {{ $ctx.s3Storage.bucketName | quote }}
 S3_PATH_PREFIX: {{ $ctx.s3Storage.pathPrefix | quote }}
 {{- end }}
@@ -192,20 +194,26 @@ networking.k8s.io/v1beta1
 
 {{- define "configurator.containerSpecs" -}}
 name: configurator
-image: {{ .Values.repository.baseurl }}/ps-configurator:{{ .Values.repository.tag }}
+image: {{ .Values.repository.baseUrl }}/ps-configurator:{{ .Values.repository.tag }}
 imagePullPolicy: {{ .Values.repository.imagePullPolicy }}
 terminationMessagePolicy: FallbackToLogsOnError
 env:
 - name: PHRASEA_DOMAIN
   value: {{ .Values.stack.domain | quote }}
 - name: VERIFY_SSL
-  value: {{ .Values.security.verifySSL | quote }}
+  value: {{ .Values.security.verifySsl | default true | quote }}
 - name: VERIFY_HOST
-  value: {{ .Values.security.verifyHost | quote }}
+  value: {{ .Values.security.verifyHost | default true | quote }}
 - name: AUTH_DB_NAME
   value: {{ .Values.auth.database.name | quote }}
+{{- range $key, $value := .Values.configurator.configure }}
+- name: CONFIGURATOR_CONFIGURE_{{ upper $key }}
+  value: {{ $value | quote }}
+{{- end }}
 - name: CONFIGURATOR_DB_NAME
   value: {{ .Values.configurator.database.name | quote }}
+- name: CONFIGURATOR_SERVICE_WAIT_TIMEOUT
+  value: {{ .Values.configurator.serviceWaitTimeout | quote }}
 - name: MAILER_HOST
   value: {{ .Values.mailer.host | default "" | quote }}
 - name: MAILER_PORT
@@ -220,8 +228,8 @@ env:
   value: {{ .Values.mailer.replyToDisplayName | default "" | quote }}
 - name: MAIL_ENVELOPE_FROM
   value: {{ .Values.mailer.envelopeFrom | default "" | quote }}
-- name: KEYCLOAK_ADMIN_DEFINITIVE_PASSWORD
-  value: {{ .Values.keycloak.defaultAdmin.keycloakAdminDefinitivePassword | default false | quote }}
+- name: KEYCLOAK_ADMIN_PASSWORD_IS_DEFINITIVE
+  value: {{ .Values.keycloak.defaultAdmin.passwordIsDefinitive | default false | quote }}
 - name: KC_REALM_HTML_DISPLAY_NAME
   value: {{ .Values.keycloak.realm.htmlDisplayName | quote }}
 - name: KC_REALM_SUPPORTED_LOCALES
@@ -261,12 +269,48 @@ env:
 - name: KC_REALM_ADMIN_EVENT_ENABLED
   value: {{ .Values.keycloak.realm.adminEventEnabled | quote }}
 - name: KC_REALM_ADMIN_EVENT_EXPIRATION
-  value: {{ .Values.keycloak.realm.adminEventExpiration | toString | quote }} 
+  value: {{ .Values.keycloak.realm.adminEventExpiration | toString | quote }}
+- name: RABBITMQ_CONSOLE_URL
+  value: {{ .Values.rabbitmq.consoleUrl | quote }}
+- name: CONFIGURATOR_S3_BUCKET_NAME
+  value: {{ .Values.configurator.s3.bucketName | quote }}
+- name: S3_ENDPOINT
+  value: {{ tpl .Values.configurator.s3.endpoint . | quote }}
+{{- if .Values.minio.enabled }}
+- name: S3_INTERNAL_URL
+  value: {{ .Values.minio.internalBaseUrl | required "Missing minio.internalBaseUrl" | quote }}
+{{- end }}
+- name: S3_USE_PATH_STYLE_ENDPOINT
+  value: {{ .Values.configurator.s3.usePathStyleEndpoint | default false | quote }}
+- name: S3_ACCESS_KEY
+  value: {{ tpl .Values.configurator.s3.accessKey . | required "Missing configurator.s3.accessKey" | quote }}
+- name: S3_SECRET_KEY
+  value: {{ tpl .Values.configurator.s3.secretKey . | required "Missing configurator.s3.secretKey" | quote }}
+- name: S3_REGION
+  value: {{ .Values.configurator.s3.region | default "eu-west-3" | quote }}
+- name: S3_PATH_PREFIX
+  value: {{ .Values.configurator.s3.pathPrefix | default "" | quote }}
+- name: POSTGRES_HOST
+  value: {{ .Values.postgresql.host | required "Missing postgresql.host" | quote }}
+- name: POSTGRES_PORT
+  value: {{ .Values.postgresql.port | required "Missing postgresql.port" | quote }}
+- name: POSTGRES_USER
+  value: {{ .Values.postgresql.user | required "Missing postgresql.user" | quote }}
+- name: POSTGRES_PASSWORD
+  value: {{ .Values.postgresql.password | required "Missing postgresql.password" | quote }}
+- name: REPORT_DB_NAME
+  value: {{ .Values.report.databaseName | required "Missing report.databaseName" | quote }}
+- name: KEYCLOAK_DB_NAME
+  value: {{ .Values.keycloak.database.name | required "Missing keycloak.database.name" | quote }}
 {{- range .Values._internal.services }}
 {{- $appName := . }}
 {{- with (index $.Values $appName) }}
 - name: {{ upper $appName }}_DB_NAME
   value: {{ .database.name | quote }}
+- name: {{ upper $appName }}_RABBITMQ_VHOST
+  value: {{ .rabbitmq.vhost | quote }}
+- name: {{ upper $appName }}_S3_BUCKET_NAME
+  value: {{ .api.config.s3Storage.bucketName | quote }}
 {{- if .adminOAuthClient }}
 - name: {{ upper $appName }}_ADMIN_CLIENT_ID
   value: {{ .adminOAuthClient.id | quote }}
@@ -308,7 +352,7 @@ envFrom:
 {{- end }}
 
 {{- define "novuBridge.containerSpecs" -}}
-image: {{ .Values.repository.baseurl }}/ps-novu-bridge:{{ .Values.repository.tag }}
+image: {{ .Values.repository.baseUrl }}/ps-novu-bridge:{{ .Values.repository.tag }}
 {{- if not (eq "latest" .Values.repository.tag) }}
 imagePullPolicy:  {{ .Values.repository.imagePullPolicy }}
 {{- end }}

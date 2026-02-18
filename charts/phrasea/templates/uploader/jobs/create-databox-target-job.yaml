@@ -34,7 +34,7 @@ spec:
           defaultMode: 0777
       containers:
       - name: {{ $jobName }}
-        image: {{ $.Values.repository.baseurl }}/ps-uploader-api-php:{{ $.Values.repository.tag }}
+        image: {{ $.Values.repository.baseUrl }}/ps-uploader-api-php:{{ $.Values.repository.tag }}
         imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
         args: ["/setup/job.sh"]
         terminationMessagePolicy: FallbackToLogsOnError

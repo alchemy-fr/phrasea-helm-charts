@@ -4,10 +4,9 @@ metadata:
   name: php-config
 data:
   APP_ENV: prod
-  {{- if not .Values.security.verifySsl }}
-  VERIFY_SSL: "false"
-  {{- end }}
+  VERIFY_SSL: {{ .Values.security.verifySsl | default true | quote }}
   TRUSTED_PROXIES: 127.0.0.1,REMOTE_ADDR
+  NOTIFICATIONS_ENABLED: {{ .Values.notifications.enabled | default false | quote }}
 {{- if .Values.newrelic.enabled }}
   NEWRELIC_ENABLED: "1"
   NEWRELIC_LICENSE_KEY: {{ required "Missing newrelic.licenceKey" .Values.newrelic.licenceKey | quote }}

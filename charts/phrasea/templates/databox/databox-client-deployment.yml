@@ -21,7 +21,7 @@ spec:
       {{- end }}
       containers:
       - name: databox-client
-        image: {{ $.Values.repository.baseurl }}/ps-databox-client:{{ $.Values.repository.tag }}
+        image: {{ $.Values.repository.baseUrl }}/ps-databox-client:{{ $.Values.repository.tag }}
         imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
         {{- if eq "true" (include "ps.resourceQuota" (dict "local" $.Values.databox.client.resourceQuota "global" $.Values.resourceQuota)) }}
         resources:
@@ -34,6 +34,8 @@ spec:
         {{- end }}
         terminationMessagePolicy: FallbackToLogsOnError
         envFrom:
+        - configMapRef:
+            name: client-config
         - configMapRef:
             name: urls-config
         - configMapRef:

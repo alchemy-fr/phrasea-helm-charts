@@ -5,4 +5,4 @@ metadata:
 data:
   RABBITMQ_HOST: {{ .Values.rabbitmq.host | quote }}
   RABBITMQ_PORT: {{ .Values.rabbitmq.port | quote }}
-  RABBITMQ_SSL: {{ ternary "true" "false" .Values.rabbitmq.ssl | quote }}
+  RABBITMQ_SSL: {{ .Values.rabbitmq.ssl | default false | quote }}

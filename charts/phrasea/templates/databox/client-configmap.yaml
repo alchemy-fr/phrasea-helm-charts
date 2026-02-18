@@ -1,5 +1,5 @@
 {{- with .Values.databox }}
-{{- if and $.Values.stack.running .enabled }}
+{{- if .enabled }}
 {{- $tplArgs := dict "ctx" . "glob" $ }}
 apiVersion: v1
 kind: ConfigMap
