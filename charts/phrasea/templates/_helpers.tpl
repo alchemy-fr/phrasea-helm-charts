@@ -125,11 +125,18 @@ gateway-tls
 {{- define "app.s3Storage.configMap" }}
 {{- $ctx := .ctx }}
 {{- $glob := .glob }}
+{{- $appName := .app }}
+{{- $appConfig := index $glob.Values $appName }}
 S3_ENDPOINT: {{ tpl $ctx.s3Storage.endpoint $glob | quote }}
 S3_REGION: {{ $ctx.s3Storage.region | default "eu-west-3" | quote }}
 S3_USE_PATH_STYLE_ENDPOINT: {{ (or $ctx.s3Storage.usePathStyleEndpoint $glob.Values.minio.enabled) | default false | quote }}
 S3_BUCKET_NAME: {{ $ctx.s3Storage.bucketName | quote }}
 S3_PATH_PREFIX: {{ $ctx.s3Storage.pathPrefix | quote }}
+S3_MULTIPART_MIN_CHUNK_SIZE: {{ $appConfig.s3MultipartMinChunkSize | default 20971520 | quote }}
+S3_MULTIPART_MAX_CHUNK_SIZE: {{ $appConfig.s3MultipartMaxChunkSize | default 5368709120 | quote }}
+S3_MULTIPART_MAX_PART_NUMBER: {{ $appConfig.s3MultipartMaxPartNumber | default 10000 | quote }}
+S3_MAX_OBJECT_SIZE: {{ $appConfig.s3MaxObjectSize | default 52776558133248 | quote }}
+
 {{- end }}
 
 {{- define "app.cloudFront.configMap" }}

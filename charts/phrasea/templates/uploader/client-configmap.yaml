@@ -6,6 +6,11 @@ kind: ConfigMap
 metadata:
   name: uploader-client-config
 data:
+  UPLOADER_ALLOWED_FILE_TYPE: {{ $.Values.uploader.allowedFileType | quote }}
+  S3_MULTIPART_MIN_CHUNK_SIZE: {{ .s3MultipartMinChunkSize | default 20971520 | quote }}
+  S3_MULTIPART_MAX_CHUNK_SIZE: {{ .s3MultipartMaxChunkSize | default 5368709120 | quote }}
+  S3_MULTIPART_MAX_PART_NUMBER: {{ .s3MultipartMaxPartNumber | default 10000 | quote }}
+  S3_MAX_OBJECT_SIZE: {{ .s3MaxObjectSize | default 52776558133248 | quote }}
   {{- include "app.client.configMap" $tplArgs | indent 2 }}
 {{- end }}
 {{- end }}

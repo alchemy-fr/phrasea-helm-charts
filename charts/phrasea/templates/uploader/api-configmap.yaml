@@ -9,5 +9,6 @@ data:
   DELETE_ASSET_GRACEFUL_TIME: {{ .deleteAssetGracefulTime | quote }}
   ASSET_CONSUMER_COMMIT_URI: {{ .assetConsumerCommitUri | default "" | quote }}
   ASSET_CONSUMER_ACCESS_TOKEN: {{ .assetConsumerAccessToken | default "" | quote }}
+  UPLOADER_ALLOWED_FILE_TYPE: {{ $.Values.uploader.allowedFileType | quote }}
 {{- include "app.s3Storage.configMap" $tplArgs | indent 2 }}
 {{- end }}
