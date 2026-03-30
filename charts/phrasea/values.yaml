@@ -237,13 +237,13 @@ databox:
     schedule: '0 3 * * *'
   allowedFileType: "image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.psd,.psb,.ai),application/*(.pdf,.doc,.docx,.xls,.md,.txt,.xlsx,.odt,.psd,.psb),video/*(.mpg,.mpeg,.mov,.avi,.mp3,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc),audio/*(.aac,.aiff,.wav)"
   # Min size for multipart upload chunks in bytes (default 20Mb) - must be at least 5Mb for AWS S3 and some S3-compatible providers
-  s3MultipartMinChunkSize: 20971520
+  s3MultipartMinChunkSize: "20971520"
   # Max size for multipart upload chunks in bytes (default 5Gb)
-  s3MultipartMaxChunkSize: 5368709120
+  s3MultipartMaxChunkSize: "5368709120"
   # Max number of parts for multipart upload
-  s3MultipartMaxPartNumber: 10000
+  s3MultipartMaxPartNumber: "10000"
   # Max object size for multipart upload in bytes (default 48.8 TiB)
-  s3MaxObjectSize: 52776558133248
+  s3MaxObjectSize: "52776558133248"
   api:
     replicas: 1
     ingress:
@@ -349,13 +349,13 @@ expose:
   # warning: this will erase existing data in databases.
   importFixtures: false
   # Min size for multipart upload chunks in bytes (default 20Mb) - must be at least 5Mb for AWS S3 and some S3-compatible providers
-  s3MultipartMinChunkSize: 20971520
+  s3MultipartMinChunkSize: "20971520
   # Max size for multipart upload chunks in bytes (default 5Gb)
-  s3MultipartMaxChunkSize: 5368709120
+  s3MultipartMaxChunkSize: "5368709120"
   # Max number of parts for multipart upload
-  s3MultipartMaxPartNumber: 10000
+  s3MultipartMaxPartNumber: "10000"
   # Max object size for multipart upload in bytes (default 48.8 TiB)
-  s3MaxObjectSize: 52776558133248
+  s3MaxObjectSize: "52776558133248"
   api:
     replicas: 1
     subnet: 0.0.0.0/0
@@ -461,13 +461,13 @@ uploader:
   enabled: true
   allowedFileType: "image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.psd,.psb,.ai),application/*(.pdf,.doc,.docx,.md,.txt,.xls,.xlsx,.odt,.psd,.psb),video/*(.mpg,.mpeg,.mov,.avi,.mp3,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc),audio/*(.aac,.aiff,.wav)"
   # Min size for multipart upload chunks in bytes (default 20Mb) - must be at least 5Mb for AWS S3 and some S3-compatible providers
-  s3MultipartMinChunkSize: 20971520
+  s3MultipartMinChunkSize: "20971520"
   # Max size for multipart upload chunks in bytes (default 5Gb)
-  s3MultipartMaxChunkSize: 5368709120
+  s3MultipartMaxChunkSize: "5368709120"
   # Max number of parts for multipart upload
-  s3MultipartMaxPartNumber: 10000
+  s3MultipartMaxPartNumber: "10000"
   # Max object size for multipart upload in bytes (default 48.8 TiB)
-  s3MaxObjectSize: 52776558133248
+  s3MaxObjectSize: "52776558133248"
   api:
     replicas: 1
     ingress:
