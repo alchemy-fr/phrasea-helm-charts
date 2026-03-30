@@ -349,7 +349,7 @@ expose:
   # warning: this will erase existing data in databases.
   importFixtures: false
   # Min size for multipart upload chunks in bytes (default 20Mb) - must be at least 5Mb for AWS S3 and some S3-compatible providers
-  s3MultipartMinChunkSize: "20971520
+  s3MultipartMinChunkSize: "20971520"
   # Max size for multipart upload chunks in bytes (default 5Gb)
   s3MultipartMaxChunkSize: "5368709120"
   # Max number of parts for multipart upload
