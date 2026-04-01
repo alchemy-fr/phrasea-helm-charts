@@ -10,7 +10,7 @@ data:
   ELASTICSEARCH_INDEX_PREFIX: {{ $.Values.elasticsearch.indexPrefix | quote }}
   PHRASEANET_URL: {{ .phraseanet.baseUrl | default "" | quote }}
   PHRASEANET_APP_OAUTH_TOKEN: {{ .phraseanet.oauthToken | default "" | quote }}
-  DATABOX_ALLOWED_FILE_TYPE: {{ $.Values.databox.allowedFileType | quote }}
+  ALLOWED_FILE_TYPES: {{ $.Values.databox.allowedFileTypes | quote }}
   {{- if $.Values.databox.zippy.enabled }}
   ZIPPY_URL: {{ tpl $.Values.databox.zippy.baseUrl $ | quote }}
   ZIPPY_CLIENT_ID: {{ required "Missing databox.zippy.clientId" $.Values.databox.zippy.clientId | quote }}
