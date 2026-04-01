@@ -235,7 +235,7 @@ databox:
     enabled: true
     # Daily at 3am
     schedule: '0 3 * * *'
-  allowedFileType: "image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.psd,.psb,.ai),application/*(.pdf,.doc,.docx,.xls,.md,.txt,.xlsx,.odt,.psd,.psb),video/*(.mpg,.mpeg,.mov,.avi,.mp3,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc),audio/*(.aac,.aiff,.wav)"
+  allowedFileTypes: "image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.psd,.psb,.ai),application/*(.pdf,.doc,.docx,.xls,.md,.txt,.xlsx,.odt,.psd,.psb),video/*(.mpg,.mpeg,.mov,.avi,.mp3,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc),audio/*(.aac,.aiff,.wav)"
   # Min size for multipart upload chunks in bytes (default 20Mb) - must be at least 5Mb for AWS S3 and some S3-compatible providers
   s3MultipartMinChunkSize: "20971520"
   # Max size for multipart upload chunks in bytes (default 5Gb)
@@ -459,7 +459,7 @@ expose:
 
 uploader:
   enabled: true
-  allowedFileType: "image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.psd,.psb,.ai),application/*(.pdf,.doc,.docx,.md,.txt,.xls,.xlsx,.odt,.psd,.psb),video/*(.mpg,.mpeg,.mov,.avi,.mp3,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc),audio/*(.aac,.aiff,.wav)"
+  allowedFileTypes: "image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.psd,.psb,.ai),application/*(.pdf,.doc,.docx,.md,.txt,.xls,.xlsx,.odt,.psd,.psb),video/*(.mpg,.mpeg,.mov,.avi,.mp3,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc),audio/*(.aac,.aiff,.wav)"
   # Min size for multipart upload chunks in bytes (default 20Mb) - must be at least 5Mb for AWS S3 and some S3-compatible providers
   s3MultipartMinChunkSize: "20971520"
   # Max size for multipart upload chunks in bytes (default 5Gb)
