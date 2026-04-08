@@ -235,7 +235,7 @@ databox:
     enabled: true
     # Daily at 3am
     schedule: '0 3 * * *'
-  allowedFileTypes: "image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.psd,.psb,.ai),application/*(.pdf,.doc,.docx,.md,.txt,.xls,.xlsx,.odt,.psd,.psb),video/*(.mpg,.mpeg,.mov,.avi,.mxf,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc,.webm),audio/*(.ogg,.opus,.m4r,.ac3,.flac,.aac,.wav.mp3,.aac,.aiff,.wav)"
+  allowedFileTypes: "image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.psd,.psb,.ai),application/*(.pdf,.doc,.docx,.md,.txt,.xls,.xlsx,.odt,.psd,.psb),video/*(.mpg,.mpeg,.mov,.avi,.mxf,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc,.webm),audio/*(.ogg,.opus,.m4r,.ac3,.flac,.aac,.wav,.mp3,.aac,.aiff,.wav)"
   # Min size for multipart upload chunks in bytes (default 20Mb) - must be at least 5Mb for AWS S3 and some S3-compatible providers
   s3MultipartMinChunkSize: "20971520"
   # Max size for multipart upload chunks in bytes (default 5Gb)
@@ -459,7 +459,7 @@ expose:
 
 uploader:
   enabled: true
-  allowedFileTypes: "image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.psd,.psb,.ai),application/*(.pdf,.doc,.docx,.md,.txt,.xls,.xlsx,.odt,.psd,.psb),video/*(.mpg,.mpeg,.mov,.avi,.mxf,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc,.webm),audio/*(.ogg,.opus,.m4r,.ac3,.flac,.aac,.wav.mp3,.aac,.aiff,.wav)"
+  allowedFileTypes: "image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.psd,.psb,.ai),application/*(.pdf,.doc,.docx,.md,.txt,.xls,.xlsx,.odt,.psd,.psb),video/*(.mpg,.mpeg,.mov,.avi,.mxf,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc,.webm),audio/*(.ogg,.opus,.m4r,.ac3,.flac,.aac,.wav,.mp3,.aac,.aiff,.wav)"
   # Min size for multipart upload chunks in bytes (default 20Mb) - must be at least 5Mb for AWS S3 and some S3-compatible providers
   s3MultipartMinChunkSize: "20971520"
   # Max size for multipart upload chunks in bytes (default 5Gb)
@@ -494,7 +494,7 @@ uploader:
       assetConsumerCommitUri:
       assetConsumerAccessToken:
       requestSignatureTtl: 3600
-      allowedFileTypes: "image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.psd,.psb,.ai),application/*(.pdf,.doc,.docx,.md,.txt,.xls,.xlsx,.odt,.psd,.psb),video/*(.mpg,.mpeg,.mov,.avi,.mxf,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc,.webm),audio/*(.ogg,.opus,.m4r,.ac3,.flac,.aac,.wav.mp3,.aac,.aiff,.wav)"
+      allowedFileTypes: "image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.psd,.psb,.ai),application/*(.pdf,.doc,.docx,.md,.txt,.xls,.xlsx,.odt,.psd,.psb),video/*(.mpg,.mpeg,.mov,.avi,.mxf,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc,.webm),audio/*(.ogg,.opus,.m4r,.ac3,.flac,.aac,.wav,.mp3,.aac,.aiff,.wav)"
       s3Storage:
         # When using an external object storage provider, set the "endpoint" to the root domain of the service.
         # Example: https://s3.my-s3-provider.com
