@@ -49,6 +49,10 @@ spec:
             value: 'true'
           - name: KC_PROXY_HEADERS
             value: xforwarded
+          {{- if $.Values.security.trustedProxies }}
+          - name: KC_PROXY_TRUSTED_ADDRESSES
+            value: {{ $.Values.security.trustedProxies | quote }}
+          {{- end }}
           - name: KC_HOSTNAME
             value: {{ tpl .baseUrl $ | quote }}
           - name: KC_DB

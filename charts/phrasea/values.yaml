@@ -81,7 +81,7 @@ ingress:
 security:
   verifySsl: true
   verifyHost: true
-
+  trustedProxies: ~
 
 image:
   pullSecret:
