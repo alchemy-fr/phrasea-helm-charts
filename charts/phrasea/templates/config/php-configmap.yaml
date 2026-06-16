@@ -19,11 +19,7 @@ data:
 {{- if and .Values.sentry.backend (hasKey .Values.sentry.backend "dsn") }}
   {{- $sentryBackendDsn = .Values.sentry.backend.dsn }}
 {{- end }}
-{{- $sentryBackendEnvironment := .Values.sentry.environment }}
-{{- if and .Values.sentry.backend (hasKey .Values.sentry.backend "environment") }}
-  {{- $sentryBackendEnvironment = .Values.sentry.backend.environment }}
-{{- end }}
 {{- if $sentryBackendEnabled }}
   SENTRY_DSN: {{ required "Missing sentry backend DSN (sentry.backend.dsn or sentry.dsn)" $sentryBackendDsn | quote }}
-  SENTRY_ENVIRONMENT: {{ required "Missing sentry backend environment (sentry.backend.environment or sentry.environment)" $sentryBackendEnvironment | quote }}
+  SENTRY_ENVIRONMENT: {{ required "Missing sentry environment (sentry.environment)" .Values.sentry.environment | quote }}
 {{- end }}

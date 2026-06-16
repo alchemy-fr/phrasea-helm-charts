@@ -166,13 +166,9 @@ AUTO_CONNECT_IDP: {{ $glob.Values.keycloak.autoConnectIdP | quote }}
 {{- if and $glob.Values.sentry.frontend (hasKey $glob.Values.sentry.frontend "clientDsn") }}
   {{- $sentryFrontendDsn = $glob.Values.sentry.frontend.clientDsn }}
 {{- end }}
-{{- $sentryFrontendEnvironment := $glob.Values.sentry.environment }}
-{{- if and $glob.Values.sentry.frontend (hasKey $glob.Values.sentry.frontend "environment") }}
-  {{- $sentryFrontendEnvironment = $glob.Values.sentry.frontend.environment }}
-{{- end }}
 {{- if $sentryFrontendEnabled }}
 SENTRY_DSN: {{ required "Missing sentry frontend DSN (sentry.frontend.clientDsn or sentry.clientDsn)" $sentryFrontendDsn | quote }}
-SENTRY_ENVIRONMENT: {{ required "Missing sentry frontend environment (sentry.frontend.environment or sentry.environment)" $sentryFrontendEnvironment | quote }}
+SENTRY_ENVIRONMENT: {{ required "Missing sentry environment (sentry.environment)" $glob.Values.sentry.environment | quote }}
 {{- end }}
 {{- if $glob.Values.matomo.enabled }}
 MATOMO_URL: {{ required "Missing matomo.baseUrl" $glob.Values.matomo.baseUrl | quote }}
