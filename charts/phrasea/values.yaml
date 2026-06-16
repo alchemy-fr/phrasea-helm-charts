@@ -857,6 +857,14 @@ sentry:
   dsn: ~
   clientDsn: ~
   environment: prod
+  backend:
+    enabled: ~
+    dsn: ~
+    environment: ~
+  frontend:
+    enabled: ~
+    clientDsn: ~
+    environment: ~
 
 ImageMagick:
   policy:
