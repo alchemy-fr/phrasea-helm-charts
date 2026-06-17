@@ -10,6 +10,8 @@ data:
   ELASTICSEARCH_INDEX_PREFIX: {{ $.Values.elasticsearch.indexPrefix | quote }}
   PHRASEANET_URL: {{ .phraseanet.baseUrl | default "" | quote }}
   PHRASEANET_APP_OAUTH_TOKEN: {{ .phraseanet.oauthToken | default "" | quote }}
+  DATABOX_API_ASSET_OWNER_PROPERTY_REQUIRED_ROLE: {{ .roles.assetOwnerPropertyRequiredRole | default "" | quote }}
+  DATABOX_API_COLLECTION_OWNER_PROPERTY_REQUIRED_ROLE: {{ .roles.collectionOwnerPropertyRequiredRole | default "" | quote }}
   ALLOWED_FILE_TYPES: {{ $.Values.databox.allowedFileTypes | quote }}
   {{- if $.Values.databox.zippy.enabled }}
   ZIPPY_URL: {{ tpl $.Values.databox.zippy.baseUrl $ | quote }}

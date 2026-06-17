@@ -266,6 +266,9 @@ databox:
         memory: "2048Mi"
     config:
       requestSignatureTtl: 86400
+      roles:
+        assetOwnerPropertyRequiredRole:
+        collectionOwnerPropertyRequiredRole:
       s3Storage:
         # When using an external object storage provider, set the "endpoint" to the root domain of the service.
         # Example: https://s3.my-s3-provider.com
@@ -853,10 +856,13 @@ newrelic:
   licenceKey: ~
 
 sentry:
-  enabled: false
-  dsn: ~
-  clientDsn: ~
   environment: prod
+  backend:
+    enabled: ~
+    dsn: ~
+  frontend:
+    enabled: ~
+    clientDsn: ~
 
 ImageMagick:
   policy:
