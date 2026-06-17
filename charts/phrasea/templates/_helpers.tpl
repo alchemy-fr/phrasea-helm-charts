@@ -158,16 +158,10 @@ CLIENT_ID: {{ $ctx.client.oauthClient.id | quote }}
 {{- if $glob.Values.keycloak.autoConnectIdP }}
 AUTO_CONNECT_IDP: {{ $glob.Values.keycloak.autoConnectIdP | quote }}
 {{- end }}
-{{- $sentryFrontendEnabled := $glob.Values.sentry.enabled | default false }}
-{{- if and $glob.Values.sentry.frontend (hasKey $glob.Values.sentry.frontend "enabled") }}
-  {{- $sentryFrontendEnabled = $glob.Values.sentry.frontend.enabled }}
-{{- end }}
-{{- $sentryFrontendDsn := $glob.Values.sentry.clientDsn }}
-{{- if and $glob.Values.sentry.frontend (hasKey $glob.Values.sentry.frontend "clientDsn") }}
-  {{- $sentryFrontendDsn = $glob.Values.sentry.frontend.clientDsn }}
-{{- end }}
+{{- $sentryFrontendEnabled := $glob.Values.sentry.frontend.enabled | default false }}
+{{- $sentryFrontendDsn := $glob.Values.sentry.frontend.clientDsn }}
 {{- if $sentryFrontendEnabled }}
-SENTRY_DSN: {{ required "Missing sentry frontend DSN (sentry.frontend.clientDsn or sentry.clientDsn)" $sentryFrontendDsn | quote }}
+SENTRY_DSN: {{ required "Missing sentry frontend DSN (sentry.frontend.clientDsn)" $sentryFrontendDsn | quote }}
 SENTRY_ENVIRONMENT: {{ required "Missing sentry environment (sentry.environment)" $glob.Values.sentry.environment | quote }}
 {{- end }}
 {{- if $glob.Values.matomo.enabled }}

@@ -11,15 +11,9 @@ data:
   NEWRELIC_ENABLED: "1"
   NEWRELIC_LICENSE_KEY: {{ required "Missing newrelic.licenceKey" .Values.newrelic.licenceKey | quote }}
 {{- end }}
-{{- $sentryBackendEnabled := .Values.sentry.enabled | default false }}
-{{- if and .Values.sentry.backend (hasKey .Values.sentry.backend "enabled") }}
-  {{- $sentryBackendEnabled = .Values.sentry.backend.enabled }}
-{{- end }}
-{{- $sentryBackendDsn := .Values.sentry.dsn }}
-{{- if and .Values.sentry.backend (hasKey .Values.sentry.backend "dsn") }}
-  {{- $sentryBackendDsn = .Values.sentry.backend.dsn }}
-{{- end }}
+{{- $sentryBackendEnabled := .Values.sentry.backend.enabled | default false }}
+{{- $sentryBackendDsn := .Values.sentry.backend.dsn }}
 {{- if $sentryBackendEnabled }}
-  SENTRY_DSN: {{ required "Missing sentry backend DSN (sentry.backend.dsn or sentry.dsn)" $sentryBackendDsn | quote }}
+  SENTRY_DSN: {{ required "Missing sentry backend DSN (sentry.backend.dsn)" $sentryBackendDsn | quote }}
   SENTRY_ENVIRONMENT: {{ required "Missing sentry environment (sentry.environment)" .Values.sentry.environment | quote }}
 {{- end }}

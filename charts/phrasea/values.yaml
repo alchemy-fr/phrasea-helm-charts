@@ -856,9 +856,6 @@ newrelic:
   licenceKey: ~
 
 sentry:
-  enabled: false
-  dsn: ~
-  clientDsn: ~
   environment: prod
   backend:
     enabled: ~
