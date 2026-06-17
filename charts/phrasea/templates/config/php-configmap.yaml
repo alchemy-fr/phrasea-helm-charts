@@ -11,9 +11,17 @@ data:
   NEWRELIC_ENABLED: "1"
   NEWRELIC_LICENSE_KEY: {{ required "Missing newrelic.licenceKey" .Values.newrelic.licenceKey | quote }}
 {{- end }}
-{{- $sentryBackendEnabled := .Values.sentry.backend.enabled | default false }}
-{{- $sentryBackendDsn := .Values.sentry.backend.dsn }}
+{{- $sentry := .Values.sentry | default dict }}
+{{- $sentryBackend := get $sentry "backend" | default dict }}
+{{- $sentryBackendEnabled := get $sentryBackend "enabled" }}
+{{- if eq $sentryBackendEnabled nil }}
+{{- $sentryBackendEnabled = (get $sentry "enabled" | default false) }}
+{{- end }}
+{{- $sentryBackendDsn := get $sentryBackend "dsn" }}
+{{- if eq $sentryBackendDsn nil }}
+{{- $sentryBackendDsn = (get $sentry "dsn") }}
+{{- end }}
 {{- if $sentryBackendEnabled }}
-  SENTRY_DSN: {{ required "Missing sentry backend DSN (sentry.backend.dsn)" $sentryBackendDsn | quote }}
-  SENTRY_ENVIRONMENT: {{ required "Missing sentry environment (sentry.environment)" .Values.sentry.environment | quote }}
+  SENTRY_DSN: {{ required "Missing sentry backend DSN (sentry.backend.dsn or sentry.dsn)" $sentryBackendDsn | quote }}
+  SENTRY_ENVIRONMENT: {{ required "Missing sentry environment (sentry.environment)" (get $sentry "environment") | quote }}
 {{- end }}
