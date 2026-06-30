@@ -856,7 +856,7 @@ newrelic:
   licenceKey: ~
 
 sentry:
-  environment: ""  # Set dynamically by Terraform as ${project}-${env}
+  environment: prod
   backend:
     enabled: ~
     dsn: ~
