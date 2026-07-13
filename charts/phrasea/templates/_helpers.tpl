@@ -335,6 +335,14 @@ env:
 {{- end }}
 {{- end }}
 {{- end }}
+{{- if .Values.databox.indexer.clientId }}
+- name: INDEXER_DATABOX_CLIENT_ID
+  value: {{ .Values.databox.indexer.clientId | quote }}
+{{- end }}
+{{- if .Values.databox.indexer.clientSecret }}
+- name: INDEXER_DATABOX_CLIENT_SECRET
+  value: {{ .Values.databox.indexer.clientSecret | quote }}
+{{- end }}
 {{- range .Values._internal.clients }}
 {{- $appName := . }}
 {{- with (index $.Values $appName) }}

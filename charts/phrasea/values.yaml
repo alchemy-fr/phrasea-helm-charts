@@ -345,6 +345,9 @@ databox:
     baseUrl: "https://zippy.{{ .Values.stack.domain }}"
     clientId: databox
     clientSecret: __CHANGE_ME_MxWoVddUWq
+  indexer:
+    clientId:
+    clientSecret:
 
 expose:
   enabled: true
