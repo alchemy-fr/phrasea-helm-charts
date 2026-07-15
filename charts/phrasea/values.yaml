@@ -13,6 +13,8 @@ stack:
   runSetups: true
   runMigrations: true
   runSynchronize: true
+  migrations:
+    phpMemoryLimit: '1G'
 
 
 # Override full name of the deployed resources (e.g., phrasea-stg) useful for multiple certbot in the same cluster.
