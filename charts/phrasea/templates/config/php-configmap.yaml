@@ -5,7 +5,7 @@ metadata:
 data:
   APP_ENV: prod
   VERIFY_SSL: {{ .Values.security.verifySsl | default true | quote }}
-  TRUSTED_PROXIES: 127.0.0.1,REMOTE_ADDR
+  TRUSTED_PROXIES: {{ .Values.security.trustedProxies | default '127.0.0.1,REMOTE_ADDR' | quote }}
   NOTIFICATIONS_ENABLED: {{ .Values.notifications.enabled | default false | quote }}
 {{- if .Values.newrelic.enabled }}
   NEWRELIC_ENABLED: "1"
