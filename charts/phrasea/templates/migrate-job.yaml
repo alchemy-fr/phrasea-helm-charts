@@ -21,6 +21,15 @@ spec:
       - name: {{ $appName }}-php-job
         image: {{ $.Values.repository.baseUrl }}/ps-{{ $appName }}-api-php:{{ $.Values.repository.tag }}
         imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
+        {{- if eq "true" (include "ps.resourceQuota" (dict "local" (index $.Values $appName).worker.resourceQuota "global" $.Values.resourceQuota)) }}
+        resources:
+          requests:
+            memory: {{ (index $.Values $appName).worker.resources.requests.memory | default "256Mi" }}
+            cpu: {{ (index $.Values $appName).worker.resources.requests.cpu | default "50m" }}
+          limits:
+            memory: {{ (index $.Values $appName).worker.resources.limits.memory | default "2048Mi" }}
+            cpu: {{ (index $.Values $appName).worker.resources.limits.cpu | default "2000m" }}
+        {{- end }}
         args: ["bin/migrate.sh"]
         terminationMessagePolicy: FallbackToLogsOnError
         env:

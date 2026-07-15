@@ -18,6 +18,15 @@ spec:
       {{- end }}
       containers:
       - {{- include "configurator.containerSpecs" $ | nindent 8 }}
+        {{- if eq "true" (include "ps.resourceQuota" (dict "local" $.Values.configurator.resourceQuota "global" $.Values.resourceQuota)) }}
+        resources:
+          requests:
+            memory: {{ $.Values.configurator.resources.requests.memory | default "256Mi" }}
+            cpu: {{ $.Values.configurator.resources.requests.cpu | default "50m" }}
+          limits:
+            memory: {{ $.Values.configurator.resources.limits.memory | default "2048Mi" }}
+            cpu: {{ $.Values.configurator.resources.limits.cpu | default "2000m" }}
+        {{- end }}
         args: ["bin/migrate.sh"]
       restartPolicy: Never
   backoffLimit: 3

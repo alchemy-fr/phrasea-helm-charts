@@ -124,6 +124,16 @@ configurator:
     externalSecretMapping:
       accessKey: CONFIGURATOR_S3_ACCESS_KEY
       secretKey: CONFIGURATOR_S3_SECRET_KEY
+  # Used by configurator migration/setup/synchronize jobs.
+  # Override global resourceQuota for this service (true/false), defaults to global value
+  # resourceQuota:
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "256Mi"
+    limits:
+      cpu: "2000m"
+      memory: "2048Mi"
 
 interactivePod:
   # Set to true to launch an interactive pod for debugging
