@@ -1,0 +1,12 @@
+{{- if and $.Values.stack.running $.Values.databox.enabled $.Values.databox.indexer.enabled }}
+{{- range $.Values.databox.indexer.instances }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: databox-indexer-{{ .name }}-config
+data:
+  config.json: |
+{{ .config | indent 4 }}
+{{- end }}
+{{- end }}

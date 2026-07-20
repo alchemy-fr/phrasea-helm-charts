@@ -1,0 +1,70 @@
+{{- if and $.Values.stack.running $.Values.databox.enabled $.Values.databox.indexer.enabled }}
+{{- range $.Values.databox.indexer.instances }}
+{{- if eq (.resourceType | default "deployment") "deployment" }}
+{{- $instance := . }}
+{{- $defaultResources := $.Values.databox.indexer.resources }}
+{{- $resources := $instance.resources | default $defaultResources }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: databox-indexer-{{ .name }}
+spec:
+  replicas: {{ if (hasKey . "replicas") }}{{ .replicas }}{{ else }}1{{ end }}
+  selector:
+    matchLabels:
+      app: phrasea
+      tier: databox-indexer-{{ .name }}
+  template:
+    metadata:
+      labels:
+        app: phrasea
+        tier: databox-indexer-{{ .name }}
+    spec:
+      {{- if $.Values.nodeSelector }}
+      nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: databox-indexer-{{ .name }}
+        image: {{ $.Values.repository.baseUrl }}/ps-databox-indexer:{{ $.Values.repository.tag }}
+        imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
+        args: [{{ .argument | quote }}, {{ .location | quote }}]
+        resources:
+          requests:
+            memory: {{ $resources.requests.memory | default "512Mi" }}
+            cpu: {{ $resources.requests.cpu | default "100m" }}
+          limits:
+            memory: {{ $resources.limits.memory | default "1Gi" }}
+            cpu: {{ $resources.limits.cpu | default "2000m" }}
+        terminationMessagePolicy: FallbackToLogsOnError
+        env:
+        - name: CONFIG_FILE
+          value: config.json
+        - name: INDEXER_LOCK_DIR
+          value: /locks
+        {{- range $key, $val := .env }}
+        - name: {{ $key | quote }}
+          value: {{ $val | quote }}
+        {{- end }}
+        {{- if .envSecrets }}
+        envFrom:
+        {{- range .envSecrets }}
+        - secretRef:
+            name: {{ .secretName }}
+        {{- end }}
+        {{- end }}
+        volumeMounts:
+        - name: config
+          mountPath: /srv/workspace/phrasea/databox/indexer/config
+          readOnly: true
+        - name: locks
+          mountPath: /locks
+      volumes:
+      - name: config
+        configMap:
+          name: databox-indexer-{{ .name }}-config
+      - name: locks
+        emptyDir: {}
+{{- end }}
+{{- end }}
+{{- end }}

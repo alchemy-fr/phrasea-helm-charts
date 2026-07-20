@@ -336,6 +336,84 @@ databox:
       limits:
         cpu: "2000m"
         memory: "4Gi"
+  indexer:
+    enabled: false
+    # clientId and clientSecret are used by the configurator to register the indexer OAuth client
+    clientId:
+    clientSecret:
+    # Default resources applied to all instances (can be overridden per instance)
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "512Mi"
+      limits:
+        cpu: "2000m"
+        memory: "1Gi"
+    # List of indexer instances to deploy.
+    # Each instance runs a command against a named location with its own JSON config file.
+    #
+    # TWO INDEPENDENT FIELDS:
+    #   resourceType: Determines the Kubernetes resource type
+    #     'deployment' → continuous long-running pods with replicas
+    #     'cronjob'    → scheduled execution (requires 'schedule' field)
+    #     'job'        → one-off manual execution (unique timestamp-based naming)
+    #
+    #   argument: Determines what operation the indexer performs
+    #     'watch' → long-running watch daemon (continuous monitoring)
+    #     'index' → one-time or scheduled indexing operation
+    #
+    # instances:
+    #   # Deployment example: long-running watch daemon
+    #   - name: acme-watch-daemon
+    #     resourceType: deployment         # Creates Deployment with replicas
+    #     argument: watch                  # Runs 'databox-indexer watch acme-stg'
+    #     location: acme                   # Location name defined in config.json
+    #     replicas: 1                      # Only for deployment
+    #     config: |                        # Full JSON config file content
+    #       {
+    #         "databox": {
+    #           "url": "%env(DATABOX_API_URL)%",
+    #           "clientId": "%env(DATABOX_CLIENT_ID)%",
+    #           "clientSecret": "%env(DATABOX_CLIENT_SECRET)%",
+    #           "verifySSL": "%env(bool:DATABOX_VERIFY_SSL)%",
+    #           "concurrency": "%env(int:DATABOX_CONCURRENCY)%"
+    #         },
+    #         "locations": [
+    #           { "name": "acme", "type": "phraseanet", "options": { ... } }
+    #         ]
+    #       }
+    #     env:                             # Non-sensitive env vars
+    #       DATABOX_API_URL: "https://api-databox.xxx.zz"
+    #       DATABOX_VERIFY_SSL: "true"
+    #       DATABOX_CONCURRENCY: "1"
+    #     envSecrets:                      # References to Kubernetes Secrets
+    #       - secretName: my-indexer-credentials
+    #     resources:                       # Per-instance resource override (optional)
+    #       requests:
+    #         cpu: "100m"
+    #         memory: "512Mi"
+    #       limits:
+    #         cpu: "1000m"
+    #         memory: "1Gi"
+    #
+    #   # CronJob example: scheduled indexing
+    #   - name: lacp-daily-index
+    #     resourceType: cronjob            # Creates CronJob
+    #     argument: index                   # Runs 'databox-indexer index lacp-medialibrary'
+    #     location: lacp-medialibrary
+    #     schedule: "0 2 * * *"            # Required for cronjob (cron format)
+    #     suspend: false                   # Set to true for manual-only triggering
+    #     config: |
+    #       { ... }
+    #
+    #   # Job example: one-off manual indexing
+    #   - name: demo-manual-index
+    #     resourceType: job                # Creates Job with timestamp-based name
+    #     argument: index                  # Runs 'databox-indexer index example-demo'
+    #     location: example-demo
+    #     config: |
+    #       { ... }
+    instances: []
   rabbitmq:
     vhost: databox
   database:
@@ -347,9 +425,6 @@ databox:
     baseUrl: "https://zippy.{{ .Values.stack.domain }}"
     clientId: databox
     clientSecret: __CHANGE_ME_MxWoVddUWq
-  indexer:
-    clientId:
-    clientSecret:
 
 expose:
   enabled: true
