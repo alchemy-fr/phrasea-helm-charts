@@ -364,10 +364,29 @@ databox:
     #
     # instances:
     #   # Deployment example: long-running watch daemon
-    #   - name: acme-watch-daemon
+    #   - name: sample-watch-daemon
+    #     enabled: true                   # Optional, set false to keep config but skip deployment
     #     resourceType: deployment         # Creates Deployment with replicas
-    #     argument: watch                  # Runs 'databox-indexer watch acme-stg'
-    #     location: acme                   # Location name defined in config.json
+    #     argument: watch                  # Runs 'databox-indexer watch sample-source-a'
+    #     location: sample-source-a        # Location name defined in config.json
+    #     # Driver state storage (Phraseanet driver progress files)
+    #     stateStorage:
+    #       type: emptyDir                 # 'emptyDir' (default) or 'pvc'
+    #       mountPath: /locks              # Mounted path used by INDEXER_LOCK_DIR
+    #     podSecurityContext:              # Optional, useful with PVC write permissions
+    #       fsGroup: 1000
+    #       fsGroupChangePolicy: OnRootMismatch
+    #     # Watch volume storage (filesystem/block mounted in pod for watch mode)
+    #     # This section is volume-only. S3 event sources should live in another dedicated section.
+    #     watchVolumeStorage:
+    #       enabled: true
+    #       type: pvc                      # 'emptyDir' or 'pvc'
+    #       existingClaim: shared-watch-fs # Optional, if set no PVC is created
+    #       mountPath: /fs-watch
+    #       readOnly: true
+    #       storageClass: nfs-rwx
+    #       accessMode: ReadWriteMany
+    #       size: 1Gi
     #     replicas: 1                      # Only for deployment
     #     config: |                        # Full JSON config file content
     #       {
@@ -397,20 +416,31 @@ databox:
     #         memory: "1Gi"
     #
     #   # CronJob example: scheduled indexing
-    #   - name: lacp-daily-index
+    #   - name: sample-daily-index
+    #     enabled: true                   # Optional, set false to disable this instance
     #     resourceType: cronjob            # Creates CronJob
-    #     argument: index                   # Runs 'databox-indexer index lacp-medialibrary'
-    #     location: lacp-medialibrary
+    #     argument: index                   # Runs 'databox-indexer index sample-source-b'
+    #     location: sample-source-b
+    #     stateStorage:
+    #       type: pvc                      # Create/use a PVC for lock persistence
+    #       storageClass:
+    #       accessMode: ReadWriteOnce
+    #       size: 1Gi
+    #       existingClaim:                 # Optional, if set no PVC is created
     #     schedule: "0 2 * * *"            # Required for cronjob (cron format)
     #     suspend: false                   # Set to true for manual-only triggering
     #     config: |
     #       { ... }
     #
     #   # Job example: one-off manual indexing
-    #   - name: demo-manual-index
+    #   - name: sample-manual-index
+    #     enabled: false                  # Example: keep config without running hook Job
     #     resourceType: job                # Creates Job with timestamp-based name
-    #     argument: index                  # Runs 'databox-indexer index example-demo'
-    #     location: example-demo
+    #     argument: index                  # Runs 'databox-indexer index sample-source-c'
+    #     location: sample-source-c
+    #     stateStorage:
+    #       type: pvc
+    #       existingClaim: shared-indexer-state
     #     config: |
     #       { ... }
     instances: []

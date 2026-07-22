@@ -1,5 +1,6 @@
 {{- if and $.Values.stack.running $.Values.databox.enabled $.Values.databox.indexer.enabled }}
 {{- range $.Values.databox.indexer.instances }}
+{{- if or (not (hasKey . "enabled")) .enabled }}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -8,5 +9,6 @@ metadata:
 data:
   config.json: |
 {{ .config | indent 4 }}
+{{- end }}
 {{- end }}
 {{- end }}

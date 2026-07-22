@@ -1,0 +1,63 @@
+{{- if and $.Values.stack.running $.Values.databox.enabled $.Values.databox.indexer.enabled }}
+{{- range $.Values.databox.indexer.instances }}
+{{- $stateStorage := .stateStorage | default dict }}
+{{- $stateStorageType := $stateStorage.type | default "emptyDir" }}
+{{- $watchVolumeStorage := .watchVolumeStorage | default dict }}
+{{- $watchVolumeStorageEnabled := $watchVolumeStorage.enabled | default false }}
+{{- $watchVolumeStorageType := $watchVolumeStorage.type | default "emptyDir" }}
+{{- if and (or (not (hasKey . "enabled")) .enabled) (eq $stateStorageType "pvc") (not $stateStorage.existingClaim) }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: databox-indexer-{{ .name }}-locks
+  labels:
+    app: phrasea
+    tier: databox-indexer-{{ .name }}
+  {{- with $stateStorage.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    - {{ $stateStorage.accessMode | default "ReadWriteOnce" | quote }}
+  resources:
+    requests:
+      storage: {{ $stateStorage.size | default "1Gi" | quote }}
+{{- if $stateStorage.storageClass }}
+{{- if (eq "-" $stateStorage.storageClass) }}
+  storageClassName: ""
+{{- else }}
+  storageClassName: "{{ $stateStorage.storageClass }}"
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if and (or (not (hasKey . "enabled")) .enabled) $watchVolumeStorageEnabled (eq $watchVolumeStorageType "pvc") (not $watchVolumeStorage.existingClaim) }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: databox-indexer-{{ .name }}-watch-fs
+  labels:
+    app: phrasea
+    tier: databox-indexer-{{ .name }}
+  {{- with $watchVolumeStorage.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+spec:
+  accessModes:
+    - {{ $watchVolumeStorage.accessMode | default "ReadWriteOnce" | quote }}
+  resources:
+    requests:
+      storage: {{ $watchVolumeStorage.size | default "1Gi" | quote }}
+{{- if $watchVolumeStorage.storageClass }}
+{{- if (eq "-" $watchVolumeStorage.storageClass) }}
+  storageClassName: ""
+{{- else }}
+  storageClassName: "{{ $watchVolumeStorage.storageClass }}"
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
