@@ -1,0 +1,14 @@
+{{- with .Values.mailer }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mailer
+data:
+  MAILER_HOST: {{ .host | default "" | quote }}
+  MAILER_PORT: {{ .port | default "" | quote }}
+  MAIL_FROM: {{ .from | default "" | quote }}
+  MAIL_FROM_DISPLAY_NAME: {{ .fromDisplayName | default (printf "Phrasea noreply %s" $.Values.stack.name) | quote }}
+  MAIL_REPLY_TO: {{ .replyTo | default "" | quote }}
+  MAIL_REPLY_TO_DISPLAY_NAME: {{ .replyToDisplayName | default "" | quote }}
+  MAIL_ENVELOPE_FROM: {{ .envelopeFrom | default "" | quote }}
+{{- end }}

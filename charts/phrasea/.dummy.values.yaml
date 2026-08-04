@@ -11,11 +11,6 @@ soketi:
   key: "soketi-key"
   secret: "soketi-secret"
 
-
-novu:
-  secretKey: "novu-secret"
-  applicationIdentifier: "novu-app-id"
-
 databox:
   api:
     config:
@@ -32,3 +27,9 @@ repository:
 
 security:
   verifySsl: false
+
+mailer:
+    host: "smtp.local"
+    port: 587
+    user: "user"
+    password: "password"

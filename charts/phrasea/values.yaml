@@ -200,33 +200,6 @@ auth:
 
 notifications:
   enabled: true
-  
-novu:
-  enabled: true
-  bridge:
-    hostname: "bridge-novu.{{ .Values.stack.domain }}"
-    baseUrl: "https://bridge-novu.{{ .Values.stack.domain }}"
-    # Override global resourceQuota for this service (true/false), defaults to global value
-    # resourceQuota:
-    resources:
-      requests:
-        cpu: "25m"
-        memory: "128Mi"
-      limits:
-        cpu: "500m"
-        memory: "512Mi"
-    ingress:
-      enabled: true
-      annotations: {}
-      extraLabels: {}
-      tls: []
-  dashboardUrl: https://eu.dashboard-v2.novu.co
-  apiHost: eu.api.novu.co
-  wsUrl: https://eu.ws.novu.co
-  # __SET_ME__
-  applicationIdentifier:
-  # __SET_ME__
-  secretKey:
 
 databox:
   enabled: true
@@ -624,7 +597,6 @@ documentation:
     extraLabels: {}
     tls: []
 
-# __SET_ME__ Mailer configuration
 mailer:
   host:
   port: 
@@ -635,6 +607,7 @@ mailer:
   replyTo:
   replyToDisplayName:
   envelopeFrom:
+  dsn: "smtp://{{ .Values.mailer.user }}:{{ .Values.mailer.password }}@{{ .Values.mailer.host }}:{{ .Values.mailer.port }}"
 
 postgresql:
   enabled: true

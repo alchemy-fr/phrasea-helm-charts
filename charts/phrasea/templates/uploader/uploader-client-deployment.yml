@@ -42,8 +42,6 @@ spec:
         - configMapRef:
             name: urls-config
         - configMapRef:
-            name: novu
-        - configMapRef:
             name: uploader-client-config
         - configMapRef:
             name: configurator-s3

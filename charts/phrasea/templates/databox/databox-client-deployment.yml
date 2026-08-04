@@ -39,8 +39,6 @@ spec:
         - configMapRef:
             name: urls-config
         - configMapRef:
-            name: novu
-        - configMapRef:
             name: soketi
         - configMapRef:
             name: databox-client-config
