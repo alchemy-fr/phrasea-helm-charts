@@ -29,7 +29,7 @@ security:
   verifySsl: false
 
 mailer:
-    host: "smtp.local"
-    port: 587
-    user: "user"
-    password: "password"
+  host: "smtp.local"
+  port: 587
+  user: "user"
+  password: "password"

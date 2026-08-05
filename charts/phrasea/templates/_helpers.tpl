@@ -337,10 +337,6 @@ env:
 envFrom:
 - secretRef:
     name: keycloak
-- configMapRef:
-    name: mailer
-- secretRef:
-    name: mailer
 {{- include "envFrom.phpApp" $ }}
 {{- include "envFrom.rabbitmq" $ }}
 {{- include "envFrom.postgresql" $ }}
