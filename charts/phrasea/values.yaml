@@ -210,7 +210,7 @@ databox:
     enabled: true
     # Daily at 3am
     schedule: '0 3 * * *'
-  allowedFileTypes: "image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.psd,.psb,.ai,.dng,.jfif,.jpe,.psdt,.emf,.wmf,.svgz,.ait,.eps,.epsf,.epsi,.indd,.indt,.idml,.idms,.icml),application/*(.pdf,.doc,.docx,.md,.txt,.xls,.xlsx,.odt,.psd,.psb,.csv,.ods,.dot,.dotm,.dotx,.docm,.rtf,.wps,.xlam,.xlsb,.xlsm,.xlt,.xltm,.xltx,.xlw,.html,.htm,.mht,.mhtml,.ppt,.pptm,.pptx,.pps,.ppsm,.ppsx,.pot,.potm,.potx,.ppa,.ppam,.ps,.aep,.prproj),video/*(.mpg,.mpeg,.mov,.avi,.mxf,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc,.webm,.wmv),audio/*(.ogg,.opus,.m4r,.ac3,.flac,.aac,.mp3,.aiff,.wav)"
+  allowedFileTypes: "image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.psd,.psb,.ai,.dng,.jfif,.jpe,.psdt,.emf,.wmf,.svgz,.ait,.eps,.epsf,.epsi,.indd,.indt,.idml,.idms,.icml,.cr2,.cr3,.crw,.nef,.nrw,.arw,.sr2,.srf,.raf,.rw2,.mrw,.orf,.pef,.dcr,.k25,.kdc),application/*(.pdf,.doc,.docx,.md,.txt,.xls,.xlsx,.odt,.psd,.psb,.csv,.ods,.dot,.dotm,.dotx,.docm,.rtf,.wps,.xlam,.xlsb,.xlsm,.xlt,.xltm,.xltx,.xlw,.html,.htm,.mht,.mhtml,.ppt,.pptm,.pptx,.pps,.ppsm,.ppsx,.pot,.potm,.potx,.ppa,.ppam,.ps,.aep,.prproj),video/*(.mpg,.mpeg,.mov,.avi,.mxf,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc,.webm,.wmv),audio/*(.ogg,.opus,.m4r,.ac3,.flac,.aac,.mp3,.aiff,.wav)"
   # Min size for multipart upload chunks in bytes (default 20Mb) - must be at least 5Mb for AWS S3 and some S3-compatible providers
   s3MultipartMinChunkSize: "20971520"
   # Max size for multipart upload chunks in bytes (default 5Gb)
@@ -309,6 +309,114 @@ databox:
       limits:
         cpu: "2000m"
         memory: "4Gi"
+  indexer:
+    enabled: false
+    # clientId and clientSecret are used by the configurator to register the indexer OAuth client
+    clientId:
+    clientSecret:
+    # Default resources applied to all instances (can be overridden per instance)
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "512Mi"
+      limits:
+        cpu: "2000m"
+        memory: "1Gi"
+    # List of indexer instances to deploy.
+    # Each instance runs a command against a named location with its own JSON config file.
+    #
+    # TWO INDEPENDENT FIELDS:
+    #   resourceType: Determines the Kubernetes resource type
+    #     'deployment' → continuous long-running pods with replicas
+    #     'cronjob'    → scheduled execution (requires 'schedule' field)
+    #     'job'        → one-off manual execution (unique timestamp-based naming)
+    #
+    #   argument: Determines what operation the indexer performs
+    #     'watch' → long-running watch daemon (continuous monitoring)
+    #     'index' → one-time or scheduled indexing operation
+    #
+    # instances:
+    #   # Deployment example: long-running watch daemon
+    #   - name: sample-watch-daemon
+    #     enabled: true                   # Optional, set false to keep config but skip deployment
+    #     resourceType: deployment         # Creates Deployment with replicas
+    #     argument: watch                  # Runs 'databox-indexer watch sample-source-a'
+    #     location: sample-source-a        # Location name defined in config.json
+    #     # Driver state storage (Phraseanet driver progress files)
+    #     stateStorage:
+    #       type: emptyDir                 # 'emptyDir' (default) or 'pvc'
+    #       mountPath: /locks              # Mounted path used by INDEXER_LOCK_DIR
+    #     podSecurityContext:              # Optional, useful with PVC write permissions
+    #       fsGroup: 1000
+    #       fsGroupChangePolicy: OnRootMismatch
+    #     # Watch volume storage (filesystem/block mounted in pod for watch mode)
+    #     # This section is volume-only. S3 event sources should live in another dedicated section.
+    #     watchVolumeStorage:
+    #       enabled: true
+    #       type: pvc                      # 'emptyDir' or 'pvc'
+    #       existingClaim: shared-watch-fs # Optional, if set no PVC is created
+    #       mountPath: /fs-watch
+    #       readOnly: true
+    #       storageClass: nfs-rwx
+    #       accessMode: ReadWriteMany
+    #       size: 1Gi
+    #     replicas: 1                      # Only for deployment
+    #     config: |                        # Full JSON config file content
+    #       {
+    #         "databox": {
+    #           "url": "%env(DATABOX_API_URL)%",
+    #           "clientId": "%env(DATABOX_CLIENT_ID)%",
+    #           "clientSecret": "%env(DATABOX_CLIENT_SECRET)%",
+    #           "verifySSL": "%env(bool:DATABOX_VERIFY_SSL)%",
+    #           "concurrency": "%env(int:DATABOX_CONCURRENCY)%"
+    #         },
+    #         "locations": [
+    #           { "name": "acme", "type": "phraseanet", "options": { ... } }
+    #         ]
+    #       }
+    #     env:                             # Non-sensitive env vars
+    #       DATABOX_API_URL: "https://api-databox.xxx.zz"
+    #       DATABOX_VERIFY_SSL: "true"
+    #       DATABOX_CONCURRENCY: "1"
+    #     envSecrets:                      # References to Kubernetes Secrets
+    #       - secretName: my-indexer-credentials
+    #     resources:                       # Per-instance resource override (optional)
+    #       requests:
+    #         cpu: "100m"
+    #         memory: "512Mi"
+    #       limits:
+    #         cpu: "1000m"
+    #         memory: "1Gi"
+    #
+    #   # CronJob example: scheduled indexing
+    #   - name: sample-daily-index
+    #     enabled: true                   # Optional, set false to disable this instance
+    #     resourceType: cronjob            # Creates CronJob
+    #     argument: index                   # Runs 'databox-indexer index sample-source-b'
+    #     location: sample-source-b
+    #     stateStorage:
+    #       type: pvc                      # Create/use a PVC for lock persistence
+    #       storageClass:
+    #       accessMode: ReadWriteOnce
+    #       size: 1Gi
+    #       existingClaim:                 # Optional, if set no PVC is created
+    #     schedule: "0 2 * * *"            # Required for cronjob (cron format)
+    #     suspend: false                   # Set to true for manual-only triggering
+    #     config: |
+    #       { ... }
+    #
+    #   # Job example: one-off manual indexing
+    #   - name: sample-manual-index
+    #     enabled: false                  # Example: keep config without running hook Job
+    #     resourceType: job                # Creates Job with timestamp-based name
+    #     argument: index                  # Runs 'databox-indexer index sample-source-c'
+    #     location: sample-source-c
+    #     stateStorage:
+    #       type: pvc
+    #       existingClaim: shared-indexer-state
+    #     config: |
+    #       { ... }
+    instances: []
   rabbitmq:
     vhost: databox
   database:
@@ -320,9 +428,6 @@ databox:
     baseUrl: "https://zippy.{{ .Values.stack.domain }}"
     clientId: databox
     clientSecret: __CHANGE_ME_MxWoVddUWq
-  indexer:
-    clientId:
-    clientSecret:
 
 expose:
   enabled: true
@@ -440,7 +545,7 @@ expose:
 
 uploader:
   enabled: true
-  allowedFileTypes: "image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.psd,.psb,.ai,.dng,.jfif,.jpe,.psdt,.emf,.wmf,.svgz,.ait,.eps,.epsf,.epsi,.indd,.indt,.idml,.idms,.icml),application/*(.pdf,.doc,.docx,.md,.txt,.xls,.xlsx,.odt,.psd,.psb,.csv,.ods,.dot,.dotm,.dotx,.docm,.rtf,.wps,.xlam,.xlsb,.xlsm,.xlt,.xltm,.xltx,.xlw,.html,.htm,.mht,.mhtml,.ppt,.pptm,.pptx,.pps,.ppsm,.ppsx,.pot,.potm,.potx,.ppa,.ppam,.ps,.aep,.prproj),video/*(.mpg,.mpeg,.mov,.avi,.mxf,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc,.webm,.wmv),audio/*(.ogg,.opus,.m4r,.ac3,.flac,.aac,.mp3,.aiff,.wav)"
+  allowedFileTypes: "image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.psd,.psb,.ai,.dng,.jfif,.jpe,.psdt,.emf,.wmf,.svgz,.ait,.eps,.epsf,.epsi,.indd,.indt,.idml,.idms,.icml,.cr2,.cr3,.crw,.nef,.nrw,.arw,.sr2,.srf,.raf,.rw2,.mrw,.orf,.pef,.dcr,.k25,.kdc),application/*(.pdf,.doc,.docx,.md,.txt,.xls,.xlsx,.odt,.psd,.psb,.csv,.ods,.dot,.dotm,.dotx,.docm,.rtf,.wps,.xlam,.xlsb,.xlsm,.xlt,.xltm,.xltx,.xlw,.html,.htm,.mht,.mhtml,.ppt,.pptm,.pptx,.pps,.ppsm,.ppsx,.pot,.potm,.potx,.ppa,.ppam,.ps,.aep,.prproj),video/*(.mpg,.mpeg,.mov,.avi,.mxf,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc,.webm,.wmv),audio/*(.ogg,.opus,.m4r,.ac3,.flac,.aac,.mp3,.aiff,.wav)"
   # Min size for multipart upload chunks in bytes (default 20Mb) - must be at least 5Mb for AWS S3 and some S3-compatible providers
   s3MultipartMinChunkSize: "20971520"
   # Max size for multipart upload chunks in bytes (default 5Gb)
@@ -475,7 +580,7 @@ uploader:
       assetConsumerCommitUri:
       assetConsumerAccessToken:
       requestSignatureTtl: 3600
-      allowedFileTypes: "image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.psd,.psb,.ai,.dng,.jfif,.jpe,.psdt,.emf,.wmf,.svgz,.ait,.eps,.epsf,.epsi,.indd,.indt,.idml,.idms,.icml),application/*(.pdf,.doc,.docx,.md,.txt,.xls,.xlsx,.odt,.psd,.psb,.csv,.ods,.dot,.dotm,.dotx,.docm,.rtf,.wps,.xlam,.xlsb,.xlsm,.xlt,.xltm,.xltx,.xlw,.html,.htm,.mht,.mhtml,.ppt,.pptm,.pptx,.pps,.ppsm,.ppsx,.pot,.potm,.potx,.ppa,.ppam,.ps,.aep,.prproj),video/*(.mpg,.mpeg,.mov,.avi,.mxf,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc,.webm,.wmv),audio/*(.ogg,.opus,.m4r,.ac3,.flac,.aac,.mp3,.aiff,.wav)"
+      allowedFileTypes: "image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.psd,.psb,.ai,.dng,.jfif,.jpe,.psdt,.emf,.wmf,.svgz,.ait,.eps,.epsf,.epsi,.indd,.indt,.idml,.idms,.icml,.cr2,.cr3,.crw,.nef,.nrw,.arw,.sr2,.srf,.raf,.rw2,.mrw,.orf,.pef,.dcr,.k25,.kdc),application/*(.pdf,.doc,.docx,.md,.txt,.xls,.xlsx,.odt,.psd,.psb,.csv,.ods,.dot,.dotm,.dotx,.docm,.rtf,.wps,.xlam,.xlsb,.xlsm,.xlt,.xltm,.xltx,.xlw,.html,.htm,.mht,.mhtml,.ppt,.pptm,.pptx,.pps,.ppsm,.ppsx,.pot,.potm,.potx,.ppa,.ppam,.ps,.aep,.prproj),video/*(.mpg,.mpeg,.mov,.avi,.mxf,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc,.webm,.wmv),audio/*(.ogg,.opus,.m4r,.ac3,.flac,.aac,.mp3,.aiff,.wav)"
       s3Storage:
         # When using an external object storage provider, set the "endpoint" to the root domain of the service.
         # Example: https://s3.my-s3-provider.com

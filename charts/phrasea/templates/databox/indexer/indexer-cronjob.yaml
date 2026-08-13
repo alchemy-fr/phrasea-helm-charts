@@ -1,0 +1,107 @@
+{{- if and $.Values.stack.running $.Values.databox.enabled $.Values.databox.indexer.enabled }}
+{{- range $.Values.databox.indexer.instances }}
+{{- if and (or (not (hasKey . "enabled")) .enabled) (eq (.resourceType | default "deployment") "cronjob") }}
+{{- $instance := . }}
+{{- $defaultResources := $.Values.databox.indexer.resources }}
+{{- $resources := $instance.resources | default $defaultResources }}
+{{- $suspend := .suspend | default false }}
+{{- $stateStorage := $instance.stateStorage | default dict }}
+{{- $stateStorageType := $stateStorage.type | default "emptyDir" }}
+{{- $stateStorageMountPath := $stateStorage.mountPath | default "/locks" }}
+{{- $watchVolumeStorage := $instance.watchVolumeStorage | default dict }}
+{{- $watchVolumeStorageEnabled := $watchVolumeStorage.enabled | default false }}
+{{- $watchVolumeStorageType := $watchVolumeStorage.type | default "emptyDir" }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: databox-indexer-{{ .name }}
+spec:
+  schedule: {{ required "schedule is required for cronjob resourceType" .schedule | quote }}
+  suspend: {{ $suspend }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: phrasea
+            tier: databox-indexer-{{ .name }}
+        spec:
+          {{- if $.Values.nodeSelector }}
+          nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 12 }}
+          {{- end }}
+          {{- if $instance.podSecurityContext }}
+          securityContext: {{ toYaml $instance.podSecurityContext | nindent 12 }}
+          {{- else if eq $stateStorageType "pvc" }}
+          securityContext:
+            fsGroup: 1000
+            fsGroupChangePolicy: OnRootMismatch
+          {{- end }}
+          serviceAccountName: default
+          restartPolicy: OnFailure
+          containers:
+          - name: databox-indexer-{{ .name }}
+            image: {{ $.Values.repository.baseUrl }}/ps-databox-indexer:{{ $.Values.repository.tag }}
+            imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
+            args: [{{ .argument | quote }}, {{ .location | quote }}]
+            resources:
+              requests:
+                memory: {{ $resources.requests.memory | default "512Mi" }}
+                cpu: {{ $resources.requests.cpu | default "100m" }}
+              limits:
+                memory: {{ $resources.limits.memory | default "1Gi" }}
+                cpu: {{ $resources.limits.cpu | default "2000m" }}
+            terminationMessagePolicy: FallbackToLogsOnError
+            env:
+            - name: CONFIG_FILE
+              value: config.json
+            - name: INDEXER_LOCK_DIR
+              value: {{ $stateStorageMountPath | quote }}
+            {{- range $key, $val := .env }}
+            - name: {{ $key | quote }}
+              value: {{ $val | quote }}
+            {{- end }}
+            {{- if .envSecrets }}
+            envFrom:
+            {{- range .envSecrets }}
+            - secretRef:
+                name: {{ .secretName }}
+            {{- end }}
+            {{- end }}
+            volumeMounts:
+            - name: config
+              mountPath: /srv/workspace/phrasea/databox/indexer/config
+              readOnly: true
+            - name: locks
+              mountPath: {{ $stateStorageMountPath | quote }}
+            {{- if $watchVolumeStorageEnabled }}
+            - name: watch-source
+              mountPath: {{ $watchVolumeStorage.mountPath | default "/fs-watch" | quote }}
+              readOnly: {{ $watchVolumeStorage.readOnly | default false }}
+            {{- end }}
+          volumes:
+          - name: config
+            configMap:
+              name: databox-indexer-{{ .name }}-config
+          - name: locks
+            {{- if eq $stateStorageType "pvc" }}
+            persistentVolumeClaim:
+              claimName: {{ $stateStorage.existingClaim | default (printf "databox-indexer-%s-locks" .name) }}
+            {{- else }}
+            emptyDir: {}
+            {{- end }}
+          {{- if $watchVolumeStorageEnabled }}
+          - name: watch-source
+            {{- if eq $watchVolumeStorageType "pvc" }}
+            persistentVolumeClaim:
+              claimName: {{ $watchVolumeStorage.existingClaim | default (printf "databox-indexer-%s-watch-fs" .name) }}
+            {{- else }}
+            emptyDir: {}
+            {{- end }}
+          {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
