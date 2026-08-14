@@ -80,12 +80,10 @@ gateway-tls
     name: urls-config
 - configMapRef:
     name: configurator-s3
-{{- if and .Values.notifications.enabled .Values.novu.enabled }}
 - configMapRef:
-    name: novu
+    name: mailer
 - secretRef:
-    name: novu
-{{- end }}
+    name: mailer
 {{- end }}
 
 {{- define "envRef.phpApp" }}
@@ -230,20 +228,6 @@ env:
   value: {{ .Values.configurator.database.name | quote }}
 - name: CONFIGURATOR_SERVICE_WAIT_TIMEOUT
   value: {{ .Values.configurator.serviceWaitTimeout | quote }}
-- name: MAILER_HOST
-  value: {{ .Values.mailer.host | default "" | quote }}
-- name: MAILER_PORT
-  value: {{ .Values.mailer.port | default "" | quote }}
-- name: MAIL_FROM
-  value: {{ .Values.mailer.from | default "" | quote }}
-- name: MAIL_FROM_DISPLAY_NAME
-  value: {{ .Values.mailer.fromDisplayName | default (printf " Phrasea No reply %s" .Values.stack.name) | quote }}
-- name: MAIL_REPLY_TO
-  value: {{ .Values.mailer.replyTo | default "" | quote }}
-- name: MAIL_REPLY_TO_DISPLAY_NAME
-  value: {{ .Values.mailer.replyToDisplayName | default "" | quote }}
-- name: MAIL_ENVELOPE_FROM
-  value: {{ .Values.mailer.envelopeFrom | default "" | quote }}
 - name: KEYCLOAK_ADMIN_PASSWORD_IS_DEFINITIVE
   value: {{ .Values.keycloak.defaultAdmin.passwordIsDefinitive | default false | quote }}
 - name: KC_REALM_HTML_DISPLAY_NAME
@@ -353,8 +337,6 @@ env:
 envFrom:
 - secretRef:
     name: keycloak
-- secretRef:
-    name: mailer
 {{- include "envFrom.phpApp" $ }}
 {{- include "envFrom.rabbitmq" $ }}
 {{- include "envFrom.postgresql" $ }}
@@ -373,30 +355,4 @@ envFrom:
     secretKeyRef:
       name: {{ $secretName }}
       key: {{ $mapping.secretKey }}
-{{- end }}
-
-{{- define "novuBridge.containerSpecs" -}}
-image: {{ .Values.repository.baseUrl }}/ps-novu-bridge:{{ .Values.repository.tag }}
-{{- if not (eq "latest" .Values.repository.tag) }}
-imagePullPolicy:  {{ .Values.repository.imagePullPolicy }}
-{{- end }}
-terminationMessagePolicy: FallbackToLogsOnError
-env:
-- name: NEXT_PUBLIC_NOVU_APPLICATION_IDENTIFIER
-  valueFrom:
-    configMapKeyRef:
-      name: novu
-      key: NOVU_APPLICATION_IDENTIFIER
-- name: NEXT_PUBLIC_NOVU_API_URL
-  valueFrom:
-    configMapKeyRef:
-      name: novu
-      key: NOVU_API_URL
-envFrom:
-  - configMapRef:
-      name: urls-config
-  - configMapRef:
-      name: novu
-  - secretRef:
-      name: novu
 {{- end }}

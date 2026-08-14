@@ -32,6 +32,8 @@ spec:
         env:
         {{- include "envRef.phpApp" $tplArgs | indent 8 }}
         {{- include "envRef.configuratorSecrets" $ | indent 8 }}
+        - name: PHP_MEMORY_LIMIT
+          value: {{ $.Values.stack.migrations.phpMemoryLimit | quote }}
         envFrom:
         {{- include "envFrom.phpApp" $ | indent 8 }}
         {{- include "envFrom.rabbitmq" $ | indent 8 }}
