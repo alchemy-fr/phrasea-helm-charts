@@ -598,6 +598,11 @@ documentation:
     tls: []
 
 mailer:
+  # If set, the chart does NOT create Secret/mailer and the pods reference this
+  # existing secret instead. The external secret must provide the keys:
+  # MAILER_USER, MAILER_PASSWORD. The DSN is composed by the app at runtime
+  # (Symfony Dotenv) from MAILER_USER/PASSWORD (secret) + MAILER_HOST/PORT (configmap).
+  externalSecretName:
   host:
   port: 
   user:
@@ -607,7 +612,6 @@ mailer:
   replyTo:
   replyToDisplayName:
   envelopeFrom:
-  dsn: "smtp://{{ .Values.mailer.user }}:{{ .Values.mailer.password }}@{{ .Values.mailer.host }}:{{ .Values.mailer.port }}"
 
 postgresql:
   enabled: true
