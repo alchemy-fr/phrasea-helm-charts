@@ -46,6 +46,9 @@ imagePullSecrets:
 {{- define "secretName.postgresql" -}}
 {{- .Values.postgresql.externalSecretName | default "postgresql-secret" -}}
 {{- end }}
+{{- define "secretName.mailer" -}}
+{{- .Values.mailer.externalSecretName | default "mailer" -}}
+{{- end }}
 
 {{- define "secretRef.ingress.tls.wildcard" -}}
 {{- with .Values.ingress.tls.wildcard }}
@@ -83,7 +86,7 @@ gateway-tls
 - configMapRef:
     name: mailer
 - secretRef:
-    name: mailer
+    name: {{ include "secretName.mailer" . }}
 {{- end }}
 
 {{- define "envRef.phpApp" }}
