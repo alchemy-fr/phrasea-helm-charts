@@ -76,13 +76,16 @@ gateway-tls
     name: {{ include "secretName.postgresql" . }}
 {{- end }}
 
-{{- define "envFrom.phpApp" }}
+{{- define "envFrom.phpApp.base" }}
 - configMapRef:
     name: php-config
 - configMapRef:
     name: urls-config
 - configMapRef:
     name: configurator-s3
+{{- end }}
+{{- define "envFrom.phpApp" }}
+{{- include "envFrom.phpApp.base" . }}
 - configMapRef:
     name: mailer
 - secretRef:

@@ -28,7 +28,7 @@ spec:
           value: {{ $.Values.stack.migrations.phpMemoryLimit | quote }}
         {{- include "envRef.phpApp" $tplArgs | indent 8 }}
         envFrom:
-        {{- include "envFrom.phpApp" $ | indent 8 }}
+        {{- include "envFrom.phpApp.base" $ | indent 8 }}
         {{- include "envFrom.rabbitmq" $ | indent 8 }}
         {{- include "envFrom.postgresql" $ | indent 8 }}
         {{- if .adminOAuthClient }}
