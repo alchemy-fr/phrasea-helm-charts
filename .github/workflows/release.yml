@@ -6,6 +6,10 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -30,3 +34,24 @@ jobs:
         uses: helm/chart-releaser-action@v1.7.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+      # Every push to main that bumps a Chart.yaml version is a stable release.
+      # Mirroring it as an OCI artifact on GHCR
+      # GitHub Pages Helm repo index to be regenerated.
+      - name: Package charts for GHCR (OCI)
+        run: |
+          mkdir -p .oci-release-packages
+          for dir in $(ls -d charts/*/); do
+            helm package "$dir" --destination .oci-release-packages
+          done
+
+      - name: Log in to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io \
+            --username "${{ github.actor }}" --password-stdin
+
+      - name: Push charts to GHCR (OCI)
+        run: |
+          for pkg in .oci-release-packages/*.tgz; do
+            helm push "$pkg" "oci://ghcr.io/${{ github.repository_owner }}/phrasea-helm-charts"
+          done
