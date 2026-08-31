@@ -3,7 +3,8 @@ name: Release Charts
 on:
   push:
     branches:
-      - main
+      - '**'
+  delete:
   workflow_dispatch:
 
 permissions:
@@ -11,7 +12,13 @@ permissions:
   packages: write
 
 jobs:
-  release:
+  # Stable release channel: auto-triggered on push to main (tags come from
+  # Chart.yaml, bumped manually), or manually via workflow_dispatch from any
+  # branch to test the release process itself before merging.
+  # Publishes to both the classic GitHub Pages Helm repo and GHCR (OCI),
+  # tagged with the real chart version (e.g. "2.25.3").
+  release-stable:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -35,13 +42,12 @@ jobs:
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
-      # Every push to main that bumps a Chart.yaml version is a stable release.
-      # Mirroring it as an OCI artifact on GHCR
-      # GitHub Pages Helm repo index to be regenerated.
       - name: Package charts for GHCR (OCI)
         run: |
           mkdir -p .oci-release-packages
           for dir in $(ls -d charts/*/); do
+            helm dependency list "$dir" 2> /dev/null | tail +2 | head -n -1 | awk '{ print "helm repo add " $1 " " $3 }' | while read cmd; do $cmd; done
+            helm dependency build "$dir"
             helm package "$dir" --destination .oci-release-packages
           done
 
@@ -55,3 +61,79 @@ jobs:
           for pkg in .oci-release-packages/*.tgz; do
             helm push "$pkg" "oci://ghcr.io/${{ github.repository_owner }}/phrasea-helm-charts"
           done
+
+  # Branch preview channel: every branch push publishes a chart to GHCR
+  # tagged with the branch name, so any branch can be deployed as-is
+  # without bumping Chart.yaml
+  # Chart version is set to "0.0.0-<branch-slug>" (valid SemVer prerelease,
+  # required by Helm) so pushing again to the same branch overwrites the tag.
+  publish-branch-oci:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Compute branch tag
+        id: branch_tag
+        run: |
+          branch="${GITHUB_REF#refs/heads/}"
+          slug=$(echo "$branch" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')
+          echo "version=0.0.0-${slug}" >> "$GITHUB_OUTPUT"
+
+      - name: Package charts (branch build)
+        run: |
+          mkdir -p .oci-branch-packages
+          for dir in $(ls -d charts/*/); do
+            helm dependency list "$dir" 2> /dev/null | tail +2 | head -n -1 | awk '{ print "helm repo add " $1 " " $3 }' | while read cmd; do $cmd; done
+            helm dependency build "$dir"
+            helm package "$dir" \
+              --version "${{ steps.branch_tag.outputs.version }}" \
+              --app-version "${{ github.sha }}" \
+              --destination .oci-branch-packages
+          done
+
+      - name: Log in to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io \
+            --username "${{ github.actor }}" --password-stdin
+
+      - name: Push charts to GHCR (OCI)
+        run: |
+          for pkg in .oci-branch-packages/*.tgz; do
+            helm push "$pkg" "oci://ghcr.io/${{ github.repository_owner }}/phrasea-helm-charts"
+          done
+
+  # Cleans up the branch preview package(s) from GHCR when the branch is
+  # deleted, so stale/dead branch tags don't pile up on the registry.
+  cleanup-branch-oci:
+    if: github.event_name == 'delete' && github.event.ref_type == 'branch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (to enumerate chart names)
+        uses: actions/checkout@v6
+
+      - name: Compute branch tag
+        id: branch_tag
+        run: |
+          slug=$(echo "${{ github.event.ref }}" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')
+          echo "version=0.0.0-${slug}" >> "$GITHUB_OUTPUT"
+
+      - name: Delete matching GHCR package version(s)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.branch_tag.outputs.version }}
+        run: |
+          for dir in $(ls -d charts/*/); do
+            chart_name=$(basename "$dir")
+            package="phrasea-helm-charts%2F${chart_name}"
+            version_id=$(gh api "/orgs/${{ github.repository_owner }}/packages/container/${package}/versions" --paginate \
+              --jq ".[] | select(.metadata.container.tags[]? == \"${VERSION}\") | .id" | head -n1 || true)
+            if [ -n "$version_id" ]; then
+              gh api --method DELETE "/orgs/${{ github.repository_owner }}/packages/container/${package}/versions/${version_id}"
+              echo "Deleted GHCR package ${chart_name}:${VERSION} (id=$version_id)"
+            else
+              echo "No GHCR package version found for ${chart_name}:${VERSION}, nothing to delete"
+            fi
+          done
+
