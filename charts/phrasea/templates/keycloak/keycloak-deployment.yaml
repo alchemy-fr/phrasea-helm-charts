@@ -44,6 +44,10 @@ spec:
                 name: keycloak
             - configMapRef:
                 name: urls-config
+            - configMapRef:
+                name: mailer
+            - secretRef:
+                name: {{ include "secretName.mailer" $ }}
           env:
           - name: KC_HTTP_ENABLED
             value: 'true'
