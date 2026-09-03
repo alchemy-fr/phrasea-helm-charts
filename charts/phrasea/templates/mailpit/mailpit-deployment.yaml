@@ -1,0 +1,58 @@
+{{- if and $.Values.stack.running .Values.mailpit.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mailpit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: phrasea
+      tier: mailpit
+  template:
+    metadata:
+      labels:
+        app: phrasea
+        tier: mailpit
+    spec:
+      {{- if $.Values.nodeSelector }}
+      nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: mailpit
+        image: "{{ .Values.mailpit.image.repository }}:{{ .Values.mailpit.image.tag }}"
+        {{- if eq "true" (include "ps.resourceQuota" (dict "local" $.Values.mailpit.resourceQuota "global" $.Values.resourceQuota)) }}
+        resources:
+          requests:
+            memory: {{ $.Values.mailpit.resources.requests.memory | default "32Mi" }}
+            cpu: {{ $.Values.mailpit.resources.requests.cpu | default "10m" }}
+          limits:
+            memory: {{ $.Values.mailpit.resources.limits.memory | default "128Mi" }}
+            cpu: {{ $.Values.mailpit.resources.limits.cpu | default "250m" }}
+        {{- end }}
+        terminationMessagePolicy: FallbackToLogsOnError
+        ports:
+        - name: http
+          containerPort: 8025
+        - name: smtp
+          containerPort: 1025
+        env:
+          {{- if .Values.mailpit.persistence.enabled }}
+          - name: MP_DATABASE
+            value: "/data/mailpit.db"
+          {{- end }}
+        envFrom:
+          - secretRef:
+              name: mailpit
+        {{- if .Values.mailpit.persistence.enabled }}
+        volumeMounts:
+          - name: data
+            mountPath: "/data"
+        {{- end }}
+      {{- if .Values.mailpit.persistence.enabled }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ .Values.mailpit.persistence.existingClaim | default (printf "%s-mailpit" (include "ps.fullname" .)) }}
+      {{- end }}
+{{- end }}

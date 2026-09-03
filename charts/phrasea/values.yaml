@@ -937,6 +937,37 @@ matomo:
     enabled: false
     schedule: '30 5 * * *'
 
+mailpit:
+  enabled: false
+  image:
+    repository: axllent/mailpit
+    tag: latest
+  # Plain-text "user:password" pair for the UI's MP_UI_AUTH env var (Mailpit
+  # only supports this via env, not as a CLI flag). Fine for a dev/test-only
+  # tool, but do not reuse this password anywhere sensitive.
+  auth: "user1:password1"
+  hostname: "mailpit.{{ .Values.stack.domain }}"
+  baseUrl: "https://mailpit.{{ .Values.stack.domain }}"
+  resources:
+    requests:
+      cpu: "10m"
+      memory: "32Mi"
+    limits:
+      cpu: "250m"
+      memory: "128Mi"
+  ingress:
+    enabled: true
+    annotations: {}
+    extraLabels: {}
+    tls: []
+  persistence:
+    enabled: false
+    existingClaim:
+    storageClass:
+    annotations: {}
+    accessMode: ReadWriteOnce
+    size: 1Gi
+
 newrelic:
   enabled: false
   licenceKey: ~

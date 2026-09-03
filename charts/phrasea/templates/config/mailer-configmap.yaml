@@ -4,8 +4,12 @@ kind: ConfigMap
 metadata:
   name: mailer
 data:
-  MAILER_HOST: {{ .host | default "" | quote }}
-  MAILER_PORT: {{ .port | default "" | quote }}
+  # When mailpit is enabled, route everything to it regardless of the
+  # mailer.* values below, so a single toggle re-routes all outgoing mail
+  # (including Keycloak's, which reads MAILER_HOST/MAILER_PORT directly
+  # since it cannot parse a DSN) to the in-cluster Mailpit service for testing.
+  MAILER_HOST: {{ ternary "mailpit" (.host | default "") $.Values.mailpit.enabled | quote }}
+  MAILER_PORT: {{ ternary "1025" (.port | default "" | toString) $.Values.mailpit.enabled | quote }}
   MAIL_FROM: {{ .from | default "" | quote }}
   MAIL_FROM_DISPLAY_NAME: {{ .fromDisplayName | default (printf "Phrasea noreply %s" $.Values.stack.name) | quote }}
   MAIL_REPLY_TO: {{ .replyTo | default "" | quote }}
