@@ -40,8 +40,8 @@ jobs:
           aws ecr get-login-password --region eu-west-3 | helm registry login \
             122649456891.dkr.ecr.eu-west-3.amazonaws.com --username AWS --password-stdin
         env:
-          AWS_ACCESS_KEY_ID: "${{ secrets.PARADE_ECR_AWS_ACCESS_KEY_ID }}"
-          AWS_SECRET_ACCESS_KEY: "${{ secrets.PARADE_ECR_AWS_SECRET_ACCESS_KEY }}"
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
 
       - name: Add Helm dependencies
         run: |
@@ -98,8 +98,8 @@ jobs:
           aws ecr get-login-password --region eu-west-3 | helm registry login \
             122649456891.dkr.ecr.eu-west-3.amazonaws.com --username AWS --password-stdin
         env:
-          AWS_ACCESS_KEY_ID: "${{ secrets.PARADE_ECR_AWS_ACCESS_KEY_ID }}"
-          AWS_SECRET_ACCESS_KEY: "${{ secrets.PARADE_ECR_AWS_SECRET_ACCESS_KEY }}"
+          AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+          AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
 
       - name: Package charts (branch build)
         run: |
