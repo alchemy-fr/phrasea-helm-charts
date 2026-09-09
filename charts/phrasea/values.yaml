@@ -94,6 +94,26 @@ image:
     password:
     email:
 
+# Private ECR pull secret refresher. ECR tokens expire every 12h, so a static
+# Secret (image.pullSecret above) doesn't work for a private ECR registry.
+# When enabled, provisions (pre-install hook) and refreshes (CronJob every 6h)
+# a dockerconfigjson pull Secret named `secretName` in the release namespace.
+# This Secret is shared across every chart dependency that needs it (e.g.
+# parade below, and future phrasea-approval/phrasea-loan) instead of each one
+# running its own redundant refresher — reference it by name via each
+# dependency's own imagePullSecrets value.
+ecrTokenRefresher:
+  enabled: false
+  # ECR host used as the docker auth key, e.g.
+  # 122649456891.dkr.ecr.eu-west-3.amazonaws.com
+  registry:
+  region: eu-west-3
+  secretName: ecr-pull-secret
+  # Read-only ECR pull IAM user. Provide via --set or a local secret values
+  # file — never commit real values.
+  awsAccessKeyId:
+  awsSecretAccessKey:
+
 nodeSelector:
 
 configurator:
@@ -975,6 +995,47 @@ mailpit:
     annotations: {}
     accessMode: ReadWriteOnce
     size: 1Gi
+
+# Phrasea Parade (https://github.com/alchemy-fr/phrasea-parade), added as a
+# Helm dependency (see Chart.yaml, aliased "parade"). Every phrasea-parade
+# value (imageRegistry, image.tag, publicHost, paradeApi.*, paradeClient.*,
+# ingress.*, ...) is intentionally NOT duplicated/mirrored here — same
+# convention as the "zippy" dependency above: set it directly under this
+# "parade:" key from the consumer side (Terraform, or a values file) using
+# phrasea-parade's own values schema.
+#
+# The defaults below only wire Parade into THIS stack instead of its own
+# standalone bundled socle:
+# - postgresql.enabled=false: reuse Phrasea's own PostgreSQL instance. The
+#   consumer must set paradeApi.database.url to a DSN for a dedicated
+#   database on that instance (provisioned upstream, outside this chart).
+# - acme.enabled=false: reuse Phrasea's own Let's Encrypt wildcard cert. The
+#   consumer must set ingress.tls to point at Phrasea's wildcard TLS Secret
+#   (or leave ingress.enabled=false when the ingress is instead managed
+#   externally, e.g. by Terraform in the Cycloid stack).
+# - ecrTokenRefresher.enabled=false + imagePullSecrets: use the ECR pull
+#   Secret shared at the top of this file (see ecrTokenRefresher above)
+#   instead of a redundant per-dependency refresher CronJob.
+parade:
+  enabled: false
+  postgresql:
+    enabled: false
+  acme:
+    enabled: false
+  ecrTokenRefresher:
+    enabled: false
+  imagePullSecrets:
+    - name: ecr-pull-secret
+  # Runs a Job that configures Keycloak for Parade directly via its Admin
+  # REST API (master realm admin), bypassing Parade's own guarded HTTP
+  # bootstrap endpoint — see phrasea-parade's keycloakBootstrapJob values for
+  # the full rationale. Enabled here (unlike phrasea-parade's own standalone
+  # default of false) because deploying Parade as this chart's dependency
+  # guarantees a shared "keycloak" Secret exists in the same namespace.
+  keycloakBootstrapJob:
+    enabled: true
+    keycloakInternalUrl: "http://keycloak"
+    masterAdminSecretName: "keycloak"
 
 newrelic:
   enabled: false

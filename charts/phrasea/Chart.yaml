@@ -14,7 +14,7 @@ type: application
 
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates, including the app version.
-version: 2.26.1
+version: 2.27.0
 
 # This is the version number of the application being deployed. This version number should be
 # incremented each time you make changes to the application.
@@ -29,3 +29,8 @@ dependencies:
     version: "0.1.11"
     repository: "https://alchemy-fr.github.io/zippy-svc/"
     condition: zippy.enabled
+  - name: phrasea-parade
+    version: "0.x.x"
+    repository: "oci://122649456891.dkr.ecr.eu-west-3.amazonaws.com/ps-parade-charts"
+    alias: parade
+    condition: parade.enabled

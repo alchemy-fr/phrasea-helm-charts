@@ -1,0 +1,195 @@
+{{- if .Values.ecrTokenRefresher.enabled }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ecr-token-refresher
+  annotations:
+    "helm.sh/hook": "pre-install,pre-upgrade"
+    "helm.sh/hook-weight": "-15"
+    "helm.sh/hook-delete-policy": before-hook-creation
+automountServiceAccountToken: true
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ecr-token-refresher
+  annotations:
+    "helm.sh/hook": "pre-install,pre-upgrade"
+    "helm.sh/hook-weight": "-15"
+    "helm.sh/hook-delete-policy": before-hook-creation
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "create", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ecr-token-refresher
+  annotations:
+    "helm.sh/hook": "pre-install,pre-upgrade"
+    "helm.sh/hook-weight": "-15"
+    "helm.sh/hook-delete-policy": before-hook-creation
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ecr-token-refresher
+subjects:
+  - kind: ServiceAccount
+    name: ecr-token-refresher
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ecr-token-refresher-credentials
+  annotations:
+    "helm.sh/hook": "pre-install,pre-upgrade"
+    "helm.sh/hook-weight": "-15"
+    "helm.sh/hook-delete-policy": before-hook-creation
+type: Opaque
+stringData:
+  AWS_ACCESS_KEY_ID: {{ required "ecrTokenRefresher.awsAccessKeyId is required" .Values.ecrTokenRefresher.awsAccessKeyId | quote }}
+  AWS_SECRET_ACCESS_KEY: {{ required "ecrTokenRefresher.awsSecretAccessKey is required" .Values.ecrTokenRefresher.awsSecretAccessKey | quote }}
+---
+# Runs before install/upgrade to ensure the pull secret exists before pods start.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ecr-token-refresh-init
+  annotations:
+    "helm.sh/hook": "pre-install,pre-upgrade"
+    "helm.sh/hook-weight": "-10"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  ttlSecondsAfterFinished: 120
+  template:
+    spec:
+      serviceAccountName: ecr-token-refresher
+      restartPolicy: OnFailure
+      containers:
+        - name: refresher
+          image: amazon/aws-cli:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eu
+              REGISTRY={{ .Values.ecrTokenRefresher.registry }}
+              SECRET_NAME={{ .Values.ecrTokenRefresher.secretName }}
+              echo "Fetching ECR login password for ${REGISTRY} (region {{ .Values.ecrTokenRefresher.region }})..."
+              TOKEN=$(aws ecr get-login-password --region {{ .Values.ecrTokenRefresher.region }})
+              if [ -z "$TOKEN" ]; then
+                echo "ERROR: aws ecr get-login-password returned an empty token" >&2
+                exit 1
+              fi
+              DOCKERCONFIG=$(echo -n "{\"auths\":{\"${REGISTRY}\":{\"username\":\"AWS\",\"password\":\"${TOKEN}\"}}}" | base64 | tr -d '\n')
+              KUBE_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+              NAMESPACE=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+              CACERT=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+              PAYLOAD="{\"apiVersion\":\"v1\",\"kind\":\"Secret\",\"metadata\":{\"name\":\"${SECRET_NAME}\",\"namespace\":\"${NAMESPACE}\"},\"type\":\"kubernetes.io/dockerconfigjson\",\"data\":{\".dockerconfigjson\":\"${DOCKERCONFIG}\"}}"
+              echo "Creating Secret ${SECRET_NAME} in namespace ${NAMESPACE}..."
+              STATUS=$(curl -s -S -o /tmp/create-response.json -w "%{http_code}" --cacert $CACERT \
+                -H "Authorization: Bearer ${KUBE_TOKEN}" -H "Content-Type: application/json" \
+                -X POST "https://kubernetes.default.svc/api/v1/namespaces/${NAMESPACE}/secrets" -d "$PAYLOAD")
+              echo "Create response status: ${STATUS}"
+              if [ "$STATUS" = "409" ]; then
+                echo "Secret already exists, patching..."
+                STATUS=$(curl -s -S -o /tmp/patch-response.json -w "%{http_code}" --cacert $CACERT \
+                  -H "Authorization: Bearer ${KUBE_TOKEN}" -H "Content-Type: application/merge-patch+json" \
+                  -X PATCH "https://kubernetes.default.svc/api/v1/namespaces/${NAMESPACE}/secrets/${SECRET_NAME}" -d "$PAYLOAD")
+                echo "Patch response status: ${STATUS}"
+                if [ "$STATUS" != "200" ]; then
+                  echo "ERROR: failed to patch Secret ${SECRET_NAME} (HTTP ${STATUS})" >&2
+                  cat /tmp/patch-response.json >&2
+                  exit 1
+                fi
+              elif [ "$STATUS" != "201" ]; then
+                echo "ERROR: failed to create Secret ${SECRET_NAME} (HTTP ${STATUS})" >&2
+                cat /tmp/create-response.json >&2
+                exit 1
+              fi
+              echo "Secret ${SECRET_NAME} is up to date."
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: ecr-token-refresher-credentials
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ecr-token-refresher-credentials
+                  key: AWS_SECRET_ACCESS_KEY
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ecr-token-refresher
+spec:
+  schedule: "0 */6 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: ecr-token-refresher
+          restartPolicy: OnFailure
+          containers:
+            - name: refresher
+              image: amazon/aws-cli:latest
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -eu
+                  REGISTRY={{ .Values.ecrTokenRefresher.registry }}
+                  SECRET_NAME={{ .Values.ecrTokenRefresher.secretName }}
+                  echo "Fetching ECR login password for ${REGISTRY} (region {{ .Values.ecrTokenRefresher.region }})..."
+                  TOKEN=$(aws ecr get-login-password --region {{ .Values.ecrTokenRefresher.region }})
+                  if [ -z "$TOKEN" ]; then
+                    echo "ERROR: aws ecr get-login-password returned an empty token" >&2
+                    exit 1
+                  fi
+                  DOCKERCONFIG=$(echo -n "{\"auths\":{\"${REGISTRY}\":{\"username\":\"AWS\",\"password\":\"${TOKEN}\"}}}" | base64 | tr -d '\n')
+                  KUBE_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+                  NAMESPACE=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+                  CACERT=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+                  PAYLOAD="{\"apiVersion\":\"v1\",\"kind\":\"Secret\",\"metadata\":{\"name\":\"${SECRET_NAME}\",\"namespace\":\"${NAMESPACE}\"},\"type\":\"kubernetes.io/dockerconfigjson\",\"data\":{\".dockerconfigjson\":\"${DOCKERCONFIG}\"}}"
+                  echo "Creating Secret ${SECRET_NAME} in namespace ${NAMESPACE}..."
+                  STATUS=$(curl -s -S -o /tmp/create-response.json -w "%{http_code}" --cacert $CACERT \
+                    -H "Authorization: Bearer ${KUBE_TOKEN}" -H "Content-Type: application/json" \
+                    -X POST "https://kubernetes.default.svc/api/v1/namespaces/${NAMESPACE}/secrets" -d "$PAYLOAD")
+                  echo "Create response status: ${STATUS}"
+                  if [ "$STATUS" = "409" ]; then
+                    echo "Secret already exists, patching..."
+                    STATUS=$(curl -s -S -o /tmp/patch-response.json -w "%{http_code}" --cacert $CACERT \
+                      -H "Authorization: Bearer ${KUBE_TOKEN}" -H "Content-Type: application/merge-patch+json" \
+                      -X PATCH "https://kubernetes.default.svc/api/v1/namespaces/${NAMESPACE}/secrets/${SECRET_NAME}" -d "$PAYLOAD")
+                    echo "Patch response status: ${STATUS}"
+                    if [ "$STATUS" != "200" ]; then
+                      echo "ERROR: failed to patch Secret ${SECRET_NAME} (HTTP ${STATUS})" >&2
+                      cat /tmp/patch-response.json >&2
+                      exit 1
+                    fi
+                  elif [ "$STATUS" != "201" ]; then
+                    echo "ERROR: failed to create Secret ${SECRET_NAME} (HTTP ${STATUS})" >&2
+                    cat /tmp/create-response.json >&2
+                    exit 1
+                  fi
+                  echo "Secret ${SECRET_NAME} is up to date."
+              env:
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: ecr-token-refresher-credentials
+                      key: AWS_ACCESS_KEY_ID
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: ecr-token-refresher-credentials
+                      key: AWS_SECRET_ACCESS_KEY
+{{- end }}
