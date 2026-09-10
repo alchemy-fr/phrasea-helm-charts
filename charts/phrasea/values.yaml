@@ -208,8 +208,16 @@ databox:
   importFixtures: false
   cronJob:
     enabled: true
-    # Daily at 3am
-    schedule: '0 3 * * *'
+    daily:
+      enabled: true
+      # Daily at 3am
+      schedule: '0 3 * * *'
+      script: bin/cron-script-daily.sh
+    hourly:
+      enabled: true
+      # Every hour
+      schedule: '0 * * * *'
+      script: bin/cron-script-hourly.sh
   allowedFileTypes: "image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.psd,.psb,.ai,.dng,.jfif,.jpe,.psdt,.emf,.wmf,.svgz,.ait,.eps,.epsf,.epsi,.indd,.indt,.idml,.idms,.icml,.cr2,.cr3,.crw,.nef,.nrw,.arw,.sr2,.srf,.raf,.rw2,.mrw,.orf,.pef,.dcr,.k25,.kdc),application/*(.pdf,.doc,.docx,.md,.txt,.xls,.xlsx,.odt,.psd,.psb,.csv,.ods,.dot,.dotm,.dotx,.docm,.rtf,.wps,.xlam,.xlsb,.xlsm,.xlt,.xltm,.xltx,.xlw,.html,.htm,.mht,.mhtml,.ppt,.pptm,.pptx,.pps,.ppsm,.ppsx,.pot,.potm,.potx,.ppa,.ppam,.ps,.aep,.prproj),video/*(.mpg,.mpeg,.mov,.avi,.mxf,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc,.webm,.wmv),audio/*(.ogg,.opus,.m4r,.ac3,.flac,.aac,.mp3,.aiff,.wav)"
   # Min size for multipart upload chunks in bytes (default 20Mb) - must be at least 5Mb for AWS S3 and some S3-compatible providers
   s3MultipartMinChunkSize: "20971520"
