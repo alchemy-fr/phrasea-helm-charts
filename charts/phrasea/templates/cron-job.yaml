@@ -3,13 +3,16 @@
 {{- if and $.Values.stack.running (index $.Values $appName).enabled }}
 {{- if and (index $.Values $appName).cronJob (index $.Values $appName).cronJob.enabled }}
 {{- with (index $.Values $appName) }}
+{{- $appCtx := . }}
 {{- $tplArgs := dict "app" $appName "ctx" . "glob" $ }}
+{{- range $frequency, $frequencyCfg := .cronJob }}
+{{- if and (kindIs "map" $frequencyCfg) $frequencyCfg.enabled }}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ $appName }}-cron
+  name: {{ $appName }}-{{ $frequency }}-cron
 spec:
-  schedule: {{ (index $.Values $appName).cronJob.schedule | quote }}
+  schedule: {{ $frequencyCfg.schedule | quote }}
   jobTemplate:
     spec:
       template:
@@ -19,10 +22,10 @@ spec:
           nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 12 }}
           {{- end }}
           containers:
-          - name: {{ $appName }}-cronjob
+          - name: {{ $appName }}-{{ $frequency }}-cronjob
             image: {{ $.Values.repository.baseUrl }}/ps-{{ $appName }}-worker:{{ $.Values.repository.tag }}
             imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
-            args: ["bin/cron-script.sh"]
+            args: [{{ $frequencyCfg.script | quote }}]
             terminationMessagePolicy: FallbackToLogsOnError
             env:
             {{- include "envRef.phpApp" $tplArgs | indent 12 }}
@@ -30,14 +33,16 @@ spec:
             {{- include "envFrom.phpApp" $ | indent 12 }}
             {{- include "envFrom.rabbitmq" $ | indent 12 }}
             {{- include "envFrom.postgresql" $ | indent 12 }}
-            {{- if .adminOAuthClient }}
+            {{- if $appCtx.adminOAuthClient }}
             - secretRef:
-                name: {{ .adminOAuthClient.externalSecretName | default (printf "%s-admin-oauth-client-secret" $appName) }}
+                name: {{ $appCtx.adminOAuthClient.externalSecretName | default (printf "%s-admin-oauth-client-secret" $appName) }}
             {{- end }}
             - configMapRef:
                 name: {{ $appName }}-api-config
           restartPolicy: Never
 ---
+{{- end }}
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
