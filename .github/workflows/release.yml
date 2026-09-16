@@ -12,11 +12,6 @@ permissions:
   packages: write
 
 jobs:
-  # Stable release channel: auto-triggered on push to main (tags come from
-  # Chart.yaml, bumped manually), or manually via workflow_dispatch from any
-  # branch to test the release process itself before merging.
-  # Publishes to both the classic GitHub Pages Helm repo and GHCR (OCI),
-  # tagged with the real chart version (e.g. "2.25.3").
   release-stable:
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
@@ -31,10 +26,6 @@ jobs:
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-      # phrasea-parade is a private dependency hosted on ECR (OCI). Static AWS
-      # credentials (read-only, scoped to ps-parade-charts) are used here for
-      # now — see the "credentials" discussion in
-      # environment-knowledge/user-prompts/nm/unification-stacks-helm/.
       - name: Log in to ECR (private Helm dependency)
         run: |
           aws ecr get-login-password --region eu-west-3 | helm registry login \
@@ -74,11 +65,9 @@ jobs:
             helm push "$pkg" "oci://ghcr.io/${{ github.repository_owner }}/phrasea-helm-charts"
           done
 
-  # Branch preview channel: every branch push publishes a chart to GHCR
-  # tagged with the branch name, so any branch can be deployed as-is
-  # without bumping Chart.yaml
-  # Chart version is set to "0.0.0-<branch-slug>" (valid SemVer prerelease,
-  # required by Helm) so pushing again to the same branch overwrites the tag.
+  # Branch preview channel (not an official versioned release): publishes a
+  # chart to GHCR tagged "0.0.0-<branch-slug>" on every push, so any branch
+  # can be deployed as-is without bumping Chart.yaml.
   publish-branch-oci:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
