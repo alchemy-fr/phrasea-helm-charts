@@ -1011,6 +1011,11 @@ parade:
     enabled: true
     keycloakInternalUrl: "http://keycloak"
     masterAdminSecretName: "keycloak"
+  paradeApi:
+    mail:
+      existingConfigMapName: "mailer"
+    analytics:
+      existingConfigMapName: "matomo"
 
 newrelic:
   enabled: false
