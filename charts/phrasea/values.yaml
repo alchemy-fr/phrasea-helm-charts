@@ -99,9 +99,7 @@ image:
 # When enabled, provisions (pre-install hook) and refreshes (CronJob every 6h)
 # a dockerconfigjson pull Secret named `secretName` in the release namespace.
 # This Secret is shared across every chart dependency that needs it (e.g.
-# parade below, and future phrasea-approval/phrasea-loan) instead of each one
-# running its own redundant refresher — reference it by name via each
-# dependency's own imagePullSecrets value.
+# phrasea-parade below and any other chart dependencies that require ECR access.
 ecrTokenRefresher:
   enabled: false
   # ECR host used as the docker auth key, e.g.
@@ -973,7 +971,7 @@ mailpit:
   # Plain-text "user:password" pair for the UI's MP_UI_AUTH env var (Mailpit
   # only supports this via env, not as a CLI flag). Fine for a dev/test-only
   # tool, but do not reuse this password anywhere sensitive.
-  auth: "user1:password1"
+  auth: "change_me_user1:change_me_password1"
   hostname: "mailpit.{{ .Values.stack.domain }}"
   baseUrl: "https://mailpit.{{ .Values.stack.domain }}"
   resources:
@@ -996,7 +994,7 @@ mailpit:
     accessMode: ReadWriteOnce
     size: 1Gi
 
-# Phrasea Parade — a commercial add-on, not included in the open-source images.
+# Phrasea Parade — a commercial add-on, not included in the open-source images, info@alchemy.fr for more informations.
 parade:
   enabled: false
   postgresql:
