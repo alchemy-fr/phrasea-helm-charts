@@ -94,6 +94,24 @@ image:
     password:
     email:
 
+# Private ECR pull secret refresher. ECR tokens expire every 12h, so a static
+# Secret (image.pullSecret above) doesn't work for a private ECR registry.
+# When enabled, provisions (pre-install hook) and refreshes (CronJob every 6h)
+# a dockerconfigjson pull Secret named `secretName` in the release namespace.
+# This Secret is shared across every chart dependency that needs it (e.g.
+# phrasea-parade below and any other chart dependencies that require ECR access.
+ecrTokenRefresher:
+  enabled: false
+  # ECR host used as the docker auth key, e.g.
+  # 122649456891.dkr.ecr.eu-west-3.amazonaws.com
+  registry:
+  region: eu-west-3
+  secretName: ecr-pull-secret
+  # Read-only ECR pull IAM user. Provide via --set or a local secret values
+  # file — never commit real values.
+  awsAccessKeyId:
+  awsSecretAccessKey:
+
 nodeSelector:
 
 configurator:
@@ -953,7 +971,7 @@ mailpit:
   # Plain-text "user:password" pair for the UI's MP_UI_AUTH env var (Mailpit
   # only supports this via env, not as a CLI flag). Fine for a dev/test-only
   # tool, but do not reuse this password anywhere sensitive.
-  auth: "user1:password1"
+  auth: "change_me_user1:change_me_password1"
   hostname: "mailpit.{{ .Values.stack.domain }}"
   baseUrl: "https://mailpit.{{ .Values.stack.domain }}"
   resources:
@@ -975,6 +993,27 @@ mailpit:
     annotations: {}
     accessMode: ReadWriteOnce
     size: 1Gi
+
+# Phrasea Parade — a commercial add-on, not included in the open-source images, info@alchemy.fr for more informations.
+parade:
+  enabled: false
+  postgresql:
+    enabled: false
+  acme:
+    enabled: false
+  ecrTokenRefresher:
+    enabled: false
+  imagePullSecrets:
+    - name: ecr-pull-secret
+  keycloakBootstrapJob:
+    enabled: true
+    keycloakInternalUrl: "http://keycloak"
+    masterAdminSecretName: "keycloak"
+  paradeApi:
+    mail:
+      existingConfigMapName: "mailer"
+    analytics:
+      existingConfigMapName: "matomo"
 
 newrelic:
   enabled: false
