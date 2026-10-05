@@ -28,18 +28,12 @@ spec:
             terminationMessagePolicy: FallbackToLogsOnError
             env:
             {{- include "envRef.phpApp" $tplArgs | indent 12 }}
+            {{- include "envRef.configuratorSecrets" $ | indent 12 }}
             envFrom:
             {{- include "envFrom.phpApp" $ | indent 12 }}
             {{- include "envFrom.rabbitmq" $ | indent 12 }}
             {{- include "envFrom.postgresql" $ | indent 12 }}
-            - secretRef:
-                name: {{ .adminOAuthClient.externalSecretName | default (printf "%s-admin-oauth-client-secret" $appName) }}
-            - configMapRef:
-                name: {{ $appName }}-api-config
-            - configMapRef:
-                name: matomo
-            - secretRef:
-                name: matomo
+            {{- include "envFrom.phpService" (dict "app" $appName "ctx" . "glob" $ "worker" false) | indent 12 }}
           restartPolicy: OnFailure
 {{- end }}
 {{- end }}
