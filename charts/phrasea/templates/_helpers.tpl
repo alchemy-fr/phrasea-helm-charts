@@ -106,6 +106,44 @@ Soketi server side endpoint for PHP services (overrides the public SOKETI_HOST o
     name: {{ include "secretName.mailer" . }}
 {{- end }}
 
+{{/*
+envFrom shared by the long running PHP services of an app (API, worker, cron jobs).
+Usage: {{ include "envFrom.phpService" (dict "app" $appName "ctx" . "glob" $ "worker" true) }}
+*/}}
+{{- define "envFrom.phpService" }}
+{{- $appName := .app }}
+{{- $ctx := .ctx }}
+{{- $glob := .glob }}
+{{- if $ctx.adminOAuthClient }}
+- secretRef:
+    name: {{ $ctx.adminOAuthClient.externalSecretName | default (printf "%s-admin-oauth-client-secret" $appName) }}
+{{- end }}
+{{- if eq "databox" $appName }}
+- secretRef:
+    name: {{ $appName }}-secrets
+{{- if .worker }}
+- secretRef:
+    name: {{ $appName }}-worker-secrets
+{{- end }}
+- configMapRef:
+    name: imagemagick-policies
+{{- end }}
+- configMapRef:
+    name: {{ $appName }}-api-config
+{{- if $glob.Values.soketi.enabled }}
+- configMapRef:
+    name: soketi
+- secretRef:
+    name: soketi
+{{- end }}
+{{- if $glob.Values.matomo.enabled }}
+- configMapRef:
+    name: matomo
+- secretRef:
+    name: matomo
+{{- end }}
+{{- end }}
+
 {{- define "envRef.phpApp" }}
 {{- $appName := .app }}
 {{- $ctx := .ctx }}

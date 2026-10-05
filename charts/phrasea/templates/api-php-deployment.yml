@@ -59,30 +59,7 @@ spec:
         {{- include "envFrom.phpApp" $ | indent 8 }}
         {{- include "envFrom.rabbitmq" $ | indent 8 }}
         {{- include "envFrom.postgresql" $ | indent 8 }}
-        - secretRef:
-            name: {{ .adminOAuthClient.externalSecretName | default (printf "%s-admin-oauth-client-secret" $appName) }}
-        {{- if (eq "databox" $appName) }}
-        - secretRef:
-            name: {{ $appName }}-secrets
-        - configMapRef:
-            name: imagemagick-policies
-        {{- end }}
-        - configMapRef:
-            name: {{ $appName }}-api-config
-        {{- if $.Values.soketi.enabled }}
-        - configMapRef:
-            name: soketi
-        - secretRef:
-            name: soketi
-        {{- end }}
-        {{- if $.Values.matomo }}
-        {{- if $.Values.matomo.enabled }}
-        - configMapRef:
-            name: matomo
-        - secretRef:
-            name: matomo
-        {{- end }}
-        {{- end }}
+        {{- include "envFrom.phpService" (dict "app" $appName "ctx" . "glob" $ "worker" false) | indent 8 }}
 ---
 {{- end }}
 {{- end }}
