@@ -1,7 +1,8 @@
 {{- if $.Values.matomo.enabled }}
 {{- if $.Values.matomo.syncPhraseanet.enabled }}
 {{- $appName := "expose" }}
-{{ $tplArgs := dict "app" $appName "ctx" . "glob" $ }}
+{{- with $.Values.expose }}
+{{- $tplArgs := dict "app" $appName "ctx" . "glob" $ }}
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -12,6 +13,7 @@ spec:
     spec:
       template:
         spec:
+          {{- include "imagePullSecrets" $ | indent 10 }}
           {{- if $.Values.nodeSelector }}
           nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 12 }}
           {{- end }}
@@ -22,8 +24,10 @@ spec:
             command:
               - bin/console
               - app:matomo:sync-phraseanet
+            terminationMessagePolicy: FallbackToLogsOnError
             env:
             {{- include "envRef.phpApp" $tplArgs | indent 12 }}
+            {{- include "envRef.configuratorSecrets" $ | indent 12 }}
             envFrom:
             {{- include "envFrom.phpApp" $ | indent 12 }}
             {{- include "envFrom.rabbitmq" $ | indent 12 }}
@@ -32,12 +36,11 @@ spec:
                 name: {{ .adminOAuthClient.externalSecretName | default (printf "%s-admin-oauth-client-secret" $appName) }}
             - configMapRef:
                 name: {{ $appName }}-api-config
-            {{- if $.Values.matomo.enabled }}
             - configMapRef:
                 name: matomo
             - secretRef:
                 name: matomo
-            {{- end }}
           restartPolicy: OnFailure
+{{- end }}
 {{- end }}
 {{- end }}
