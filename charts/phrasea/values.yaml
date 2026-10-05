@@ -753,7 +753,9 @@ mailer:
   # SMTP encryption used by Keycloak (MAILER_SSL: implicit TLS, MAILER_TLS: STARTTLS)
   ssl: false
   tls: false
+  # Defaults to noreply@<stack.domain>
   from:
+  # Defaults to "Phrasea" (or "Phrasea noreply <stack.name>")
   fromDisplayName:
   replyTo:
   replyToDisplayName:
@@ -1063,6 +1065,8 @@ sentry:
 
 ImageMagick:
   policy:
+    # Should stay below the databox worker memory limit
+    memory: 768MiB
     area: 2GiB
     temporaryPath: /tmp
     disk: 40GiB
