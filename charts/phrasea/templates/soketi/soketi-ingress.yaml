@@ -21,8 +21,14 @@ spec:
         paths:
         {{- include "ingress.rule_path" (dict "_" $ "name" "soketi" "port" 80) | indent 8 }}
 {{- if $.Values.soketi.ingress.tls }}
+{{- $tlsNode := $.Values.soketi.ingress.tls -}}
+{{- range $value := $tlsNode }}
+  {{- if not (hasKey $value "hosts") }}
+    {{- $_ := set $value "hosts" (list (tpl $.Values.soketi.host $)) }}
+  {{- end -}}
+{{- end }}
   tls:
-{{ toYaml $.Values.soketi.ingress.tls | indent 2 }}
+{{ toYaml $tlsNode | indent 2 }}
 {{- else if $.Values.ingress.tls.wildcard.enabled }}
   tls:
     - hosts:
