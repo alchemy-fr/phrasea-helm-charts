@@ -641,7 +641,6 @@ uploader:
       assetConsumerCommitUri:
       assetConsumerAccessToken:
       requestSignatureTtl: 3600
-      allowedFileTypes: "image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.psd,.psb,.ai,.dng,.jfif,.jpe,.psdt,.emf,.wmf,.svgz,.ait,.eps,.epsf,.epsi,.indd,.indt,.idml,.idms,.icml,.cr2,.cr3,.crw,.nef,.nrw,.arw,.sr2,.srf,.raf,.rw2,.mrw,.orf,.pef,.dcr,.k25,.kdc),application/*(.pdf,.doc,.docx,.md,.txt,.xls,.xlsx,.odt,.psd,.psb,.csv,.ods,.dot,.dotm,.dotx,.docm,.rtf,.wps,.xlam,.xlsb,.xlsm,.xlt,.xltm,.xltx,.xlw,.html,.htm,.mht,.mhtml,.ppt,.pptm,.pptx,.pps,.ppsm,.ppsx,.pot,.potm,.potx,.ppa,.ppam,.ps,.aep,.prproj),video/*(.mpg,.mpeg,.mov,.avi,.mxf,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc,.webm,.wmv),audio/*(.ogg,.opus,.m4r,.ac3,.flac,.aac,.mp3,.aiff,.aif,.wav)"
       s3Storage:
         # When using an external object storage provider, set the "endpoint" to the root domain of the service.
         # Example: https://s3.my-s3-provider.com

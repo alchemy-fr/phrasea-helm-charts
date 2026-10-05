@@ -1,6 +1,7 @@
 {{- if .Values.stack.runSetups }}
 {{- range .Values._internal.services }}
 {{ $appName := . }}
+{{- if (index $.Values $appName).enabled }}
 {{- with (index $.Values $appName)  }}
 {{ $tplArgs := dict "app" $appName "ctx" . "glob" $ }}
 apiVersion: batch/v1
@@ -40,6 +41,7 @@ spec:
       restartPolicy: Never
   backoffLimit: 10
 ---
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}

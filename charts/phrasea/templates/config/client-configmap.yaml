@@ -4,3 +4,5 @@ metadata:
   name: client-config
 data:
   NOTIFICATIONS_ENABLED: {{ .Values.notifications.enabled | default false | quote }}
+  # Used to fetch the stack configuration from the configurator bucket
+  VERIFY_SSL: {{ .Values.security.verifySsl | default true | quote }}

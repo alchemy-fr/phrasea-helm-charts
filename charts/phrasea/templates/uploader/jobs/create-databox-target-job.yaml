@@ -1,3 +1,4 @@
+{{- if and .Values.databox.enabled .Values.uploader.enabled }}
 {{- with .Values.databox }}
 {{- $jobName := "create-databox-uploader-target" }}
 {{ $tplArgs := dict "app" "uploader" "ctx" $.Values.uploader "glob" $ }}
@@ -54,4 +55,5 @@ spec:
 {{- include "envFrom.postgresql" $ | indent 8 }}
       restartPolicy: Never
   backoffLimit: 0
+{{- end }}
 {{- end }}

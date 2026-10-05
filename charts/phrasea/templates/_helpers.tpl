@@ -35,11 +35,6 @@ imagePullSecrets:
 {{- end }}
 {{- end }}
 
-{{- define "secretRef.adminOAuthClient" }}
-- secretRef:
-    name: {{ .Values.params.adminOAuthClient.externalSecretName | default (printf "%s-admin-oauth-client-secret" .Release.Name) }}
-{{- end }}
-
 {{- define "secretName.rabbitmq" -}}
 {{- .Values.rabbitmq.externalSecretName | default "rabbitmq-secret" -}}
 {{- end }}
@@ -231,6 +226,7 @@ SENTRY_ENVIRONMENT: {{ required "Missing sentry environment (sentry.environment)
 {{- if $glob.Values.matomo.enabled }}
 MATOMO_URL: {{ required "Missing matomo.baseUrl" $glob.Values.matomo.baseUrl | quote }}
 MATOMO_SITE_ID: {{ required "Missing matomo.siteId" $glob.Values.matomo.siteId | quote }}
+MATOMO_MEDIA_PLUGIN_ENABLED: {{ $glob.Values.matomo.mediaPluginEnabled | default false | quote }}
 {{- end }}
 {{- if $ctx.client }}
 {{- if $ctx.client.csp }}
