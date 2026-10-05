@@ -127,6 +127,8 @@ Other behaviour changes:
 - Defaults now live in `values.yaml` only, templates no longer fall back on them. An empty key in your values
   (e.g. `region:` copied from the 2.x `values.yaml`) overrides the default: remove it or set a value.
   The S3/CloudFront regions are required and fail the rendering when empty.
+- `stack.runSynchronize` is removed: the configuration is synchronized by the configurator migration job
+  (`stack.runMigrations`).
 
 ### RabbitMQ 3.7 → 3.13
 

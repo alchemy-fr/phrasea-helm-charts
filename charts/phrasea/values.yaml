@@ -11,10 +11,8 @@ stack:
   domain:
   running: true
   runSetups: true
+  # Also synchronizes the configuration (Keycloak clients, buckets...) through the configurator migration job
   runMigrations: true
-  # Synchronize the configuration (Keycloak clients, buckets...) on upgrade.
-  # Already done by the configurator migration job when runMigrations is true.
-  runSynchronize: true
   migrations:
     phpMemoryLimit: '1G'
 
