@@ -48,6 +48,7 @@ spec:
         env:
         {{- include "envRef.phpApp" $tplArgs | indent 8 }}
         {{- include "envRef.configuratorSecrets" $ | indent 8 }}
+        {{- include "envRef.soketi" $ | indent 8 }}
         {{- if .api.ingress }}
         {{- if .api.ingress.maxBodySize }}
         - name: UPLOAD_MAX_FILE_SIZE

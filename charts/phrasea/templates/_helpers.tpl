@@ -62,6 +62,20 @@ gateway-tls
 {{- end }}
 {{- end }}
 
+{{/*
+Soketi server side endpoint for PHP services (overrides the public SOKETI_HOST of the soketi/urls-config ConfigMaps).
+*/}}
+{{- define "envRef.soketi" }}
+{{- if and .Values.soketi.enabled .Values.soketi.serverSide.internal }}
+- name: SOKETI_HOST
+  value: {{ .Values.soketi.serverSide.host | quote }}
+- name: SOKETI_PORT
+  value: {{ .Values.soketi.serverSide.port | quote }}
+- name: SOKETI_SCHEME
+  value: {{ .Values.soketi.serverSide.scheme | quote }}
+{{- end }}
+{{- end }}
+
 {{- define "envFrom.rabbitmq" }}
 - configMapRef:
     name: rabbitmq-php-config

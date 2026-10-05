@@ -45,6 +45,7 @@ spec:
             name: uploader-client-config
         - configMapRef:
             name: soketi
+            optional: true
         - configMapRef:
             name: configurator-s3
 {{- end }}

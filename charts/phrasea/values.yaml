@@ -949,9 +949,23 @@ soketi:
         cpu: 250m
         memory: 256Mi
     extraEnv: {}
+  # How the PHP services (API, workers) reach Soketi to publish events.
+  # By default they go through the in-cluster Service instead of the public host.
+  # Requires Phrasea images newer than 4.4.2 (SOKETI_PORT/SOKETI_SCHEME support):
+  # set "internal" to false to keep using the public host with older images.
+  serverSide:
+    internal: true
+    host: soketi
+    port: 80
+    scheme: http
+  # Browsers connect to wss://<soketi.host>: the ingress is required for realtime notifications.
   ingress:
-    enabled: false
-    annotations: {}
+    enabled: true
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    extraLabels: {}
+    tls: []
 
 matomo:
   enabled: false
