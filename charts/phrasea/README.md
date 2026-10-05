@@ -124,6 +124,9 @@ Other behaviour changes:
 - The Soketi ingress is enabled by default (realtime notifications).
 - `databox.api.config.secrets.secretKey` is stored in the `databox-worker-secrets` Secret.
 - `elasticsearch.url` now defaults to the subchart service in `values.yaml`: remove an empty `elasticsearch.url:` from your values.
+- Defaults now live in `values.yaml` only, templates no longer fall back on them. An empty key in your values
+  (e.g. `region:` copied from the 2.x `values.yaml`) overrides the default: remove it or set a value.
+  The S3/CloudFront regions are required and fail the rendering when empty.
 
 ### RabbitMQ 3.7 → 3.13
 

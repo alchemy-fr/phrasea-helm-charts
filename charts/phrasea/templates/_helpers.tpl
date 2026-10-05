@@ -179,7 +179,7 @@ Usage: {{ include "envFrom.phpService" (dict "app" $appName "ctx" . "glob" $ "wo
 {{- $appName := .app }}
 {{- $appConfig := index $glob.Values $appName }}
 S3_ENDPOINT: {{ tpl $ctx.s3Storage.endpoint $glob | quote }}
-S3_REGION: {{ $ctx.s3Storage.region | quote }}
+S3_REGION: {{ required (printf "Missing %s.api.config.s3Storage.region" $appName) $ctx.s3Storage.region | quote }}
 S3_USE_PATH_STYLE_ENDPOINT: {{ or $ctx.s3Storage.usePathStyleEndpoint $glob.Values.minio.enabled | quote }}
 S3_BUCKET_NAME: {{ $ctx.s3Storage.bucketName | quote }}
 S3_PATH_PREFIX: {{ $ctx.s3Storage.pathPrefix | quote }}
@@ -190,11 +190,12 @@ S3_MAX_OBJECT_SIZE: {{ $appConfig.s3MaxObjectSize | quote }}
 {{- end }}
 
 {{- define "app.cloudFront.configMap" }}
+{{- $appName := .app }}
 {{- $ctx := .ctx }}
 {{- $glob := .glob }}
 {{- if $ctx.cloudFront.url }}
 CLOUD_FRONT_URL: {{ tpl $ctx.cloudFront.url $glob | quote }}
-CLOUD_FRONT_REGION: {{ $ctx.cloudFront.region | quote }}
+CLOUD_FRONT_REGION: {{ required (printf "Missing %s.api.config.cloudFront.region" $appName) $ctx.cloudFront.region | quote }}
 CLOUD_FRONT_PRIVATE_KEY: {{ $ctx.cloudFront.privateKey | quote }}
 CLOUD_FRONT_KEY_PAIR_ID: {{ $ctx.cloudFront.keyPairId | quote }}
 CLOUD_FRONT_TTL: {{ $ctx.cloudFront.ttl | quote }}
@@ -348,7 +349,7 @@ env:
       name: {{ $s3SecretName }}
       key: {{ .Values.configurator.s3.externalSecretMapping.secretKey }}
 - name: S3_REGION
-  value: {{ .Values.configurator.s3.region | quote }}
+  value: {{ required "Missing configurator.s3.region" .Values.configurator.s3.region | quote }}
 - name: S3_PATH_PREFIX
   value: {{ .Values.configurator.s3.pathPrefix | default "" | quote }}
 - name: REPORT_DB_NAME
