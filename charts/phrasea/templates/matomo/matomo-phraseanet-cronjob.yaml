@@ -27,7 +27,6 @@ spec:
             terminationMessagePolicy: FallbackToLogsOnError
             env:
             {{- include "envRef.phpApp" $tplArgs | indent 12 }}
-            {{- include "envRef.configuratorSecrets" $ | indent 12 }}
             envFrom:
             {{- include "envFrom.phpApp" $ | indent 12 }}
             {{- include "envFrom.rabbitmq" $ | indent 12 }}

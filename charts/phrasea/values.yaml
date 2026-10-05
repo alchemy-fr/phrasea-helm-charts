@@ -160,7 +160,6 @@ keycloak:
     htmlDisplayName: "<div style=\"font-size: 18px; text-transform: none; color: #000000\"><span>Phrasea Auth</span></div>"
     supportedLocales: "en,fr"
     defaultLocale: en
-    # Self-registration on the Keycloak login page (applied on each upgrade by the configurator)
     loginRegistrationAllowed: false
     loginResetPasswordAllowed: true
     loginRememberMeAllowed: true
@@ -1003,10 +1002,6 @@ soketi:
         cpu: 250m
         memory: 256Mi
     extraEnv: {}
-  # How the PHP services (API, workers) reach Soketi to publish events.
-  # By default they go through the in-cluster Service instead of the public host.
-  # Requires Phrasea images newer than 4.4.2 (SOKETI_PORT/SOKETI_SCHEME support):
-  # set "internal" to false to keep using the public host with older images.
   serverSide:
     internal: true
     host: soketi

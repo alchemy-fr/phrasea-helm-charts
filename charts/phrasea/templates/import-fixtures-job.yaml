@@ -3,7 +3,7 @@
 {{ $appName := . }}
 {{- with (index $.Values $appName)  }}
 {{ $tplArgs := dict "app" $appName "ctx" . "glob" $ }}
-{{- if and (index $.Values $appName).enabled (index $.Values $appName).importFixtures }}
+{{- if (index $.Values $appName).importFixtures }}
 apiVersion: batch/v1
 kind: Job
 metadata:
