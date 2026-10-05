@@ -102,3 +102,29 @@ stack:
 ```
 
 `helm upgrade` again!
+
+## Upgrade notes
+
+### RabbitMQ 3.7 → 3.13
+
+The default `rabbitmq.image` is now `rabbitmq:3.13.7-management`. RabbitMQ cannot start a 3.13 node
+on data written by 3.7: an existing stack must either keep its current image or upgrade step by step.
+
+To keep the previous version:
+
+```yaml
+rabbitmq:
+  image: rabbitmq:3.7.14-management
+```
+
+To upgrade, run one `helm upgrade` per version below, enabling all the feature flags before moving to the next one:
+
+```bash
+# for each image: 3.8.35, 3.9.29, 3.10.25, 3.11.28, 3.12.14, 3.13.7 (all "-management")
+helm upgrade ... --set rabbitmq.image=rabbitmq:3.8.35-management
+kubectl rollout status deploy/rabbitmq
+kubectl exec deploy/rabbitmq -- rabbitmqctl enable_feature_flag all
+```
+
+Alternatively, once every queue is drained (workers scaled down), the RabbitMQ PVC can be deleted;
+the configurator must then be run again to recreate the vhosts (`configurator.configure.rabbitmq`).

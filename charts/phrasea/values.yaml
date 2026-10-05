@@ -784,6 +784,7 @@ mailer:
 
 postgresql:
   enabled: true
+  image: postgres:14.4-alpine
   externalSecretName:
   host: postgresql
   port: 5432
@@ -809,6 +810,7 @@ postgresql:
 
 redis:
   enabled: true
+  image: redis:7.4.1-alpine3.20
   # Override global resourceQuota for this service (true/false), defaults to global value
   # resourceQuota:
   resources:
@@ -822,7 +824,8 @@ redis:
 rabbitmq:
   enabled: true
   consoleUrl: "http://rabbitmq:15672"
-  image: rabbitmq:3.7.14-management
+  # Upgrading from 3.7: see the chart README (RabbitMQ cannot jump directly from 3.7 to 3.13)
+  image: rabbitmq:3.13.7-management
   externalSecretName:
   host: rabbitmq
   port: 5672
@@ -854,6 +857,8 @@ rabbitmq:
 
 minio:
   enabled: true
+  # MinIO no longer publishes community images: use the maintained community build
+  image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
   hostname: "minio.{{ .Values.stack.domain }}"
   baseUrl: "https://{{ tpl .Values.minio.hostname . }}"
   internalBaseUrl: "http://minio:80"
@@ -951,6 +956,11 @@ zippy:
     hostname:
   rabbitmq:
     enabled: false
+    # The "/" vhost is created by RabbitMQ for its default user (same credentials as rabbitmq.*).
+    # The subchart job relies on a rabbitmqctl 3.7 client, not compatible with RabbitMQ 3.13.
+    setupVhost: false
+    # Shared RabbitMQ service of the stack (the zippy one is disabled)
+    host: rabbitmq
     username: phrasea
     password: '__CHANGE_ME_yUZV7fEAnb$u4dqFchQDz'
     erlangCookie: 'H#75$3CjoTKn3129DNwcqlHvhfqs15'
@@ -971,7 +981,7 @@ soketi:
     image:
       repository: quay.io/soketi/soketi
       pullPolicy: IfNotPresent
-      tag: "1.6-16-debian"
+      tag: "330e1a60197d2b5798a3b3a2bcd211ec124148d8-16-alpine"
     mode: full
     maxConnections: 200
     command:
@@ -1022,7 +1032,7 @@ mailpit:
   enabled: false
   image:
     repository: axllent/mailpit
-    tag: latest
+    tag: v1.31
   # Plain-text "user:password" pair for the UI's MP_UI_AUTH env var (Mailpit
   # only supports this via env, not as a CLI flag). Fine for a dev/test-only
   # tool, but do not reuse this password anywhere sensitive.

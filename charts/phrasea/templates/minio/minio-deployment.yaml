@@ -20,7 +20,7 @@ spec:
       {{- end }}
       containers:
       - name: minio
-        image: minio/minio
+        image: {{ $.Values.minio.image | default "pgsty/minio:RELEASE.2026-08-04T00-00-00Z" }}
         {{- if eq "true" (include "ps.resourceQuota" (dict "local" $.Values.minio.resourceQuota "global" $.Values.resourceQuota)) }}
         resources:
           requests:
