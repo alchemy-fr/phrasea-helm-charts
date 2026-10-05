@@ -12,19 +12,19 @@ data:
   APP_LOGO_SRC: {{ . | quote }}
   {{- end }}
   {{- with .client.ticketing }}
-  DATABOX_TICKETING_ENABLED: {{ .enabled | default false | quote }}
+  DATABOX_TICKETING_ENABLED: {{ .enabled | quote }}
   {{- if .enabled }}
   DATABOX_TICKETING_JIRA_URL: {{ required "Missing databox.client.ticketing.jira.url" .jira.url | quote }}
   DATABOX_TICKETING_JIRA_USER: {{ .jira.user | default "" | quote }}
   DATABOX_TICKETING_JIRA_PROJECT_KEY: {{ required "Missing databox.client.ticketing.jira.projectKey" .jira.projectKey | quote }}
-  DATABOX_TICKETING_JIRA_ISSUE_TYPE: {{ .jira.issueType | default "Task" | quote }}
-  DATABOX_TICKETING_JIRA_BUG_ISSUE_TYPE: {{ .jira.bugIssueType | default "Bug" | quote }}
+  DATABOX_TICKETING_JIRA_ISSUE_TYPE: {{ .jira.issueType | quote }}
+  DATABOX_TICKETING_JIRA_BUG_ISSUE_TYPE: {{ .jira.bugIssueType | quote }}
   DATABOX_TICKETING_JIRA_LABELS: {{ .jira.labels | default "" | quote }}
-  DATABOX_TICKETING_JIRA_API_VERSION: {{ .jira.apiVersion | default "3" | toString | quote }}
+  DATABOX_TICKETING_JIRA_API_VERSION: {{ .jira.apiVersion | toString | quote }}
   {{- end }}
   {{- end }}
   ALLOWED_FILE_TYPES: {{ $.Values.databox.allowedFileTypes | quote }}
-  S3_MAX_OBJECT_SIZE: {{ .s3MaxObjectSize | default "52776558133248" | quote }}
+  S3_MAX_OBJECT_SIZE: {{ .s3MaxObjectSize | quote }}
   {{- include "app.client.configMap" $tplArgs | indent 2 }}
 {{- end }}
 {{- end }}

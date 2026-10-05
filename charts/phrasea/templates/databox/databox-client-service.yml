@@ -7,7 +7,7 @@ spec:
   ports:
   - name: http
     port: 80
-    targetPort: {{ .Values.databox.client.port | default 3000 }}
+    targetPort: {{ .Values.databox.client.port }}
   selector:
     app: phrasea
     tier: databox-client

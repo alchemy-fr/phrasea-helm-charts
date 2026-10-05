@@ -20,15 +20,15 @@ spec:
       {{- end }}
       containers:
       - name: minio
-        image: {{ $.Values.minio.image | default "pgsty/minio:RELEASE.2026-08-04T00-00-00Z" }}
+        image: {{ $.Values.minio.image }}
         {{- if eq "true" (include "ps.resourceQuota" (dict "local" $.Values.minio.resourceQuota "global" $.Values.resourceQuota)) }}
         resources:
           requests:
-            memory: {{ $.Values.minio.resources.requests.memory | default "256Mi" }}
-            cpu: {{ $.Values.minio.resources.requests.cpu | default "50m" }}
+            memory: {{ $.Values.minio.resources.requests.memory }}
+            cpu: {{ $.Values.minio.resources.requests.cpu }}
           limits:
-            memory: {{ $.Values.minio.resources.limits.memory | default "1Gi" }}
-            cpu: {{ $.Values.minio.resources.limits.cpu | default "1000m" }}
+            memory: {{ $.Values.minio.resources.limits.memory }}
+            cpu: {{ $.Values.minio.resources.limits.cpu }}
         {{- end }}
         terminationMessagePolicy: FallbackToLogsOnError
         args:

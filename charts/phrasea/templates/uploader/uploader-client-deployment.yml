@@ -26,11 +26,11 @@ spec:
         {{- if eq "true" (include "ps.resourceQuota" (dict "local" $.Values.uploader.client.resourceQuota "global" $.Values.resourceQuota)) }}
         resources:
           requests:
-            memory: {{ $.Values.uploader.client.resources.requests.memory | default "64Mi" }}
-            cpu: {{ $.Values.uploader.client.resources.requests.cpu | default "25m" }}
+            memory: {{ $.Values.uploader.client.resources.requests.memory }}
+            cpu: {{ $.Values.uploader.client.resources.requests.cpu }}
           limits:
-            memory: {{ $.Values.uploader.client.resources.limits.memory | default "256Mi" }}
-            cpu: {{ $.Values.uploader.client.resources.limits.cpu | default "500m" }}
+            memory: {{ $.Values.uploader.client.resources.limits.memory }}
+            cpu: {{ $.Values.uploader.client.resources.limits.cpu }}
         {{- end }}
         terminationMessagePolicy: FallbackToLogsOnError
         env:

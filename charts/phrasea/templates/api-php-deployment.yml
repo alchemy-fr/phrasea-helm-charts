@@ -30,11 +30,11 @@ spec:
         {{- if eq "true" (include "ps.resourceQuota" (dict "local" (index $.Values $appName).api.resourceQuota "global" $.Values.resourceQuota)) }}
         resources:
           requests:
-            memory: {{ (index $.Values $appName).api.resources.requests.memory | default "256Mi" }}
-            cpu: {{ (index $.Values $appName).api.resources.requests.cpu | default "50m" }}
+            memory: {{ (index $.Values $appName).api.resources.requests.memory }}
+            cpu: {{ (index $.Values $appName).api.resources.requests.cpu }}
           limits:
-            memory: {{ (index $.Values $appName).api.resources.limits.memory | default "2048Mi" }}
-            cpu: {{ (index $.Values $appName).api.resources.limits.cpu | default "2000m" }}
+            memory: {{ (index $.Values $appName).api.resources.limits.memory }}
+            cpu: {{ (index $.Values $appName).api.resources.limits.cpu }}
         {{- end }}
         readinessProbe:
           tcpSocket:

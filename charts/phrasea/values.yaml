@@ -45,8 +45,9 @@ acme:
     secretKey:
     # Secret name if using existing secret
     existingSecretName:
-    existingSecretAccessKeyKey:
-    existingSecretSecretKeyKey:
+    # Keys of the access/secret keys in the Secret
+    existingSecretAccessKeyKey: SCW_ACCESS_KEY
+    existingSecretSecretKeyKey: SCW_SECRET_KEY
   
   # Gandi LiveDNS v5 configuration
   gandi:
@@ -54,11 +55,12 @@ acme:
     # Required permissions: "Manage domain name technical configurations"
     personalAccessToken:
     existingSecretName:
-    existingSecretKey:
+    # Key of the token in the Secret
+    existingSecretKey: api-token
   
   # AWS Route53 configuration
   route53:
-    region:
+    region: eu-west-3
     # IAM access key with Route53 permissions
     accessKeyId:
     secretAccessKey:
@@ -134,7 +136,7 @@ configurator:
     # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
     endpoint: "{{ tpl .Values.minio.baseUrl . }}"
     # required for some object storage providers
-    region:
+    region: eu-west-3
     bucketName: config
     # True for a local minio, false for an external object storage provider
     usePathStyleEndpoint: true 
@@ -283,7 +285,7 @@ databox:
         # Example: https://s3.my-s3-provider.com
         # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
         endpoint: "{{ tpl .Values.minio.baseUrl . }}"
-        region:
+        region: eu-west-3
         bucketName: databox
         # true for a local minio, false for an external object storage provider
         usePathStyleEndpoint: true 
@@ -297,7 +299,7 @@ databox:
           secretKey: S3_SECRET_KEY
       cloudFront:
         url:
-        region:
+        region: eu-west-3
         privateKey:
         keyPairId:
         ttl: 86400
@@ -532,7 +534,7 @@ expose:
         # Example: https://s3.my-s3-provider.com
         # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
         endpoint: "{{ tpl .Values.minio.baseUrl . }}"
-        region:
+        region: eu-west-3
         bucketName: expose
         # true for a local minio, false for an external object storage provider
         usePathStyleEndpoint: true
@@ -546,7 +548,7 @@ expose:
           secretKey: S3_SECRET_KEY
       cloudFront:
         url:
-        region:
+        region: eu-west-3
         privateKey:
         keyPairId:
         ttl: 86400
@@ -646,7 +648,7 @@ uploader:
         # Example: https://s3.my-s3-provider.com
         # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
         endpoint: "{{ tpl .Values.minio.baseUrl . }}"
-        region:
+        region: eu-west-3
         bucketName: uploader
         # true for a local minio, false for an external object storage
         usePathStyleEndpoint: true
@@ -927,7 +929,8 @@ elasticsearch:
   # Single replica mode: accept 'yellow' cluster status (shards cannot be replicated with only 1 node)
   # For multi-node cluster (replicas >= 3), comment this line to require 'green' status (default)
   clusterHealthCheckParams: "wait_for_status=yellow&timeout=1s"
-  url:
+  # External Elasticsearch URL, defaults to the service of the elasticsearch subchart (<clusterName>-master)
+  url: "http://{{ .Values.elasticsearch.clusterName }}-master:9200"
   indexPrefix: ""
   resources:
     requests:

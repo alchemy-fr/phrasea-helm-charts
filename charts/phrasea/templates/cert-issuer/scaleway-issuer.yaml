@@ -25,10 +25,10 @@ spec:
             config:
               accessKeySecretRef:
                 name: {{ .scaleway.existingSecretName | default (printf "%s-scaleway-credentials" (include "ps.fullname" $)) }}
-                key: {{ .scaleway.existingSecretAccessKeyKey | default "SCW_ACCESS_KEY" }}
+                key: {{ .scaleway.existingSecretAccessKeyKey }}
               secretKeySecretRef:
                 name: {{ .scaleway.existingSecretName | default (printf "%s-scaleway-credentials" (include "ps.fullname" $)) }}
-                key: {{ .scaleway.existingSecretSecretKeyKey | default "SCW_SECRET_KEY" }}
+                key: {{ .scaleway.existingSecretSecretKeyKey }}
         selector:
           dnsZones:
             - {{ tpl (required "Missing acme.rootHost" .rootHost) $ | quote }}

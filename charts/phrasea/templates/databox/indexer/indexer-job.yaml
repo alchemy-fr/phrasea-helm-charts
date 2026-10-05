@@ -3,7 +3,7 @@
 {{- if and (or (not (hasKey . "enabled")) .enabled) (eq (.resourceType | default "deployment") "job") }}
 {{- $instance := . }}
 {{- $defaultResources := $.Values.databox.indexer.resources }}
-{{- $resources := $instance.resources | default $defaultResources }}
+{{- $resources := mergeOverwrite (deepCopy $defaultResources) ($instance.resources | default dict) }}
 {{- $stateStorage := $instance.stateStorage | default dict }}
 {{- $stateStorageType := $stateStorage.type | default "emptyDir" }}
 {{- $stateStorageMountPath := $stateStorage.mountPath | default "/locks" }}
@@ -47,11 +47,11 @@ spec:
         args: [{{ .argument | quote }}, {{ .location | quote }}]
         resources:
           requests:
-            memory: {{ $resources.requests.memory | default "512Mi" }}
-            cpu: {{ $resources.requests.cpu | default "100m" }}
+            memory: {{ $resources.requests.memory }}
+            cpu: {{ $resources.requests.cpu }}
           limits:
-            memory: {{ $resources.limits.memory | default "1Gi" }}
-            cpu: {{ $resources.limits.cpu | default "2000m" }}
+            memory: {{ $resources.limits.memory }}
+            cpu: {{ $resources.limits.cpu }}
         terminationMessagePolicy: FallbackToLogsOnError
         env:
         - name: CONFIG_FILE

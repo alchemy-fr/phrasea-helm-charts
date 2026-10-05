@@ -27,11 +27,11 @@ spec:
         {{- if eq "true" (include "ps.resourceQuota" (dict "local" .api.resourceQuota "global" $.Values.resourceQuota)) }}
         resources:
           requests:
-            memory: {{ .api.resources.requests.memory | default "256Mi" }}
-            cpu: {{ .api.resources.requests.cpu | default "50m" }}
+            memory: {{ .api.resources.requests.memory }}
+            cpu: {{ .api.resources.requests.cpu }}
           limits:
-            memory: {{ .api.resources.limits.memory | default "2048Mi" }}
-            cpu: {{ .api.resources.limits.cpu | default "2000m" }}
+            memory: {{ .api.resources.limits.memory }}
+            cpu: {{ .api.resources.limits.cpu }}
         {{- end }}
         terminationMessagePolicy: FallbackToLogsOnError
         envFrom:

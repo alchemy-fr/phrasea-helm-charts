@@ -179,14 +179,14 @@ Usage: {{ include "envFrom.phpService" (dict "app" $appName "ctx" . "glob" $ "wo
 {{- $appName := .app }}
 {{- $appConfig := index $glob.Values $appName }}
 S3_ENDPOINT: {{ tpl $ctx.s3Storage.endpoint $glob | quote }}
-S3_REGION: {{ $ctx.s3Storage.region | default "eu-west-3" | quote }}
-S3_USE_PATH_STYLE_ENDPOINT: {{ (or $ctx.s3Storage.usePathStyleEndpoint $glob.Values.minio.enabled) | default false | quote }}
+S3_REGION: {{ $ctx.s3Storage.region | quote }}
+S3_USE_PATH_STYLE_ENDPOINT: {{ or $ctx.s3Storage.usePathStyleEndpoint $glob.Values.minio.enabled | quote }}
 S3_BUCKET_NAME: {{ $ctx.s3Storage.bucketName | quote }}
 S3_PATH_PREFIX: {{ $ctx.s3Storage.pathPrefix | quote }}
-S3_MULTIPART_MIN_CHUNK_SIZE: {{ $appConfig.s3MultipartMinChunkSize | default "20971520" | quote }}
-S3_MULTIPART_MAX_CHUNK_SIZE: {{ $appConfig.s3MultipartMaxChunkSize | default "5368709120" | quote }}
-S3_MULTIPART_MAX_PART_NUMBER: {{ $appConfig.s3MultipartMaxPartNumber | default "10000" | quote }}
-S3_MAX_OBJECT_SIZE: {{ $appConfig.s3MaxObjectSize | default "52776558133248" | quote }}
+S3_MULTIPART_MIN_CHUNK_SIZE: {{ $appConfig.s3MultipartMinChunkSize | quote }}
+S3_MULTIPART_MAX_CHUNK_SIZE: {{ $appConfig.s3MultipartMaxChunkSize | quote }}
+S3_MULTIPART_MAX_PART_NUMBER: {{ $appConfig.s3MultipartMaxPartNumber | quote }}
+S3_MAX_OBJECT_SIZE: {{ $appConfig.s3MaxObjectSize | quote }}
 {{- end }}
 
 {{- define "app.cloudFront.configMap" }}
@@ -194,7 +194,7 @@ S3_MAX_OBJECT_SIZE: {{ $appConfig.s3MaxObjectSize | default "52776558133248" | q
 {{- $glob := .glob }}
 {{- if $ctx.cloudFront.url }}
 CLOUD_FRONT_URL: {{ tpl $ctx.cloudFront.url $glob | quote }}
-CLOUD_FRONT_REGION: {{ $ctx.cloudFront.region | default "eu-west-3" | quote }}
+CLOUD_FRONT_REGION: {{ $ctx.cloudFront.region | quote }}
 CLOUD_FRONT_PRIVATE_KEY: {{ $ctx.cloudFront.privateKey | quote }}
 CLOUD_FRONT_KEY_PAIR_ID: {{ $ctx.cloudFront.keyPairId | quote }}
 CLOUD_FRONT_TTL: {{ $ctx.cloudFront.ttl | quote }}
@@ -226,7 +226,7 @@ SENTRY_ENVIRONMENT: {{ required "Missing sentry environment (sentry.environment)
 {{- if $glob.Values.matomo.enabled }}
 MATOMO_URL: {{ required "Missing matomo.baseUrl" $glob.Values.matomo.baseUrl | quote }}
 MATOMO_SITE_ID: {{ required "Missing matomo.siteId" $glob.Values.matomo.siteId | quote }}
-MATOMO_MEDIA_PLUGIN_ENABLED: {{ $glob.Values.matomo.mediaPluginEnabled | default false | quote }}
+MATOMO_MEDIA_PLUGIN_ENABLED: {{ $glob.Values.matomo.mediaPluginEnabled | quote }}
 {{- end }}
 {{- if $ctx.client }}
 {{- if $ctx.client.csp }}
@@ -269,9 +269,9 @@ env:
 - name: PHRASEA_DOMAIN
   value: {{ .Values.stack.domain | quote }}
 - name: VERIFY_SSL
-  value: {{ .Values.security.verifySsl | default true | quote }}
+  value: {{ .Values.security.verifySsl | quote }}
 - name: VERIFY_HOST
-  value: {{ .Values.security.verifyHost | default true | quote }}
+  value: {{ .Values.security.verifyHost | quote }}
 - name: AUTH_DB_NAME
   value: {{ .Values.auth.database.name | quote }}
 {{- range $key, $value := .Values.configurator.configure }}
@@ -283,7 +283,7 @@ env:
 - name: CONFIGURATOR_SERVICE_WAIT_TIMEOUT
   value: {{ .Values.configurator.serviceWaitTimeout | quote }}
 - name: KEYCLOAK_ADMIN_PASSWORD_IS_DEFINITIVE
-  value: {{ .Values.keycloak.defaultAdmin.passwordIsDefinitive | default false | quote }}
+  value: {{ .Values.keycloak.defaultAdmin.passwordIsDefinitive | quote }}
 - name: KC_REALM_HTML_DISPLAY_NAME
   value: {{ .Values.keycloak.realm.htmlDisplayName | quote }}
 - name: KC_REALM_SUPPORTED_LOCALES
@@ -335,7 +335,7 @@ env:
   value: {{ .Values.minio.internalBaseUrl | required "Missing minio.internalBaseUrl" | quote }}
 {{- end }}
 - name: S3_USE_PATH_STYLE_ENDPOINT
-  value: {{ .Values.configurator.s3.usePathStyleEndpoint | default false | quote }}
+  value: {{ .Values.configurator.s3.usePathStyleEndpoint | quote }}
 {{- $s3SecretName := .Values.configurator.s3.externalSecretKey | default "configurator-s3" }}
 - name: S3_ACCESS_KEY
   valueFrom:
@@ -348,7 +348,7 @@ env:
       name: {{ $s3SecretName }}
       key: {{ .Values.configurator.s3.externalSecretMapping.secretKey }}
 - name: S3_REGION
-  value: {{ .Values.configurator.s3.region | default "eu-west-3" | quote }}
+  value: {{ .Values.configurator.s3.region | quote }}
 - name: S3_PATH_PREFIX
   value: {{ .Values.configurator.s3.pathPrefix | default "" | quote }}
 - name: REPORT_DB_NAME

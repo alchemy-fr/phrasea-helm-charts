@@ -7,5 +7,5 @@ data:
   SOKETI_HOST: {{ tpl .Values.soketi.host . | quote }}
   SOKETI_APP_ID: {{ required "Missing soketi.appId" $.Values.soketi.appId | quote }}
   SOKETI_KEY: {{ required "Missing soketi.key" $.Values.soketi.key | quote }}
-  SOKETI_MODE: {{ $.Values.soketi.app.mode | default "full" | quote }}
+  SOKETI_MODE: {{ $.Values.soketi.app.mode | quote }}
 {{- end }}
