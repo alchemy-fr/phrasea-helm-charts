@@ -123,6 +123,7 @@ Other behaviour changes:
 - `keycloak.realm.loginRegistrationAllowed` now defaults to `false`.
 - The Soketi ingress is enabled by default (realtime notifications).
 - `databox.api.config.secrets.secretKey` is stored in the `databox-worker-secrets` Secret.
+- `elasticsearch.url` now defaults to the subchart service in `values.yaml`: remove an empty `elasticsearch.url:` from your values.
 
 ### RabbitMQ 3.7 → 3.13
 

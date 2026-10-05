@@ -6,7 +6,7 @@ metadata:
   name: databox-api-config
 data:
   S3_REQUEST_SIGNATURE_TTL: {{ .requestSignatureTtl | quote }}
-  ELASTICSEARCH_URL: {{ tpl $.Values.elasticsearch.url $ | trimSuffix "/" | quote }}
+  ELASTICSEARCH_URL: {{ tpl (required "Missing elasticsearch.url" $.Values.elasticsearch.url) $ | trimSuffix "/" | quote }}
   ELASTICSEARCH_INDEX_PREFIX: {{ $.Values.elasticsearch.indexPrefix | quote }}
   API_ASSET_OWNER_PROPERTY_REQUIRED_ROLE: {{ .roles.assetOwnerPropertyRequiredRole | default "" | quote }}
   API_COLLECTION_OWNER_PROPERTY_REQUIRED_ROLE: {{ .roles.collectionOwnerPropertyRequiredRole | default "" | quote }}
