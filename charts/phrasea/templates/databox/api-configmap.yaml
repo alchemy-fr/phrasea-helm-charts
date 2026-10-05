@@ -8,10 +8,14 @@ data:
   S3_REQUEST_SIGNATURE_TTL: {{ .requestSignatureTtl | quote }}
   ELASTICSEARCH_URL: {{ $.Values.elasticsearch.url | default "http://elasticsearch-databox-master:9200" | trimSuffix "/" | quote }}
   ELASTICSEARCH_INDEX_PREFIX: {{ $.Values.elasticsearch.indexPrefix | quote }}
-  PHRASEANET_URL: {{ .phraseanet.baseUrl | default "" | quote }}
-  PHRASEANET_APP_OAUTH_TOKEN: {{ .phraseanet.oauthToken | default "" | quote }}
-  DATABOX_API_ASSET_OWNER_PROPERTY_REQUIRED_ROLE: {{ .roles.assetOwnerPropertyRequiredRole | default "" | quote }}
-  DATABOX_API_COLLECTION_OWNER_PROPERTY_REQUIRED_ROLE: {{ .roles.collectionOwnerPropertyRequiredRole | default "" | quote }}
+  API_ASSET_OWNER_PROPERTY_REQUIRED_ROLE: {{ .roles.assetOwnerPropertyRequiredRole | default "" | quote }}
+  API_COLLECTION_OWNER_PROPERTY_REQUIRED_ROLE: {{ .roles.collectionOwnerPropertyRequiredRole | default "" | quote }}
+  # Default values of the workspace integrations env (PWI_ = Phrasea Workspace Integration)
+  PWI_PHRASEANET_URL: {{ .phraseanet.baseUrl | default "" | quote }}
+  PWI_EXPOSE_API_URL: {{ tpl $.Values.expose.api.baseUrl $ | quote }}
+  PWI_EXPOSE_CLIENT_URL: {{ tpl $.Values.expose.client.baseUrl $ | quote }}
+  PWI_UPLOADER_API_URL: {{ tpl $.Values.uploader.api.baseUrl $ | quote }}
+  PWI_DATABOX_EXPOSE_INTEGRATION_CLIENT_ID: {{ $.Values.databox.exposeIntegration.clientId | default "" | quote }}
   ALLOWED_FILE_TYPES: {{ $.Values.databox.allowedFileTypes | quote }}
   {{- if $.Values.databox.zippy.enabled }}
   ZIPPY_URL: {{ tpl $.Values.databox.zippy.baseUrl $ | quote }}

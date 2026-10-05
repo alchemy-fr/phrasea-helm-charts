@@ -293,6 +293,7 @@ databox:
         privateKey:
         keyPairId:
         ttl: 86400
+      # Default Phraseanet instance used by the workspace integrations (PWI_PHRASEANET_URL / PWI_PHRASEANET_API_TOKEN)
       phraseanet:
         baseUrl:
         oauthToken:
@@ -449,6 +450,10 @@ databox:
     name: databox
   upload:
     uploaderTargetSlug: databox-uploader
+  # OAuth client (created by the configurator) used by the Expose integration of Databox.
+  # Leave empty to disable.
+  exposeIntegration:
+    clientId: expose-integration
   zippy:
     enabled: true
     baseUrl: "https://zippy.{{ .Values.stack.domain }}"
