@@ -959,12 +959,14 @@ zippy:
     # The "/" vhost is created by RabbitMQ for its default user (same credentials as rabbitmq.*).
     # The subchart job relies on a rabbitmqctl 3.7 client, not compatible with RabbitMQ 3.13.
     setupVhost: false
-    # Shared RabbitMQ service of the stack (the zippy one is disabled)
+    # Shared RabbitMQ service of the stack (the zippy one is disabled): keep in sync with rabbitmq.host
     host: rabbitmq
-    username: phrasea
-    password: '__CHANGE_ME_yUZV7fEAnb$u4dqFchQDz'
-    erlangCookie: 'H#75$3CjoTKn3129DNwcqlHvhfqs15'
-    nodeName: 'rabbit@rabbitmq'
+    # Credentials read from the Secret of the stack RabbitMQ (rabbitmq.*).
+    # Set to rabbitmq.externalSecretName when the stack uses an external Secret.
+    externalSecretName: rabbitmq-secret
+    externalSecretMap:
+      username: RABBITMQ_USER
+      password: RABBITMQ_PASSWORD
 
 soketi:
   enabled: true
