@@ -2,6 +2,7 @@
 {{- if $.Values.matomo.syncPhraseanet.enabled }}
 {{- $appName := "expose" }}
 {{- with $.Values.expose }}
+{{- if and $.Values.stack.running .enabled }}
 {{- $tplArgs := dict "app" $appName "ctx" . "glob" $ }}
 apiVersion: batch/v1
 kind: CronJob
@@ -40,6 +41,7 @@ spec:
             - secretRef:
                 name: matomo
           restartPolicy: OnFailure
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
