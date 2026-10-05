@@ -20,7 +20,7 @@ spec:
       # AWS Route53 DNS-01 solver (native cert-manager)
       - dns01:
           route53:
-            region: {{ .route53.region | default "eu-west-3" }}
+            region: {{ required "Missing acme.route53.region" .route53.region }}
             {{- if .route53.hostedZoneId }}
             hostedZoneID: {{ .route53.hostedZoneId | quote }}
             {{- end }}

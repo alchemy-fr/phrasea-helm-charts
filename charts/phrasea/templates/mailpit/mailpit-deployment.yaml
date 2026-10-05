@@ -24,11 +24,11 @@ spec:
         {{- if eq "true" (include "ps.resourceQuota" (dict "local" $.Values.mailpit.resourceQuota "global" $.Values.resourceQuota)) }}
         resources:
           requests:
-            memory: {{ $.Values.mailpit.resources.requests.memory | default "32Mi" }}
-            cpu: {{ $.Values.mailpit.resources.requests.cpu | default "10m" }}
+            memory: {{ $.Values.mailpit.resources.requests.memory }}
+            cpu: {{ $.Values.mailpit.resources.requests.cpu }}
           limits:
-            memory: {{ $.Values.mailpit.resources.limits.memory | default "128Mi" }}
-            cpu: {{ $.Values.mailpit.resources.limits.cpu | default "250m" }}
+            memory: {{ $.Values.mailpit.resources.limits.memory }}
+            cpu: {{ $.Values.mailpit.resources.limits.cpu }}
         {{- end }}
         terminationMessagePolicy: FallbackToLogsOnError
         ports:

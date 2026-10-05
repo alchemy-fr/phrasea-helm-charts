@@ -11,8 +11,8 @@ stack:
   domain:
   running: true
   runSetups: true
+  # Also synchronizes the configuration (Keycloak clients, buckets...) through the configurator migration job
   runMigrations: true
-  runSynchronize: true
   migrations:
     phpMemoryLimit: '1G'
 
@@ -43,8 +43,9 @@ acme:
     secretKey:
     # Secret name if using existing secret
     existingSecretName:
-    existingSecretAccessKeyKey:
-    existingSecretSecretKeyKey:
+    # Keys of the access/secret keys in the Secret
+    existingSecretAccessKeyKey: SCW_ACCESS_KEY
+    existingSecretSecretKeyKey: SCW_SECRET_KEY
   
   # Gandi LiveDNS v5 configuration
   gandi:
@@ -52,11 +53,12 @@ acme:
     # Required permissions: "Manage domain name technical configurations"
     personalAccessToken:
     existingSecretName:
-    existingSecretKey:
+    # Key of the token in the Secret
+    existingSecretKey: api-token
   
   # AWS Route53 configuration
   route53:
-    region:
+    region: eu-west-3
     # IAM access key with Route53 permissions
     accessKeyId:
     secretAccessKey:
@@ -132,7 +134,7 @@ configurator:
     # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
     endpoint: "{{ tpl .Values.minio.baseUrl . }}"
     # required for some object storage providers
-    region:
+    region: eu-west-3
     bucketName: config
     # True for a local minio, false for an external object storage provider
     usePathStyleEndpoint: true 
@@ -156,7 +158,7 @@ keycloak:
     htmlDisplayName: "<div style=\"font-size: 18px; text-transform: none; color: #000000\"><span>Phrasea Auth</span></div>"
     supportedLocales: "en,fr"
     defaultLocale: en
-    loginRegistrationAllowed: true
+    loginRegistrationAllowed: false
     loginResetPasswordAllowed: true
     loginRememberMeAllowed: true
     loginWithEmailAllowed: false
@@ -187,6 +189,8 @@ keycloak:
     username: phrasea-admin@xxx.zz
     # __SET_ME__
     password: __CHANGE_ME_KFBsKzc7RupJhXkr
+    # Optional, defaults to the username (suffixed with @<stack.domain> if it is not an email)
+    email:
     # set to true to keep the password as is (do not force change at first login)
     passwordIsDefinitive: false
   database:
@@ -194,6 +198,9 @@ keycloak:
   hostname: "keycloak.{{ .Values.stack.domain }}"
   baseUrl: "https://keycloak.{{ .Values.stack.domain }}"
   internalBaseUrl: http://keycloak
+  # Comma separated list of IPs/CIDRs allowed to set the X-Forwarded-* headers (e.g. the ingress controller pods CIDR).
+  # Empty: trust any source.
+  proxyTrustedAddresses:
   ingress:
     enabled: true
     annotations:
@@ -275,7 +282,7 @@ databox:
         # Example: https://s3.my-s3-provider.com
         # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
         endpoint: "{{ tpl .Values.minio.baseUrl . }}"
-        region:
+        region: eu-west-3
         bucketName: databox
         # true for a local minio, false for an external object storage provider
         usePathStyleEndpoint: true 
@@ -289,10 +296,11 @@ databox:
           secretKey: S3_SECRET_KEY
       cloudFront:
         url:
-        region:
+        region: eu-west-3
         privateKey:
         keyPairId:
         ttl: 86400
+      # Default Phraseanet instance used by the workspace integrations (PWI_PHRASEANET_URL / PWI_PHRASEANET_API_TOKEN)
       phraseanet:
         baseUrl:
         oauthToken:
@@ -308,15 +316,17 @@ databox:
   client:
     hostname: "databox.{{ .Values.stack.domain }}"
     baseUrl: "https://databox.{{ .Values.stack.domain }}"
+    # Port the container listens on: 3000 for the Next.js client, set 80 for images <= 4.4.2 (nginx)
+    port: 3000
     # Override global resourceQuota for this service (true/false), defaults to global value
     # resourceQuota:
     resources:
       requests:
-        cpu: "25m"
-        memory: "64Mi"
+        cpu: "50m"
+        memory: "128Mi"
       limits:
-        cpu: "500m"
-        memory: "256Mi"
+        cpu: "1000m"
+        memory: "512Mi"
     ingress:
       enabled: true
       annotations: {}
@@ -324,6 +334,24 @@ databox:
       tls: []
     oauthClient:
       id: databox-app
+    # Optional custom logo (APP_LOGO_SRC)
+    logoSrc:
+    # "Report an issue" button: tickets are created in JIRA server side
+    ticketing:
+      enabled: false
+      # Existing Secret holding DATABOX_TICKETING_JIRA_API_TOKEN (otherwise created from jira.apiToken)
+      externalSecretName:
+      jira:
+        url:
+        # JIRA Cloud: account email (Basic auth). Leave empty for a Server/Data Center personal access token (Bearer)
+        user:
+        apiToken:
+        projectKey:
+        issueType: Task
+        bugIssueType: Bug
+        labels: databox
+        # 3 for JIRA Cloud, 2 for Server/Data Center
+        apiVersion: "3"
   worker:
     replicas: 1
     # Override global resourceQuota for this service (true/false), defaults to global value
@@ -340,6 +368,8 @@ databox:
     # clientId and clientSecret are used by the configurator to register the indexer OAuth client
     clientId:
     clientSecret:
+    # If set, the configurator creates this bucket (and its event notification when configurator.configure.minio is true)
+    bucketName:
     # Default resources applied to all instances (can be overridden per instance)
     resources:
       requests:
@@ -449,6 +479,10 @@ databox:
     name: databox
   upload:
     uploaderTargetSlug: databox-uploader
+  # OAuth client (created by the configurator) used by the Expose integration of Databox.
+  # Leave empty to disable.
+  exposeIntegration:
+    clientId: expose-integration
   zippy:
     enabled: true
     baseUrl: "https://zippy.{{ .Values.stack.domain }}"
@@ -497,7 +531,7 @@ expose:
         # Example: https://s3.my-s3-provider.com
         # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
         endpoint: "{{ tpl .Values.minio.baseUrl . }}"
-        region:
+        region: eu-west-3
         bucketName: expose
         # true for a local minio, false for an external object storage provider
         usePathStyleEndpoint: true
@@ -511,7 +545,7 @@ expose:
           secretKey: S3_SECRET_KEY
       cloudFront:
         url:
-        region:
+        region: eu-west-3
         privateKey:
         keyPairId:
         ttl: 86400
@@ -606,13 +640,12 @@ uploader:
       assetConsumerCommitUri:
       assetConsumerAccessToken:
       requestSignatureTtl: 3600
-      allowedFileTypes: "image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.psd,.psb,.ai,.dng,.jfif,.jpe,.psdt,.emf,.wmf,.svgz,.ait,.eps,.epsf,.epsi,.indd,.indt,.idml,.idms,.icml,.cr2,.cr3,.crw,.nef,.nrw,.arw,.sr2,.srf,.raf,.rw2,.mrw,.orf,.pef,.dcr,.k25,.kdc),application/*(.pdf,.doc,.docx,.md,.txt,.xls,.xlsx,.odt,.psd,.psb,.csv,.ods,.dot,.dotm,.dotx,.docm,.rtf,.wps,.xlam,.xlsb,.xlsm,.xlt,.xltm,.xltx,.xlw,.html,.htm,.mht,.mhtml,.ppt,.pptm,.pptx,.pps,.ppsm,.ppsx,.pot,.potm,.potx,.ppa,.ppam,.ps,.aep,.prproj),video/*(.mpg,.mpeg,.mov,.avi,.mxf,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc,.webm,.wmv),audio/*(.ogg,.opus,.m4r,.ac3,.flac,.aac,.mp3,.aiff,.aif,.wav)"
       s3Storage:
         # When using an external object storage provider, set the "endpoint" to the root domain of the service.
         # Example: https://s3.my-s3-provider.com
         # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
         endpoint: "{{ tpl .Values.minio.baseUrl . }}"
-        region:
+        region: eu-west-3
         bucketName: uploader
         # true for a local minio, false for an external object storage
         usePathStyleEndpoint: true
@@ -736,7 +769,12 @@ mailer:
   port: 
   user:
   password:
+  # SMTP encryption used by Keycloak (MAILER_SSL: implicit TLS, MAILER_TLS: STARTTLS)
+  ssl: false
+  tls: false
+  # Defaults to noreply@<stack.domain>
   from:
+  # Defaults to "Phrasea" (or "Phrasea noreply <stack.name>")
   fromDisplayName:
   replyTo:
   replyToDisplayName:
@@ -745,6 +783,7 @@ mailer:
 
 postgresql:
   enabled: true
+  image: postgres:14.4-alpine
   externalSecretName:
   host: postgresql
   port: 5432
@@ -770,6 +809,7 @@ postgresql:
 
 redis:
   enabled: true
+  image: redis:7.4.1-alpine3.20
   # Override global resourceQuota for this service (true/false), defaults to global value
   # resourceQuota:
   resources:
@@ -783,7 +823,8 @@ redis:
 rabbitmq:
   enabled: true
   consoleUrl: "http://rabbitmq:15672"
-  image: rabbitmq:3.7.14-management
+  # Upgrading from 3.7: see the chart README (RabbitMQ cannot jump directly from 3.7 to 3.13)
+  image: rabbitmq:3.13.7-management
   externalSecretName:
   host: rabbitmq
   port: 5672
@@ -815,9 +856,13 @@ rabbitmq:
 
 minio:
   enabled: true
+  # MinIO no longer publishes community images: use the maintained community build
+  image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
   hostname: "minio.{{ .Values.stack.domain }}"
   baseUrl: "https://{{ tpl .Values.minio.hostname . }}"
   internalBaseUrl: "http://minio:80"
+  # ARN of the AMQP notification target used for the indexer bucket events (configurator default: arn:minio:sqs::PRIMARY:amqp)
+  notifyAmqpArn:
   # __SET_ME__
   accessKey: '__CHANGE_ME_jw2G5OskVG2VVXIyHsuQJIo'
   # __SET_ME__
@@ -881,7 +926,8 @@ elasticsearch:
   # Single replica mode: accept 'yellow' cluster status (shards cannot be replicated with only 1 node)
   # For multi-node cluster (replicas >= 3), comment this line to require 'green' status (default)
   clusterHealthCheckParams: "wait_for_status=yellow&timeout=1s"
-  url:
+  # External Elasticsearch URL, defaults to the service of the elasticsearch subchart (<clusterName>-master)
+  url: "http://{{ .Values.elasticsearch.clusterName }}-master:9200"
   indexPrefix: ""
   resources:
     requests:
@@ -910,10 +956,17 @@ zippy:
     hostname:
   rabbitmq:
     enabled: false
-    username: phrasea
-    password: '__CHANGE_ME_yUZV7fEAnb$u4dqFchQDz'
-    erlangCookie: 'H#75$3CjoTKn3129DNwcqlHvhfqs15'
-    nodeName: 'rabbit@rabbitmq'
+    # The "/" vhost is created by RabbitMQ for its default user (same credentials as rabbitmq.*).
+    # The subchart job relies on a rabbitmqctl 3.7 client, not compatible with RabbitMQ 3.13.
+    setupVhost: false
+    # Shared RabbitMQ service of the stack (the zippy one is disabled): keep in sync with rabbitmq.host
+    host: rabbitmq
+    # Credentials read from the Secret of the stack RabbitMQ (rabbitmq.*).
+    # Set to rabbitmq.externalSecretName when the stack uses an external Secret.
+    externalSecretName: rabbitmq-secret
+    externalSecretMap:
+      username: RABBITMQ_USER
+      password: RABBITMQ_PASSWORD
 
 soketi:
   enabled: true
@@ -930,7 +983,7 @@ soketi:
     image:
       repository: quay.io/soketi/soketi
       pullPolicy: IfNotPresent
-      tag: "1.6-16-debian"
+      tag: "330e1a60197d2b5798a3b3a2bcd211ec124148d8-16-alpine"
     mode: full
     maxConnections: 200
     command:
@@ -949,9 +1002,19 @@ soketi:
         cpu: 250m
         memory: 256Mi
     extraEnv: {}
+  serverSide:
+    internal: true
+    host: soketi
+    port: 80
+    scheme: http
+  # Browsers connect to wss://<soketi.host>: the ingress is required for realtime notifications.
   ingress:
-    enabled: false
-    annotations: {}
+    enabled: true
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    extraLabels: {}
+    tls: []
 
 matomo:
   enabled: false
@@ -967,7 +1030,7 @@ mailpit:
   enabled: false
   image:
     repository: axllent/mailpit
-    tag: latest
+    tag: v1.31
   # Plain-text "user:password" pair for the UI's MP_UI_AUTH env var (Mailpit
   # only supports this via env, not as a CLI flag). Fine for a dev/test-only
   # tool, but do not reuse this password anywhere sensitive.
@@ -1030,6 +1093,8 @@ sentry:
 
 ImageMagick:
   policy:
+    # Should stay below the databox worker memory limit
+    memory: 768MiB
     area: 2GiB
     temporaryPath: /tmp
     disk: 40GiB

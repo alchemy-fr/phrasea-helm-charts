@@ -25,7 +25,7 @@ spec:
             config:
               apiTokenSecretRef:
                 name: {{ .gandi.existingSecretName | default (printf "%s-gandi-credentials" (include "ps.fullname" $)) }}
-                key: {{ .gandi.existingSecretKey | default "api-token" }}
+                key: {{ .gandi.existingSecretKey }}
               apiEndpoint: https://api.gandi.net
         selector:
           dnsZones:

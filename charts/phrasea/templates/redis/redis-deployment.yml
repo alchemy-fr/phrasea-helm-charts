@@ -17,15 +17,15 @@ spec:
     spec:
       containers:
       - name: redis
-        image: redis:5.0.5-alpine
+        image: {{ $.Values.redis.image }}
         {{- if eq "true" (include "ps.resourceQuota" (dict "local" $.Values.redis.resourceQuota "global" $.Values.resourceQuota)) }}
         resources:
           requests:
-            memory: {{ $.Values.redis.resources.requests.memory | default "64Mi" }}
-            cpu: {{ $.Values.redis.resources.requests.cpu | default "25m" }}
+            memory: {{ $.Values.redis.resources.requests.memory }}
+            cpu: {{ $.Values.redis.resources.requests.cpu }}
           limits:
-            memory: {{ $.Values.redis.resources.limits.memory | default "256Mi" }}
-            cpu: {{ $.Values.redis.resources.limits.cpu | default "500m" }}
+            memory: {{ $.Values.redis.resources.limits.memory }}
+            cpu: {{ $.Values.redis.resources.limits.cpu }}
         {{- end }}
         terminationMessagePolicy: FallbackToLogsOnError
 {{- end }}

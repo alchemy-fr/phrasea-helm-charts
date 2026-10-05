@@ -26,11 +26,11 @@ spec:
         {{- if eq "true" (include "ps.resourceQuota" (dict "local" $.Values.expose.client.resourceQuota "global" $.Values.resourceQuota)) }}
         resources:
           requests:
-            memory: {{ $.Values.expose.client.resources.requests.memory | default "64Mi" }}
-            cpu: {{ $.Values.expose.client.resources.requests.cpu | default "25m" }}
+            memory: {{ $.Values.expose.client.resources.requests.memory }}
+            cpu: {{ $.Values.expose.client.resources.requests.cpu }}
           limits:
-            memory: {{ $.Values.expose.client.resources.limits.memory | default "256Mi" }}
-            cpu: {{ $.Values.expose.client.resources.limits.cpu | default "500m" }}
+            memory: {{ $.Values.expose.client.resources.limits.memory }}
+            cpu: {{ $.Values.expose.client.resources.limits.cpu }}
         {{- end }}
         terminationMessagePolicy: FallbackToLogsOnError
         envFrom:
@@ -42,6 +42,7 @@ spec:
             name: expose-client-config
         - configMapRef:
             name: soketi
+            optional: true
         - configMapRef:
             name: configurator-s3
 {{- end }}

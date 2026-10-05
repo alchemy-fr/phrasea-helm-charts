@@ -30,13 +30,36 @@ spec:
           {{- if eq "true" (include "ps.resourceQuota" (dict "local" .resourceQuota "global" $.Values.resourceQuota)) }}
           resources:
             requests:
-              memory: {{ .resources.requests.memory | default "512Mi" }}
-              cpu: {{ .resources.requests.cpu | default "100m" }}
+              memory: {{ .resources.requests.memory }}
+              cpu: {{ .resources.requests.cpu }}
             limits:
-              memory: {{ .resources.limits.memory | default "2Gi" }}
-              cpu: {{ .resources.limits.cpu | default "1000m" }}
+              memory: {{ .resources.limits.memory }}
+              cpu: {{ .resources.limits.cpu }}
           {{- end }}
           terminationMessagePolicy: FallbackToLogsOnError
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: management
+              containerPort: 9000
+          startupProbe:
+            httpGet:
+              path: /health/started
+              port: management
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: management
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: management
+            periodSeconds: 30
+            failureThreshold: 3
           envFrom:
             - secretRef:
                 name: {{ include "secretName.postgresql" $ }}
@@ -53,6 +76,10 @@ spec:
             value: 'true'
           - name: KC_PROXY_HEADERS
             value: xforwarded
+          {{- with .proxyTrustedAddresses }}
+          - name: KC_PROXY_TRUSTED_ADDRESSES
+            value: {{ . | quote }}
+          {{- end }}
           - name: KC_HOSTNAME
             value: {{ tpl .baseUrl $ | quote }}
           - name: KC_DB
