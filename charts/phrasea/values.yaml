@@ -158,7 +158,8 @@ keycloak:
     htmlDisplayName: "<div style=\"font-size: 18px; text-transform: none; color: #000000\"><span>Phrasea Auth</span></div>"
     supportedLocales: "en,fr"
     defaultLocale: en
-    loginRegistrationAllowed: true
+    # Self-registration on the Keycloak login page (applied on each upgrade by the configurator)
+    loginRegistrationAllowed: false
     loginResetPasswordAllowed: true
     loginRememberMeAllowed: true
     loginWithEmailAllowed: false
