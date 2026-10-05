@@ -302,22 +302,21 @@ env:
 {{- end }}
 - name: S3_USE_PATH_STYLE_ENDPOINT
   value: {{ .Values.configurator.s3.usePathStyleEndpoint | default false | quote }}
+{{- $s3SecretName := .Values.configurator.s3.externalSecretKey | default "configurator-s3" }}
 - name: S3_ACCESS_KEY
-  value: {{ tpl .Values.configurator.s3.accessKey . | required "Missing configurator.s3.accessKey" | quote }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ $s3SecretName }}
+      key: {{ .Values.configurator.s3.externalSecretMapping.accessKey }}
 - name: S3_SECRET_KEY
-  value: {{ tpl .Values.configurator.s3.secretKey . | required "Missing configurator.s3.secretKey" | quote }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ $s3SecretName }}
+      key: {{ .Values.configurator.s3.externalSecretMapping.secretKey }}
 - name: S3_REGION
   value: {{ .Values.configurator.s3.region | default "eu-west-3" | quote }}
 - name: S3_PATH_PREFIX
   value: {{ .Values.configurator.s3.pathPrefix | default "" | quote }}
-- name: POSTGRES_HOST
-  value: {{ .Values.postgresql.host | required "Missing postgresql.host" | quote }}
-- name: POSTGRES_PORT
-  value: {{ .Values.postgresql.port | required "Missing postgresql.port" | quote }}
-- name: POSTGRES_USER
-  value: {{ .Values.postgresql.user | required "Missing postgresql.user" | quote }}
-- name: POSTGRES_PASSWORD
-  value: {{ .Values.postgresql.password | required "Missing postgresql.password" | quote }}
 - name: REPORT_DB_NAME
   value: {{ .Values.report.databaseName | required "Missing report.databaseName" | quote }}
 - name: KEYCLOAK_DB_NAME
@@ -332,12 +331,35 @@ env:
 - name: {{ upper $appName }}_S3_BUCKET_NAME
   value: {{ .api.config.s3Storage.bucketName | quote }}
 {{- if .adminOAuthClient }}
+{{- $oauthSecretName := .adminOAuthClient.externalSecretName | default (printf "%s-admin-oauth-client-secret" $appName) }}
 - name: {{ upper $appName }}_ADMIN_CLIENT_ID
-  value: {{ .adminOAuthClient.id | quote }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ $oauthSecretName }}
+      key: ADMIN_CLIENT_ID
 - name: {{ upper $appName }}_ADMIN_CLIENT_SECRET
-  value: {{ .adminOAuthClient.secret | quote }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ $oauthSecretName }}
+      key: ADMIN_CLIENT_SECRET
 {{- end }}
 {{- end }}
+{{- end }}
+{{- with .Values.databox.exposeIntegration.clientId }}
+- name: DATABOX_EXPOSE_INTEGRATION_CLIENT_ID
+  value: {{ . | quote }}
+{{- end }}
+{{- with .Values.keycloak.defaultAdmin.email }}
+- name: DEFAULT_ADMIN_EMAIL
+  value: {{ . | quote }}
+{{- end }}
+{{- with .Values.databox.indexer.bucketName }}
+- name: INDEXER_BUCKET_NAME
+  value: {{ . | quote }}
+{{- end }}
+{{- with .Values.minio.notifyAmqpArn }}
+- name: MINIO_NOTIFY_AMQP_ARN
+  value: {{ . | quote }}
 {{- end }}
 {{- if .Values.databox.indexer.clientId }}
 - name: INDEXER_DATABOX_CLIENT_ID

@@ -12,6 +12,8 @@ stack:
   running: true
   runSetups: true
   runMigrations: true
+  # Synchronize the configuration (Keycloak clients, buckets...) on upgrade.
+  # Already done by the configurator migration job when runMigrations is true.
   runSynchronize: true
   migrations:
     phpMemoryLimit: '1G'
@@ -187,6 +189,8 @@ keycloak:
     username: phrasea-admin@xxx.zz
     # __SET_ME__
     password: __CHANGE_ME_KFBsKzc7RupJhXkr
+    # Optional, defaults to the username (suffixed with @<stack.domain> if it is not an email)
+    email:
     # set to true to keep the password as is (do not force change at first login)
     passwordIsDefinitive: false
   database:
@@ -341,6 +345,8 @@ databox:
     # clientId and clientSecret are used by the configurator to register the indexer OAuth client
     clientId:
     clientSecret:
+    # If set, the configurator creates this bucket (and its event notification when configurator.configure.minio is true)
+    bucketName:
     # Default resources applied to all instances (can be overridden per instance)
     resources:
       requests:
@@ -741,6 +747,9 @@ mailer:
   port: 
   user:
   password:
+  # SMTP encryption used by Keycloak (MAILER_SSL: implicit TLS, MAILER_TLS: STARTTLS)
+  ssl: false
+  tls: false
   from:
   fromDisplayName:
   replyTo:
@@ -823,6 +832,8 @@ minio:
   hostname: "minio.{{ .Values.stack.domain }}"
   baseUrl: "https://{{ tpl .Values.minio.hostname . }}"
   internalBaseUrl: "http://minio:80"
+  # ARN of the AMQP notification target used for the indexer bucket events (configurator default: arn:minio:sqs::PRIMARY:amqp)
+  notifyAmqpArn:
   # __SET_ME__
   accessKey: '__CHANGE_ME_jw2G5OskVG2VVXIyHsuQJIo'
   # __SET_ME__
