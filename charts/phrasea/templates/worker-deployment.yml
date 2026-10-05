@@ -40,7 +40,6 @@ spec:
         env:
         {{- include "envRef.phpApp" $tplArgs | indent 8 }}
         {{- include "envRef.configuratorSecrets" $ | indent 8 }}
-        {{- include "envRef.soketi" $ | indent 8 }}
         envFrom:
         {{- include "envFrom.phpApp" $ | indent 8 }}
         {{- include "envFrom.rabbitmq" $ | indent 8 }}

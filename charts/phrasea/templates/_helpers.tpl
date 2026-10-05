@@ -59,6 +59,7 @@ gateway-tls
 
 {{/*
 Soketi server side endpoint for PHP services (overrides the public SOKETI_HOST of the soketi/urls-config ConfigMaps).
+Included by envRef.phpApp, so every PHP pod gets it.
 */}}
 {{- define "envRef.soketi" }}
 {{- if and .Values.soketi.enabled .Values.soketi.serverSide.internal }}
@@ -171,6 +172,7 @@ Usage: {{ include "envFrom.phpService" (dict "app" $appName "ctx" . "glob" $ "wo
 - name: DB_NAME
   value: {{ $ctx.database.name | quote }}
 {{- end }}
+{{- include "envRef.soketi" $glob }}
 {{- end }}
 
 {{- define "app.s3Storage.configMap" }}
