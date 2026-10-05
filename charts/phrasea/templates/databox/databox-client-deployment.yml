@@ -26,12 +26,25 @@ spec:
         {{- if eq "true" (include "ps.resourceQuota" (dict "local" $.Values.databox.client.resourceQuota "global" $.Values.resourceQuota)) }}
         resources:
           requests:
-            memory: {{ $.Values.databox.client.resources.requests.memory | default "64Mi" }}
-            cpu: {{ $.Values.databox.client.resources.requests.cpu | default "25m" }}
+            memory: {{ $.Values.databox.client.resources.requests.memory | default "128Mi" }}
+            cpu: {{ $.Values.databox.client.resources.requests.cpu | default "50m" }}
           limits:
-            memory: {{ $.Values.databox.client.resources.limits.memory | default "256Mi" }}
-            cpu: {{ $.Values.databox.client.resources.limits.cpu | default "500m" }}
+            memory: {{ $.Values.databox.client.resources.limits.memory | default "512Mi" }}
+            cpu: {{ $.Values.databox.client.resources.limits.cpu | default "1000m" }}
         {{- end }}
+        ports:
+        - name: http
+          containerPort: {{ $.Values.databox.client.port | default 3000 }}
+        readinessProbe:
+          tcpSocket:
+            port: http
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        livenessProbe:
+          tcpSocket:
+            port: http
+          initialDelaySeconds: 15
+          periodSeconds: 20
         terminationMessagePolicy: FallbackToLogsOnError
         envFrom:
         - configMapRef:
@@ -45,4 +58,10 @@ spec:
             name: databox-client-config
         - configMapRef:
             name: configurator-s3
+        {{- with $.Values.databox.client.ticketing }}
+        {{- if .enabled }}
+        - secretRef:
+            name: {{ .externalSecretName | default "databox-client-ticketing" }}
+        {{- end }}
+        {{- end }}
 {{- end }}

@@ -316,15 +316,17 @@ databox:
   client:
     hostname: "databox.{{ .Values.stack.domain }}"
     baseUrl: "https://databox.{{ .Values.stack.domain }}"
+    # Port the container listens on: 3000 for the Next.js client, set 80 for images <= 4.4.2 (nginx)
+    port: 3000
     # Override global resourceQuota for this service (true/false), defaults to global value
     # resourceQuota:
     resources:
       requests:
-        cpu: "25m"
-        memory: "64Mi"
+        cpu: "50m"
+        memory: "128Mi"
       limits:
-        cpu: "500m"
-        memory: "256Mi"
+        cpu: "1000m"
+        memory: "512Mi"
     ingress:
       enabled: true
       annotations: {}
@@ -332,6 +334,24 @@ databox:
       tls: []
     oauthClient:
       id: databox-app
+    # Optional custom logo (APP_LOGO_SRC)
+    logoSrc:
+    # "Report an issue" button: tickets are created in JIRA server side
+    ticketing:
+      enabled: false
+      # Existing Secret holding DATABOX_TICKETING_JIRA_API_TOKEN (otherwise created from jira.apiToken)
+      externalSecretName:
+      jira:
+        url:
+        # JIRA Cloud: account email (Basic auth). Leave empty for a Server/Data Center personal access token (Bearer)
+        user:
+        apiToken:
+        projectKey:
+        issueType: Task
+        bugIssueType: Bug
+        labels: databox
+        # 3 for JIRA Cloud, 2 for Server/Data Center
+        apiVersion: "3"
   worker:
     replicas: 1
     # Override global resourceQuota for this service (true/false), defaults to global value
