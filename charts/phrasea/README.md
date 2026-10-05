@@ -105,6 +105,25 @@ stack:
 
 ## Upgrade notes
 
+### Chart 3.0
+
+The defaults now target the Phrasea images released after 4.4.2. To deploy 4.4.x images, set:
+
+```yaml
+databox:
+  client:
+    port: 80          # 4.4.x databox client is served by nginx
+soketi:
+  serverSide:
+    internal: false   # 4.4.x PHP services cannot reach Soketi over plain HTTP
+```
+
+Other behaviour changes:
+
+- `keycloak.realm.loginRegistrationAllowed` now defaults to `false`.
+- The Soketi ingress is enabled by default (realtime notifications).
+- `databox.api.config.secrets.secretKey` is stored in the `databox-worker-secrets` Secret.
+
 ### RabbitMQ 3.7 → 3.13
 
 The default `rabbitmq.image` is now `rabbitmq:3.13.7-management`. RabbitMQ cannot start a 3.13 node
