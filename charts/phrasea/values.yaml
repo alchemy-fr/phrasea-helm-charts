@@ -198,6 +198,9 @@ keycloak:
   hostname: "keycloak.{{ .Values.stack.domain }}"
   baseUrl: "https://keycloak.{{ .Values.stack.domain }}"
   internalBaseUrl: http://keycloak
+  # Comma separated list of IPs/CIDRs allowed to set the X-Forwarded-* headers (e.g. the ingress controller pods CIDR).
+  # Empty: trust any source.
+  proxyTrustedAddresses:
   ingress:
     enabled: true
     annotations:
