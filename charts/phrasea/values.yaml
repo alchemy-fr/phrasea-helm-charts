@@ -336,6 +336,8 @@ databox:
       id: databox-app
     # Optional custom logo (APP_LOGO_SRC)
     logoSrc:
+    # Public Mapbox token (pk.*), exposed to the browser through MAPBOX_TOKEN.
+    # Leave empty to disable maps. Restrict the token to the Databox client URLs.
     mapbox:
       token: ""
     # "Report an issue" button: tickets are created in JIRA server side

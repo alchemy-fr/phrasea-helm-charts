@@ -1,5 +1,26 @@
 # Phrasea Chart
 
+## Databox Mapbox configuration
+
+To enable maps in the Databox client, configure a public Mapbox access token:
+
+```yaml
+databox:
+  client:
+    mapbox:
+      token: "pk.REPLACE_WITH_YOUR_PUBLIC_TOKEN"
+```
+
+The chart injects this value as `MAPBOX_TOKEN` into the Databox client
+container. The client exposes it to the browser at runtime; use a public
+`pk.*` token, never a secret `sk.*` token, and restrict its allowed URLs to
+your Databox client domains.
+
+The default empty value disables maps. This setting is independent from
+`expose.client.mapbox.token`. After updating the token with `helm upgrade`,
+recreate the Databox client pods to load the new environment variable.
+No image rebuild is needed.
+
 ### TLS
 
 You can enable wildcard TLS:
