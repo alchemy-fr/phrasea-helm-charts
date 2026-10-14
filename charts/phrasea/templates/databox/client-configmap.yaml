@@ -11,6 +11,7 @@ data:
   {{- with .client.logoSrc }}
   APP_LOGO_SRC: {{ . | quote }}
   {{- end }}
+  MAPBOX_TOKEN: {{ .client.mapbox.token | quote }}
   {{- with .client.ticketing }}
   DATABOX_TICKETING_ENABLED: {{ .enabled | quote }}
   {{- if .enabled }}

@@ -336,6 +336,8 @@ databox:
       id: databox-app
     # Optional custom logo (APP_LOGO_SRC)
     logoSrc:
+    mapbox:
+      token: ""
     # "Report an issue" button: tickets are created in JIRA server side
     ticketing:
       enabled: false
