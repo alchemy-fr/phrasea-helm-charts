@@ -33,7 +33,7 @@ spec:
             capabilities:
               drop:
                 - ALL
-          image: "{{ .Values.soketi.app.image.repository }}:{{ .Values.soketi.app.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.soketi.app.image.repository }}:{{ .Values.soketi.app.image.tag }}"
           imagePullPolicy: {{ .Values.soketi.app.image.pullPolicy }}
           ports:
             - name: soketi
@@ -47,9 +47,9 @@ spec:
             - name: SOKETI_PORT
               value: "6001"
             - name: SOKETI_MODE
-              value: {{ .Values.soketi.app.mode | default "full" }}
+              value: {{ .Values.soketi.app.mode | quote }}
             - name: SOKETI_DEFAULT_APP_MAX_CONNS
-              value: "{{ .Values.soketi.app.maxConnections | default "100" }}"
+              value: {{ .Values.soketi.app.maxConnections | quote }}
             - name: SOKETI_DEFAULT_APP_ID
               valueFrom:
                 configMapKeyRef:

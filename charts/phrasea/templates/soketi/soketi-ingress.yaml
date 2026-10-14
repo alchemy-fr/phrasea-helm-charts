@@ -1,32 +1,38 @@
 {{- if and $.Values.stack.running $.Values.soketi.enabled $.Values.soketi.ingress.enabled }}
-apiVersion: networking.k8s.io/v1
+apiVersion: {{ template "ingress.apiVersion" $ }}
 kind: Ingress
 metadata:
   name: soketi
   labels:
     app: phrasea
     tier: soketi
+  {{- with $.Values.soketi.ingress.extraLabels }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   {{- with $.Values.soketi.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  {{- if $.Values.ingress.tls.wildcard.enabled }}
-  tls:
-    - hosts:
-        - {{ tpl $.Values.soketi.host $ | quote }}
-      secretName: {{ $.Values.ingress.tls.wildcard.externalSecretName | default (printf "%s-ps-wildcard-tls" $.Values.fullnameOverride) }}
-  {{- end }}
   ingressClassName: nginx
   rules:
     - host: {{ tpl $.Values.soketi.host $ | quote }}
       http:
         paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: soketi
-                port:
-                  number: {{ $.Values.soketi.servicePort }}
+        {{- include "ingress.rule_path" (dict "_" $ "name" "soketi" "port" 80) | indent 8 }}
+{{- if $.Values.soketi.ingress.tls }}
+{{- $tlsNode := $.Values.soketi.ingress.tls -}}
+{{- range $value := $tlsNode }}
+  {{- if not (hasKey $value "hosts") }}
+    {{- $_ := set $value "hosts" (list (tpl $.Values.soketi.host $)) }}
+  {{- end -}}
+{{- end }}
+  tls:
+{{ toYaml $tlsNode | indent 2 }}
+{{- else if $.Values.ingress.tls.wildcard.enabled }}
+  tls:
+    - hosts:
+        - {{ tpl $.Values.soketi.host $ | quote }}
+      secretName: {{ include "secretRef.ingress.tls.wildcard" $ }}
+{{- end }}
 {{- end }}

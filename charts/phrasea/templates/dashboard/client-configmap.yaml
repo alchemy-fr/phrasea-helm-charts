@@ -6,6 +6,12 @@ kind: ConfigMap
 metadata:
   name: dashboard-client-config
 data:
+  {{- if $.Values.mailpit.enabled }}
+  MAILPIT_URL: {{ tpl $.Values.mailpit.baseUrl $ | quote }}
+  {{- end }}
+  {{- if and $.Values.zippy.enabled $.Values.databox.zippy.enabled }}
+  ZIPPY_URL: {{ tpl $.Values.databox.zippy.baseUrl $ | quote }}
+  {{- end }}
   {{- include "app.client.configMap" $tplArgs | indent 2 }}
 {{- end }}
 {{- end }}
