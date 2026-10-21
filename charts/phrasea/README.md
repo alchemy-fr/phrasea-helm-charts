@@ -145,7 +145,8 @@ from the interactive pod or a worker pod.
 
 ### Chart 3.0
 
-The defaults now target the Phrasea images released after 4.4.2. To deploy 4.4.x images, set:
+The defaults now target the Phrasea 5.0 images. The 4.4.x images are no longer supported: they still need the former
+databox CronJobs, Zippy and Elasticsearch 7, removed below. Their databox client and Soketi settings were:
 
 ```yaml
 databox:
@@ -169,6 +170,31 @@ Other behaviour changes:
   (`stack.runMigrations`).
 - Keycloak and the report API are no longer built with the Phrasea images: they come from
   `keycloak.image` and `report.image` (public ECR by default) instead of `repository.baseUrl` / `repository.tag`.
+- The databox `daily` and `hourly` CronJobs (`databox.cronJob`) are replaced by Symfony Scheduler: the
+  `databox-scheduler` and `uploader-scheduler` StatefulSets (`databox.scheduler`, `uploader.scheduler`) run the worker
+  image with `WORKER_PRIORITIES=scheduler_main`, always with a single pod. Without `databox-scheduler`, the scheduled
+  automations never run. Remove `databox.cronJob` from your values.
+- Zippy is removed: Expose and Databox build their ZIP archives themselves. Remove the `zippy`, `databox.zippy` and
+  `expose.zippy` keys from your values, and the `zippy.<domain>` DNS entry.
+
+### Elasticsearch 7.17 → 9
+
+The bundled Elasticsearch is now 9.1.4, run by the last release of the Elastic subchart (8.5.1) with the security
+disabled (plain HTTP on the internal network, as in the docker compose stack).
+
+Elasticsearch 9 cannot start on the data of a 7.x node: the default `elasticsearch.clusterName` becomes
+`elasticsearch9-databox`, so that the new StatefulSet starts on a new PVC. The former StatefulSet is removed by the
+upgrade and its PVC (`elasticsearch-databox-master-elasticsearch-databox-master-0`) is kept: delete it once the new
+cluster is populated. If you set `elasticsearch.clusterName` in your values, change it as well (or delete the PVC).
+
+Rebuild the indexes after the upgrade, from the interactive pod or a databox worker pod:
+
+```bash
+bin/console fos:elastica:populate
+```
+
+An external Elasticsearch (`elasticsearch.enabled: false`) must be upgraded to 9.x as well (8.12 at least for the
+similarity search).
 
 ### RabbitMQ 3.7 → 3.13
 
