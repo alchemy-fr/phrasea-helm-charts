@@ -124,6 +124,23 @@ stack:
 
 `helm upgrade` again!
 
+## Similarity search and face recognition
+
+The Databox "Similarity" and "Face Recognition" integrations rely on two self-hosted services, disabled by default.
+
+```yaml
+similarityEmbedder:
+  enabled: true
+
+faceRecognition:
+  enabled: true
+```
+
+The Databox API and worker then reach them through `similarityEmbedder.url` / `faceRecognition.url`.
+The similarity search (kNN on dense vectors) requires Elasticsearch >= 8.12.
+Backfill the existing assets with `bin/console app:similarity:index` and `bin/console app:face-recognition:index`
+from the interactive pod or a worker pod.
+
 ## Upgrade notes
 
 ### Chart 3.0

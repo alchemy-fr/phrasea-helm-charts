@@ -972,6 +972,67 @@ zippy:
       username: RABBITMQ_USER
       password: RABBITMQ_PASSWORD
 
+# Self-hosted CLIP embedding service of the Databox "Similarity" integration (similar assets search).
+# Built from https://github.com/alchemy-fr/phrasea-similarity-embedder
+# The kNN search requires Elasticsearch >= 8.12.
+similarityEmbedder:
+  enabled: false
+  image:
+    repository: public.ecr.aws/b2s9z7l1/ps-similarity-embedder
+    tag: 0.0.1
+    pullPolicy: IfNotPresent
+  replicas: 1
+  # Endpoint reached by the Databox API and worker (SIMILARITY_EMBEDDER_URL)
+  url: http://similarity-embedder:8000
+  config:
+    # Max request/file size in bytes
+    maxUploadBytes: "2097152"
+    # Max text length of the text embedding requests
+    maxTextLength: "10000"
+    # Decompression-bomb guard
+    maxImagePixels: "5000000"
+  # Override global resourceQuota for this service (true/false), defaults to global value
+  # resourceQuota:
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "512Mi"
+    limits:
+      cpu: "2000m"
+      memory: "2Gi"
+
+# Self-hosted face detection/recognition service (InsightFace) of the Databox "Face Recognition" integration.
+# Built from https://github.com/alchemy-fr/phrasea-face-recognition
+faceRecognition:
+  enabled: false
+  image:
+    repository: public.ecr.aws/b2s9z7l1/ps-face-recognition
+    tag: 0.0.1
+    pullPolicy: IfNotPresent
+  replicas: 1
+  # Endpoint reached by the Databox API and worker (FACE_RECOGNITION_URL)
+  url: http://face-recognition:8000
+  config:
+    # Detector input size in pixels
+    detSize: "640"
+    # Minimum detection score
+    detThresh: "0.5"
+    # Max number of faces returned per image
+    maxFaces: "100"
+    # Max request/file size in bytes
+    maxUploadBytes: "10485760"
+    # Decompression-bomb guard
+    maxImagePixels: "30000000"
+  # Override global resourceQuota for this service (true/false), defaults to global value
+  # resourceQuota:
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "512Mi"
+    limits:
+      cpu: "2000m"
+      memory: "2Gi"
+
 soketi:
   enabled: true
   host: "soketi.{{ .Values.stack.domain }}"

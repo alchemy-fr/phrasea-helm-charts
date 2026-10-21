@@ -22,6 +22,12 @@ data:
   ZIPPY_CLIENT_ID: {{ required "Missing databox.zippy.clientId" $.Values.databox.zippy.clientId | quote }}
   ZIPPY_CLIENT_SECRET: {{ required "Missing databox.zippy.clientSecret" $.Values.databox.zippy.clientSecret | quote }}
   {{- end }}
+  {{- if $.Values.similarityEmbedder.enabled }}
+  SIMILARITY_EMBEDDER_URL: {{ $.Values.similarityEmbedder.url | quote }}
+  {{- end }}
+  {{- if $.Values.faceRecognition.enabled }}
+  FACE_RECOGNITION_URL: {{ $.Values.faceRecognition.url | quote }}
+  {{- end }}
 {{- include "app.s3Storage.configMap" $tplArgs | indent 2 }}
 {{- include "app.cloudFront.configMap" $tplArgs | indent 2 }}
 {{- end }}
