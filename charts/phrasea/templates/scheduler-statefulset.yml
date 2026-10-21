@@ -1,0 +1,57 @@
+{{- range .Values._internal.services }}
+{{- $appName := . }}
+{{- $app := index $.Values $appName }}
+{{- if and $.Values.stack.running $app.enabled $app.scheduler $app.scheduler.enabled }}
+{{- with $app }}
+{{- $tplArgs := dict "app" $appName "ctx" . "glob" $ }}
+# A schedule must be consumed by a single process: a StatefulSet never runs
+# two pods of the same ordinal, even during a rollout or a node failure.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ $appName }}-scheduler
+spec:
+  replicas: 1
+  serviceName: {{ $appName }}-scheduler
+  selector:
+    matchLabels:
+      app: phrasea
+      tier: {{ $appName }}-scheduler
+  template:
+    metadata:
+      labels:
+        app: phrasea
+        tier: {{ $appName }}-scheduler
+    spec:
+      {{ include "imagePullSecrets" $ | indent 6 }}
+      {{- if $.Values.nodeSelector }}
+      nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: {{ $appName }}-scheduler
+        image: {{ $.Values.repository.baseUrl }}/ps-{{ $appName }}-worker:{{ $.Values.repository.tag }}
+        imagePullPolicy: {{ $.Values.repository.imagePullPolicy }}
+        {{- if eq "true" (include "ps.resourceQuota" (dict "local" .scheduler.resourceQuota "global" $.Values.resourceQuota)) }}
+        resources:
+          requests:
+            memory: {{ .scheduler.resources.requests.memory }}
+            cpu: {{ .scheduler.resources.requests.cpu }}
+          limits:
+            memory: {{ .scheduler.resources.limits.memory }}
+            cpu: {{ .scheduler.resources.limits.cpu }}
+        {{- end }}
+        terminationMessagePolicy: FallbackToLogsOnError
+        env:
+        - name: WORKER_PRIORITIES
+          value: scheduler_main
+        {{- include "envRef.phpApp" $tplArgs | indent 8 }}
+        {{- include "envRef.configuratorSecrets" $ | indent 8 }}
+        envFrom:
+        {{- include "envFrom.phpApp" $ | indent 8 }}
+        {{- include "envFrom.rabbitmq" $ | indent 8 }}
+        {{- include "envFrom.postgresql" $ | indent 8 }}
+        {{- include "envFrom.phpService" (dict "app" $appName "ctx" . "glob" $ "worker" true) | indent 8 }}
+---
+{{- end }}
+{{- end }}
+{{- end }}

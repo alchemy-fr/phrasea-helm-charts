@@ -103,7 +103,7 @@ Included by envRef.phpApp, so every PHP pod gets it.
 {{- end }}
 
 {{/*
-envFrom shared by the long running PHP services of an app (API, worker, cron jobs).
+envFrom shared by the long running PHP services of an app (API, worker, scheduler).
 Usage: {{ include "envFrom.phpService" (dict "app" $appName "ctx" . "glob" $ "worker" true) }}
 */}}
 {{- define "envFrom.phpService" }}
