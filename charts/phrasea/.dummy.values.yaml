@@ -2,11 +2,6 @@ stack:
   domain: "local"
   tlsEnabled: false
 
-zippy:
-  ingress:
-    baseUrl: "https://zippy.local"
-    hostname: "zippy.local"
-
 soketi:
   key: "soketi-key"
   secret: "soketi-secret"

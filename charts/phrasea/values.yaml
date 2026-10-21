@@ -494,11 +494,6 @@ databox:
   # Leave empty to disable.
   exposeIntegration:
     clientId: expose-integration
-  zippy:
-    enabled: true
-    baseUrl: "https://zippy.{{ .Values.stack.domain }}"
-    clientId: databox
-    clientSecret: __CHANGE_ME_MxWoVddUWq
 
 expose:
   enabled: true
@@ -608,11 +603,6 @@ expose:
     vhost: expose
   database:
     name: expose
-  zippy:
-    enabled: true
-    baseUrl: "https://zippy.{{ .Values.stack.domain }}"
-    clientId: expose
-    clientSecret: __CHANGE_ME_zEp1JbcjuQ
 
 uploader:
   enabled: true
@@ -974,27 +964,6 @@ elasticsearch:
     enabled: true
     storageClass:
     size: 5Gi
-
-zippy:
-  enabled: true
-  ingress:
-    # __SET_ME__
-    baseUrl:
-    # __SET_ME__
-    hostname:
-  rabbitmq:
-    enabled: false
-    # The "/" vhost is created by RabbitMQ for its default user (same credentials as rabbitmq.*).
-    # The subchart job relies on a rabbitmqctl 3.7 client, not compatible with RabbitMQ 3.13.
-    setupVhost: false
-    # Shared RabbitMQ service of the stack (the zippy one is disabled): keep in sync with rabbitmq.host
-    host: rabbitmq
-    # Credentials read from the Secret of the stack RabbitMQ (rabbitmq.*).
-    # Set to rabbitmq.externalSecretName when the stack uses an external Secret.
-    externalSecretName: rabbitmq-secret
-    externalSecretMap:
-      username: RABBITMQ_USER
-      password: RABBITMQ_PASSWORD
 
 # Self-hosted CLIP embedding service of the Databox "Similarity" integration (similar assets search).
 # Built from https://github.com/alchemy-fr/phrasea-similarity-embedder

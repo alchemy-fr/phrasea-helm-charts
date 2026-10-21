@@ -17,11 +17,6 @@ data:
   PWI_UPLOADER_API_URL: {{ tpl $.Values.uploader.api.baseUrl $ | quote }}
   PWI_DATABOX_EXPOSE_INTEGRATION_CLIENT_ID: {{ $.Values.databox.exposeIntegration.clientId | default "" | quote }}
   ALLOWED_FILE_TYPES: {{ $.Values.databox.allowedFileTypes | quote }}
-  {{- if $.Values.databox.zippy.enabled }}
-  ZIPPY_URL: {{ tpl $.Values.databox.zippy.baseUrl $ | quote }}
-  ZIPPY_CLIENT_ID: {{ required "Missing databox.zippy.clientId" $.Values.databox.zippy.clientId | quote }}
-  ZIPPY_CLIENT_SECRET: {{ required "Missing databox.zippy.clientSecret" $.Values.databox.zippy.clientSecret | quote }}
-  {{- end }}
   {{- if $.Values.similarityEmbedder.enabled }}
   SIMILARITY_EMBEDDER_URL: {{ $.Values.similarityEmbedder.url | quote }}
   {{- end }}
