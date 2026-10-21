@@ -935,11 +935,24 @@ _internal:
   - uploader
   - dashboard
 
+# Subchart https://helm.elastic.co elasticsearch 8.5.1 (its last release) running an Elasticsearch 9 image.
 elasticsearch:
-  imageTag: 7.17.28
+  imageTag: 9.1.4
   enabled: true
   replicas: 1
-  clusterName: elasticsearch-databox
+  # Also names the StatefulSet and its PVC: Elasticsearch 9 cannot start on the data of the former 7.x cluster
+  # (elasticsearch-databox), so the 9.x one starts on a new volume.
+  clusterName: elasticsearch9-databox
+  # Security disabled, as in the docker compose stack: plain HTTP on the internal network.
+  # The readiness probe still requires the "elastic" password Secret (secret.enabled), ignored by Elasticsearch.
+  protocol: http
+  createCert: false
+  extraEnvs:
+    - name: xpack.security.enabled
+      value: "false"
+  # The subchart test pod only supports HTTPS
+  tests:
+    enabled: false
   minimumMasterNodes: 1
   # Single replica mode: accept 'yellow' cluster status (shards cannot be replicated with only 1 node)
   # For multi-node cluster (replicas >= 3), comment this line to require 'green' status (default)
