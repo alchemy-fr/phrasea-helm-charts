@@ -179,6 +179,12 @@ keycloak:
     loginCssLogoBackground: "url('../../img/logo.png') no-repeat 40% 65%"
     loginDisplayDashboardLink: true
   enabled: true
+  # Built from https://github.com/alchemy-fr/phrasea-keycloak (no longer part of the Phrasea images)
+  image:
+    repository: public.ecr.aws/b2s9z7l1/ps-keycloak
+    # __SET_ME__  Set a fixed version, do not use "latest" in production
+    tag: latest
+    pullPolicy: IfNotPresent
   autoConnectIdP:
   masterAdmin:
     username: admin
@@ -703,6 +709,11 @@ uploader:
 report:
   enabled: true
   replicas: 1
+  # Built from https://github.com/alchemy-fr/phrasea-report (no longer part of the Phrasea images)
+  image:
+    repository: public.ecr.aws/b2s9z7l1/ps-report-api
+    tag: 1.0.0
+    pullPolicy: IfNotPresent
   api:
     hostname: report-api
     baseUrl: http://report-api
@@ -1087,6 +1098,8 @@ matomo:
   siteId:
   authToken:
   mediaPluginEnabled: false
+  # Databox client: track visitors without any cookie (_pk_*)
+  disableCookies: false
   syncPhraseanet:
     enabled: false
     schedule: '30 5 * * *'

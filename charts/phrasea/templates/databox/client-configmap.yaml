@@ -25,6 +25,9 @@ data:
   {{- end }}
   {{- end }}
   ALLOWED_FILE_TYPES: {{ $.Values.databox.allowedFileTypes | quote }}
+  {{- if $.Values.matomo.enabled }}
+  MATOMO_DISABLE_COOKIES: {{ $.Values.matomo.disableCookies | ternary "1" "0" | quote }}
+  {{- end }}
   S3_MAX_OBJECT_SIZE: {{ .s3MaxObjectSize | quote }}
   {{- include "app.client.configMap" $tplArgs | indent 2 }}
 {{- end }}

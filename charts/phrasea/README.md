@@ -167,6 +167,8 @@ Other behaviour changes:
   The S3/CloudFront regions are required and fail the rendering when empty.
 - `stack.runSynchronize` is removed: the configuration is synchronized by the configurator migration job
   (`stack.runMigrations`).
+- Keycloak and the report API are no longer built with the Phrasea images: they come from
+  `keycloak.image` and `report.image` (public ECR by default) instead of `repository.baseUrl` / `repository.tag`.
 
 ### RabbitMQ 3.7 → 3.13
 
