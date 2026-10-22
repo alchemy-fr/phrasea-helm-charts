@@ -52,7 +52,7 @@ spec:
         - configMapRef:
             name: urls-config
         - configMapRef:
-            name: soketi
+            name: sockudo
             optional: true
         - configMapRef:
             name: databox-client-config

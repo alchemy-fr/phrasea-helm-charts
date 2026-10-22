@@ -41,6 +41,9 @@ imagePullSecrets:
 {{- define "secretName.postgresql" -}}
 {{- .Values.postgresql.externalSecretName | default "postgresql-secret" -}}
 {{- end }}
+{{- define "secretName.sockudo" -}}
+{{- .Values.sockudo.externalSecretName | default "sockudo" -}}
+{{- end }}
 {{- define "secretName.mailer" -}}
 {{- .Values.mailer.externalSecretName | default "mailer" -}}
 {{- end }}
@@ -58,17 +61,17 @@ gateway-tls
 {{- end }}
 
 {{/*
-Soketi server side endpoint for PHP services (overrides the public SOKETI_HOST of the soketi/urls-config ConfigMaps).
+Sockudo server side endpoint for PHP services (overrides the public SOCKUDO_HOST of the sockudo/urls-config ConfigMaps).
 Included by envRef.phpApp, so every PHP pod gets it.
 */}}
-{{- define "envRef.soketi" }}
-{{- if and .Values.soketi.enabled .Values.soketi.serverSide.internal }}
-- name: SOKETI_HOST
-  value: {{ .Values.soketi.serverSide.host | quote }}
-- name: SOKETI_PORT
-  value: {{ .Values.soketi.serverSide.port | quote }}
-- name: SOKETI_SCHEME
-  value: {{ .Values.soketi.serverSide.scheme | quote }}
+{{- define "envRef.sockudo" }}
+{{- if and .Values.sockudo.enabled .Values.sockudo.serverSide.internal }}
+- name: SOCKUDO_HOST
+  value: {{ .Values.sockudo.serverSide.host | quote }}
+- name: SOCKUDO_PORT
+  value: {{ .Values.sockudo.serverSide.port | quote }}
+- name: SOCKUDO_SCHEME
+  value: {{ .Values.sockudo.serverSide.scheme | quote }}
 {{- end }}
 {{- end }}
 
@@ -126,11 +129,11 @@ Usage: {{ include "envFrom.phpService" (dict "app" $appName "ctx" . "glob" $ "wo
 {{- end }}
 - configMapRef:
     name: {{ $appName }}-api-config
-{{- if $glob.Values.soketi.enabled }}
+{{- if $glob.Values.sockudo.enabled }}
 - configMapRef:
-    name: soketi
+    name: sockudo
 - secretRef:
-    name: soketi
+    name: {{ include "secretName.sockudo" $glob }}
 {{- end }}
 {{- if $glob.Values.matomo.enabled }}
 - configMapRef:
@@ -172,7 +175,7 @@ Usage: {{ include "envFrom.phpService" (dict "app" $appName "ctx" . "glob" $ "wo
 - name: DB_NAME
   value: {{ $ctx.database.name | quote }}
 {{- end }}
-{{- include "envRef.soketi" $glob }}
+{{- include "envRef.sockudo" $glob }}
 {{- end }}
 
 {{- define "app.s3Storage.configMap" }}

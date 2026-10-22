@@ -2,9 +2,9 @@ stack:
   domain: "local"
   tlsEnabled: false
 
-soketi:
-  key: "soketi-key"
-  secret: "soketi-secret"
+sockudo:
+  key: "sockudo-key"
+  secret: "sockudo-secret"
 
 databox:
   api:

@@ -44,7 +44,7 @@ spec:
         - configMapRef:
             name: uploader-client-config
         - configMapRef:
-            name: soketi
+            name: sockudo
             optional: true
         - configMapRef:
             name: configurator-s3

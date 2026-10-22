@@ -1039,32 +1039,25 @@ faceRecognition:
       cpu: "2000m"
       memory: "2Gi"
 
-soketi:
+sockudo:
   enabled: true
-  host: "soketi.{{ .Values.stack.domain }}"
+  host: "sockudo.{{ .Values.stack.domain }}"
   servicePort: 6001
+  # appId, key and secret must all be set: otherwise Sockudo keeps the demo app of its bundled config
   appId: phrasea
   # __SET_ME__
-  key: "__CHANGE_ME_k3yPhraseaSoketi"
+  key: "__CHANGE_ME_k3yPhraseaSockudo"
   # __SET_ME__
-  secret: "__CHANGE_ME_s3cr3tPhraseaSoketi"
-  # Use external secret for production
+  secret: "__CHANGE_ME_s3cr3tPhraseaSockudo"
+  # Existing Secret holding SOCKUDO_SECRET (otherwise created from secret)
   externalSecretName:
   app:
+    # https://github.com/sockudo/sockudo
     image:
-      repository: quay.io/soketi/soketi
+      repository: ghcr.io/sockudo/sockudo
       pullPolicy: IfNotPresent
-      tag: "330e1a60197d2b5798a3b3a2bcd211ec124148d8-16-alpine"
-    mode: full
+      tag: "5.2.0"
     maxConnections: 200
-    command:
-      - node
-      - --max-old-space-size=256
-      - --max_old_space_size=256
-      - --optimize_for_size
-      - --optimize-for-size
-      - /app/bin/server.js
-      - start
     resources:
       requests:
         cpu: 100m
@@ -1072,13 +1065,13 @@ soketi:
       limits:
         cpu: 250m
         memory: 256Mi
-    extraEnv: {}
+    extraEnv: []
   serverSide:
     internal: true
-    host: soketi
+    host: sockudo
     port: 80
     scheme: http
-  # Browsers connect to wss://<soketi.host>: the ingress is required for realtime notifications.
+  # Browsers connect to wss://<sockudo.host>: the ingress is required for realtime notifications.
   ingress:
     enabled: true
     annotations:

@@ -146,21 +146,12 @@ from the interactive pod or a worker pod.
 ### Chart 3.0
 
 The defaults now target the Phrasea 5.0 images. The 4.4.x images are no longer supported: they still need the former
-databox CronJobs, Zippy and Elasticsearch 7, removed below. Their databox client and Soketi settings were:
-
-```yaml
-databox:
-  client:
-    port: 80          # 4.4.x databox client is served by nginx
-soketi:
-  serverSide:
-    internal: false   # 4.4.x PHP services cannot reach Soketi over plain HTTP
-```
+databox CronJobs, Zippy, Soketi and Elasticsearch 7, removed below.
 
 Other behaviour changes:
 
 - `keycloak.realm.loginRegistrationAllowed` now defaults to `false`.
-- The Soketi ingress is enabled by default (realtime notifications).
+- The Sockudo ingress is enabled by default (realtime notifications).
 - `databox.api.config.secrets.secretKey` is stored in the `databox-worker-secrets` Secret.
 - `elasticsearch.url` now defaults to the subchart service in `values.yaml`: remove an empty `elasticsearch.url:` from your values.
 - Defaults now live in `values.yaml` only, templates no longer fall back on them. An empty key in your values
@@ -176,6 +167,23 @@ Other behaviour changes:
   automations never run. Remove `databox.cronJob` from your values.
 - Zippy is removed: Expose and Databox build their ZIP archives themselves. Remove the `zippy`, `databox.zippy` and
   `expose.zippy` keys from your values, and the `zippy.<domain>` DNS entry.
+
+### Soketi → Sockudo
+
+Soketi is no longer maintained: the WebSocket server is now [Sockudo](https://github.com/sockudo/sockudo)
+(`ghcr.io/sockudo/sockudo`), which speaks the same Pusher protocol. Everything named after Soketi is renamed, with no
+fallback on the old names:
+
+- the `soketi` values become `sockudo` (`sockudo.host`, `sockudo.appId`, `sockudo.key`, `sockudo.secret`,
+  `sockudo.serverSide.*`, `sockudo.ingress.*`...). `soketi.app.mode` and `soketi.app.command` are removed.
+- the public host defaults to `sockudo.<domain>`: update your DNS and TLS certificates, or set `sockudo.host` to the
+  former `soketi.<domain>`.
+- the `soketi` ConfigMap, Secret and Service become `sockudo`, and the `SOKETI_*` variables `SOCKUDO_*`.
+- `sockudo.externalSecretName` names an existing Secret holding `SOCKUDO_SECRET`.
+
+`sockudo.appId`, `sockudo.key` and `sockudo.secret` must all be set: otherwise Sockudo keeps the demo app of its
+bundled configuration. Sockudo serves `/usage` and `/stats` on the app port: the `sockudo-internal-paths` Ingress denies
+them (and `/operator`) on the public host.
 
 ### Elasticsearch 7.17 → 9
 
@@ -195,6 +203,13 @@ bin/console fos:elastica:populate
 
 An external Elasticsearch (`elasticsearch.enabled: false`) must be upgraded to 9.x as well (8.12 at least for the
 similarity search).
+
+A stack already running a 5.0 pre-release must rebuild the `asset` index as well: its new `attributeValues` field
+applies the asset rights of `GET /attributes?definition=`, which returns no value until the index is repopulated.
+
+```bash
+bin/console fos:elastica:populate --index=asset
+```
 
 ### RabbitMQ 3.7 → 3.13
 
