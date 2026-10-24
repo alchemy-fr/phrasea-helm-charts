@@ -28,10 +28,19 @@ Usage: {{ include "ps.resourceQuota" (dict "local" .resourceQuota "global" $.Val
 {{- .Values.nameOverride | default "ps" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
+{{/*
+Pull secrets of the Phrasea pods: the static image.pullSecret and/or the
+private ECR Secret kept up to date by the ecrTokenRefresher CronJob.
+*/}}
 {{- define "imagePullSecrets" }}
-{{- if .Values.image.pullSecret.enabled }}
+{{- if or .Values.image.pullSecret.enabled .Values.ecrTokenRefresher.enabled }}
 imagePullSecrets:
+{{- if .Values.image.pullSecret.enabled }}
 - name: {{ .Values.image.pullSecret.name }}
+{{- end }}
+{{- if .Values.ecrTokenRefresher.enabled }}
+- name: {{ .Values.ecrTokenRefresher.secretName }}
+{{- end }}
 {{- end }}
 {{- end }}
 
