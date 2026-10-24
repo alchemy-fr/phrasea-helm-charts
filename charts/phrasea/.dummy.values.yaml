@@ -2,14 +2,9 @@ stack:
   domain: "local"
   tlsEnabled: false
 
-zippy:
-  ingress:
-    baseUrl: "https://zippy.local"
-    hostname: "zippy.local"
-
-soketi:
-  key: "soketi-key"
-  secret: "soketi-secret"
+sockudo:
+  key: "sockudo-key"
+  secret: "sockudo-secret"
 
 databox:
   api:
@@ -17,9 +12,6 @@ databox:
       secrets:
         publicKey: "databox-public-key"
         secretKey: "databox-secret-key"
-
-elasticsearch:
-  imageTag: 7.17.28
 
 repository:
   tag: configurator-fixes

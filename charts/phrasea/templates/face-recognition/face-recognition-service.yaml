@@ -1,0 +1,16 @@
+{{- with .Values.faceRecognition }}
+{{- if and $.Values.stack.running .enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: face-recognition
+spec:
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
+  selector:
+    app: phrasea
+    tier: face-recognition
+{{- end }}
+{{- end }}

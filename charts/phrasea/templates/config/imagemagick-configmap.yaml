@@ -9,3 +9,6 @@ data:
   IMAGEMAGICK_POLICY_MAP: {{ .Values.ImageMagick.policy.map | quote }}
   IMAGEMAGICK_POLICY_WIDTH: {{ .Values.ImageMagick.policy.width | quote }}
   IMAGEMAGICK_POLICY_VERSION: {{ .Values.ImageMagick.policy.version | quote }}
+  {{- with .Values.ImageMagick.policy.memory }}
+  IMAGEMAGICK_POLICY_MEMORY: {{ . | quote }}
+  {{- end }}

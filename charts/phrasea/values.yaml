@@ -11,8 +11,8 @@ stack:
   domain:
   running: true
   runSetups: true
+  # Also synchronizes the configuration (Keycloak clients, buckets...) through the configurator migration job
   runMigrations: true
-  runSynchronize: true
   migrations:
     phpMemoryLimit: '1G'
 
@@ -43,8 +43,9 @@ acme:
     secretKey:
     # Secret name if using existing secret
     existingSecretName:
-    existingSecretAccessKeyKey:
-    existingSecretSecretKeyKey:
+    # Keys of the access/secret keys in the Secret
+    existingSecretAccessKeyKey: SCW_ACCESS_KEY
+    existingSecretSecretKeyKey: SCW_SECRET_KEY
   
   # Gandi LiveDNS v5 configuration
   gandi:
@@ -52,11 +53,12 @@ acme:
     # Required permissions: "Manage domain name technical configurations"
     personalAccessToken:
     existingSecretName:
-    existingSecretKey:
+    # Key of the token in the Secret
+    existingSecretKey: api-token
   
   # AWS Route53 configuration
   route53:
-    region:
+    region: eu-west-3
     # IAM access key with Route53 permissions
     accessKeyId:
     secretAccessKey:
@@ -132,7 +134,7 @@ configurator:
     # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
     endpoint: "{{ tpl .Values.minio.baseUrl . }}"
     # required for some object storage providers
-    region:
+    region: eu-west-3
     bucketName: config
     # True for a local minio, false for an external object storage provider
     usePathStyleEndpoint: true 
@@ -156,7 +158,7 @@ keycloak:
     htmlDisplayName: "<div style=\"font-size: 18px; text-transform: none; color: #000000\"><span>Phrasea Auth</span></div>"
     supportedLocales: "en,fr"
     defaultLocale: en
-    loginRegistrationAllowed: true
+    loginRegistrationAllowed: false
     loginResetPasswordAllowed: true
     loginRememberMeAllowed: true
     loginWithEmailAllowed: false
@@ -177,6 +179,12 @@ keycloak:
     loginCssLogoBackground: "url('../../img/logo.png') no-repeat 40% 65%"
     loginDisplayDashboardLink: true
   enabled: true
+  # Built from https://github.com/alchemy-fr/phrasea-keycloak (no longer part of the Phrasea images)
+  image:
+    repository: public.ecr.aws/b2s9z7l1/ps-keycloak
+    # __SET_ME__  Set a fixed version, do not use "latest" in production
+    tag: latest
+    pullPolicy: IfNotPresent
   autoConnectIdP:
   masterAdmin:
     username: admin
@@ -187,6 +195,8 @@ keycloak:
     username: phrasea-admin@xxx.zz
     # __SET_ME__
     password: __CHANGE_ME_KFBsKzc7RupJhXkr
+    # Optional, defaults to the username (suffixed with @<stack.domain> if it is not an email)
+    email:
     # set to true to keep the password as is (do not force change at first login)
     passwordIsDefinitive: false
   database:
@@ -194,6 +204,9 @@ keycloak:
   hostname: "keycloak.{{ .Values.stack.domain }}"
   baseUrl: "https://keycloak.{{ .Values.stack.domain }}"
   internalBaseUrl: http://keycloak
+  # Comma separated list of IPs/CIDRs allowed to set the X-Forwarded-* headers (e.g. the ingress controller pods CIDR).
+  # Empty: trust any source.
+  proxyTrustedAddresses:
   ingress:
     enabled: true
     annotations:
@@ -224,18 +237,6 @@ databox:
   # this option enable the import of fixtures after setup
   # warning: this will erase existing data in databases.
   importFixtures: false
-  cronJob:
-    enabled: true
-    daily:
-      enabled: true
-      # Daily at 3am
-      schedule: '0 3 * * *'
-      script: bin/cron-script-daily.sh
-    hourly:
-      enabled: true
-      # Every hour
-      schedule: '0 * * * *'
-      script: bin/cron-script-hourly.sh
   allowedFileTypes: "image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.psd,.psb,.ai,.dng,.jfif,.jpe,.psdt,.emf,.wmf,.svgz,.ait,.eps,.epsf,.epsi,.indd,.indt,.idml,.idms,.icml,.cr2,.cr3,.crw,.nef,.nrw,.arw,.sr2,.srf,.raf,.rw2,.mrw,.orf,.pef,.dcr,.k25,.kdc),application/*(.pdf,.doc,.docx,.md,.txt,.xls,.xlsx,.odt,.psd,.psb,.csv,.ods,.dot,.dotm,.dotx,.docm,.rtf,.wps,.xlam,.xlsb,.xlsm,.xlt,.xltm,.xltx,.xlw,.html,.htm,.mht,.mhtml,.ppt,.pptm,.pptx,.pps,.ppsm,.ppsx,.pot,.potm,.potx,.ppa,.ppam,.ps,.aep,.prproj),video/*(.mpg,.mpeg,.mov,.avi,.mxf,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc,.webm,.wmv),audio/*(.ogg,.opus,.m4r,.ac3,.flac,.aac,.mp3,.aiff,.aif,.wav)"
   # Min size for multipart upload chunks in bytes (default 20Mb) - must be at least 5Mb for AWS S3 and some S3-compatible providers
   s3MultipartMinChunkSize: "20971520"
@@ -275,7 +276,7 @@ databox:
         # Example: https://s3.my-s3-provider.com
         # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
         endpoint: "{{ tpl .Values.minio.baseUrl . }}"
-        region:
+        region: eu-west-3
         bucketName: databox
         # true for a local minio, false for an external object storage provider
         usePathStyleEndpoint: true 
@@ -289,10 +290,11 @@ databox:
           secretKey: S3_SECRET_KEY
       cloudFront:
         url:
-        region:
+        region: eu-west-3
         privateKey:
         keyPairId:
         ttl: 86400
+      # Default Phraseanet instance used by the workspace integrations (PWI_PHRASEANET_URL / PWI_PHRASEANET_API_TOKEN)
       phraseanet:
         baseUrl:
         oauthToken:
@@ -308,15 +310,17 @@ databox:
   client:
     hostname: "databox.{{ .Values.stack.domain }}"
     baseUrl: "https://databox.{{ .Values.stack.domain }}"
+    # Port the container listens on: 3000 for the Next.js client, set 80 for images <= 4.4.2 (nginx)
+    port: 3000
     # Override global resourceQuota for this service (true/false), defaults to global value
     # resourceQuota:
     resources:
       requests:
-        cpu: "25m"
-        memory: "64Mi"
+        cpu: "50m"
+        memory: "128Mi"
       limits:
-        cpu: "500m"
-        memory: "256Mi"
+        cpu: "1000m"
+        memory: "512Mi"
     ingress:
       enabled: true
       annotations: {}
@@ -324,6 +328,28 @@ databox:
       tls: []
     oauthClient:
       id: databox-app
+    # Optional custom logo (APP_LOGO_SRC)
+    logoSrc:
+    # Public Mapbox token (pk.*), exposed to the browser through MAPBOX_TOKEN.
+    # Leave empty to disable maps. Restrict the token to the Databox client URLs.
+    mapbox:
+      token: ""
+    # "Report an issue" button: tickets are created in JIRA server side
+    ticketing:
+      enabled: false
+      # Existing Secret holding DATABOX_TICKETING_JIRA_API_TOKEN (otherwise created from jira.apiToken)
+      externalSecretName:
+      jira:
+        url:
+        # JIRA Cloud: account email (Basic auth). Leave empty for a Server/Data Center personal access token (Bearer)
+        user:
+        apiToken:
+        projectKey:
+        issueType: Task
+        bugIssueType: Bug
+        labels: databox
+        # 3 for JIRA Cloud, 2 for Server/Data Center
+        apiVersion: "3"
   worker:
     replicas: 1
     # Override global resourceQuota for this service (true/false), defaults to global value
@@ -335,11 +361,26 @@ databox:
       limits:
         cpu: "2000m"
         memory: "4Gi"
+  # Runs the periodic tasks (Symfony Scheduler): due automations, digest emails,
+  # integration tokens renewal, trash purge... Always a single pod.
+  scheduler:
+    enabled: true
+    # Override global resourceQuota for this service (true/false), defaults to global value
+    # resourceQuota:
+    resources:
+      requests:
+        cpu: "50m"
+        memory: "256Mi"
+      limits:
+        cpu: "1000m"
+        memory: "2Gi"
   indexer:
     enabled: false
     # clientId and clientSecret are used by the configurator to register the indexer OAuth client
     clientId:
     clientSecret:
+    # If set, the configurator creates this bucket (and its event notification when configurator.configure.minio is true)
+    bucketName:
     # Default resources applied to all instances (can be overridden per instance)
     resources:
       requests:
@@ -449,11 +490,10 @@ databox:
     name: databox
   upload:
     uploaderTargetSlug: databox-uploader
-  zippy:
-    enabled: true
-    baseUrl: "https://zippy.{{ .Values.stack.domain }}"
-    clientId: databox
-    clientSecret: __CHANGE_ME_MxWoVddUWq
+  # OAuth client (created by the configurator) used by the Expose integration of Databox.
+  # Leave empty to disable.
+  exposeIntegration:
+    clientId: expose-integration
 
 expose:
   enabled: true
@@ -497,7 +537,7 @@ expose:
         # Example: https://s3.my-s3-provider.com
         # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
         endpoint: "{{ tpl .Values.minio.baseUrl . }}"
-        region:
+        region: eu-west-3
         bucketName: expose
         # true for a local minio, false for an external object storage provider
         usePathStyleEndpoint: true
@@ -511,7 +551,7 @@ expose:
           secretKey: S3_SECRET_KEY
       cloudFront:
         url:
-        region:
+        region: eu-west-3
         privateKey:
         keyPairId:
         ttl: 86400
@@ -563,11 +603,6 @@ expose:
     vhost: expose
   database:
     name: expose
-  zippy:
-    enabled: true
-    baseUrl: "https://zippy.{{ .Values.stack.domain }}"
-    clientId: expose
-    clientSecret: __CHANGE_ME_zEp1JbcjuQ
 
 uploader:
   enabled: true
@@ -606,13 +641,12 @@ uploader:
       assetConsumerCommitUri:
       assetConsumerAccessToken:
       requestSignatureTtl: 3600
-      allowedFileTypes: "image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.psd,.psb,.ai,.dng,.jfif,.jpe,.psdt,.emf,.wmf,.svgz,.ait,.eps,.epsf,.epsi,.indd,.indt,.idml,.idms,.icml,.cr2,.cr3,.crw,.nef,.nrw,.arw,.sr2,.srf,.raf,.rw2,.mrw,.orf,.pef,.dcr,.k25,.kdc),application/*(.pdf,.doc,.docx,.md,.txt,.xls,.xlsx,.odt,.psd,.psb,.csv,.ods,.dot,.dotm,.dotx,.docm,.rtf,.wps,.xlam,.xlsb,.xlsm,.xlt,.xltm,.xltx,.xlw,.html,.htm,.mht,.mhtml,.ppt,.pptm,.pptx,.pps,.ppsm,.ppsx,.pot,.potm,.potx,.ppa,.ppam,.ps,.aep,.prproj),video/*(.mpg,.mpeg,.mov,.avi,.mxf,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc,.webm,.wmv),audio/*(.ogg,.opus,.m4r,.ac3,.flac,.aac,.mp3,.aiff,.aif,.wav)"
       s3Storage:
         # When using an external object storage provider, set the "endpoint" to the root domain of the service.
         # Example: https://s3.my-s3-provider.com
         # The "bucketName" will be prepended to this endpoint to form the full bucket URL (e.g., https://<bucketName>.s3.my-s3-provider.com).
         endpoint: "{{ tpl .Values.minio.baseUrl . }}"
-        region:
+        region: eu-west-3
         bucketName: uploader
         # true for a local minio, false for an external object storage
         usePathStyleEndpoint: true
@@ -639,6 +673,18 @@ uploader:
       limits:
         cpu: "2000m"
         memory: "2048Mi"
+  # Runs the periodic tasks (Symfony Scheduler): expired assets purge... Always a single pod.
+  scheduler:
+    enabled: true
+    # Override global resourceQuota for this service (true/false), defaults to global value
+    # resourceQuota:
+    resources:
+      requests:
+        cpu: "25m"
+        memory: "128Mi"
+      limits:
+        cpu: "500m"
+        memory: "1Gi"
   client:
     hostname: "uploader.{{ .Values.stack.domain }}"
     baseUrl: "https://uploader.{{ .Values.stack.domain }}"
@@ -666,6 +712,11 @@ uploader:
 report:
   enabled: true
   replicas: 1
+  # Built from https://github.com/alchemy-fr/phrasea-report (no longer part of the Phrasea images)
+  image:
+    repository: public.ecr.aws/b2s9z7l1/ps-report-api
+    tag: 1.0.0
+    pullPolicy: IfNotPresent
   api:
     hostname: report-api
     baseUrl: http://report-api
@@ -736,7 +787,12 @@ mailer:
   port: 
   user:
   password:
+  # SMTP encryption used by Keycloak (MAILER_SSL: implicit TLS, MAILER_TLS: STARTTLS)
+  ssl: false
+  tls: false
+  # Defaults to noreply@<stack.domain>
   from:
+  # Defaults to "Phrasea" (or "Phrasea noreply <stack.name>")
   fromDisplayName:
   replyTo:
   replyToDisplayName:
@@ -745,6 +801,7 @@ mailer:
 
 postgresql:
   enabled: true
+  image: postgres:14.4-alpine
   externalSecretName:
   host: postgresql
   port: 5432
@@ -770,6 +827,7 @@ postgresql:
 
 redis:
   enabled: true
+  image: redis:7.4.1-alpine3.20
   # Override global resourceQuota for this service (true/false), defaults to global value
   # resourceQuota:
   resources:
@@ -783,7 +841,8 @@ redis:
 rabbitmq:
   enabled: true
   consoleUrl: "http://rabbitmq:15672"
-  image: rabbitmq:3.7.14-management
+  # Upgrading from 3.7: see the chart README (RabbitMQ cannot jump directly from 3.7 to 3.13)
+  image: rabbitmq:3.13.7-management
   externalSecretName:
   host: rabbitmq
   port: 5672
@@ -815,9 +874,13 @@ rabbitmq:
 
 minio:
   enabled: true
+  # MinIO no longer publishes community images: use the maintained community build
+  image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
   hostname: "minio.{{ .Values.stack.domain }}"
   baseUrl: "https://{{ tpl .Values.minio.hostname . }}"
   internalBaseUrl: "http://minio:80"
+  # ARN of the AMQP notification target used for the indexer bucket events (configurator default: arn:minio:sqs::PRIMARY:amqp)
+  notifyAmqpArn:
   # __SET_ME__
   accessKey: '__CHANGE_ME_jw2G5OskVG2VVXIyHsuQJIo'
   # __SET_ME__
@@ -872,16 +935,30 @@ _internal:
   - uploader
   - dashboard
 
+# Subchart https://helm.elastic.co elasticsearch 8.5.1 (its last release) running an Elasticsearch 9 image.
 elasticsearch:
-  imageTag: 7.17.28
+  imageTag: 9.1.4
   enabled: true
   replicas: 1
-  clusterName: elasticsearch-databox
+  # Also names the StatefulSet and its PVC: Elasticsearch 9 cannot start on the data of the former 7.x cluster
+  # (elasticsearch-databox), so the 9.x one starts on a new volume.
+  clusterName: elasticsearch9-databox
+  # Security disabled, as in the docker compose stack: plain HTTP on the internal network.
+  # The readiness probe still requires the "elastic" password Secret (secret.enabled), ignored by Elasticsearch.
+  protocol: http
+  createCert: false
+  extraEnvs:
+    - name: xpack.security.enabled
+      value: "false"
+  # The subchart test pod only supports HTTPS
+  tests:
+    enabled: false
   minimumMasterNodes: 1
   # Single replica mode: accept 'yellow' cluster status (shards cannot be replicated with only 1 node)
   # For multi-node cluster (replicas >= 3), comment this line to require 'green' status (default)
   clusterHealthCheckParams: "wait_for_status=yellow&timeout=1s"
-  url:
+  # External Elasticsearch URL, defaults to the service of the elasticsearch subchart (<clusterName>-master)
+  url: "http://{{ .Values.elasticsearch.clusterName }}-master:9200"
   indexPrefix: ""
   resources:
     requests:
@@ -901,46 +978,86 @@ elasticsearch:
     storageClass:
     size: 5Gi
 
-zippy:
-  enabled: true
-  ingress:
-    # __SET_ME__
-    baseUrl:
-    # __SET_ME__
-    hostname:
-  rabbitmq:
-    enabled: false
-    username: phrasea
-    password: '__CHANGE_ME_yUZV7fEAnb$u4dqFchQDz'
-    erlangCookie: 'H#75$3CjoTKn3129DNwcqlHvhfqs15'
-    nodeName: 'rabbit@rabbitmq'
+# Self-hosted CLIP embedding service of the Databox "Similarity" integration (similar assets search).
+# Built from https://github.com/alchemy-fr/phrasea-similarity-embedder
+# The kNN search requires Elasticsearch >= 8.12.
+similarityEmbedder:
+  enabled: false
+  image:
+    repository: public.ecr.aws/b2s9z7l1/ps-similarity-embedder
+    tag: 0.0.1
+    pullPolicy: IfNotPresent
+  replicas: 1
+  # Endpoint reached by the Databox API and worker (SIMILARITY_EMBEDDER_URL)
+  url: http://similarity-embedder:8000
+  config:
+    # Max request/file size in bytes
+    maxUploadBytes: "2097152"
+    # Max text length of the text embedding requests
+    maxTextLength: "10000"
+    # Decompression-bomb guard
+    maxImagePixels: "5000000"
+  # Override global resourceQuota for this service (true/false), defaults to global value
+  # resourceQuota:
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "512Mi"
+    limits:
+      cpu: "2000m"
+      memory: "2Gi"
 
-soketi:
+# Self-hosted face detection/recognition service (InsightFace) of the Databox "Face Recognition" integration.
+# Built from https://github.com/alchemy-fr/phrasea-face-recognition
+faceRecognition:
+  enabled: false
+  image:
+    repository: public.ecr.aws/b2s9z7l1/ps-face-recognition
+    tag: 0.0.1
+    pullPolicy: IfNotPresent
+  replicas: 1
+  # Endpoint reached by the Databox API and worker (FACE_RECOGNITION_URL)
+  url: http://face-recognition:8000
+  config:
+    # Detector input size in pixels
+    detSize: "640"
+    # Minimum detection score
+    detThresh: "0.5"
+    # Max number of faces returned per image
+    maxFaces: "100"
+    # Max request/file size in bytes
+    maxUploadBytes: "10485760"
+    # Decompression-bomb guard
+    maxImagePixels: "30000000"
+  # Override global resourceQuota for this service (true/false), defaults to global value
+  # resourceQuota:
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "512Mi"
+    limits:
+      cpu: "2000m"
+      memory: "2Gi"
+
+sockudo:
   enabled: true
-  host: "soketi.{{ .Values.stack.domain }}"
+  host: "sockudo.{{ .Values.stack.domain }}"
   servicePort: 6001
+  # appId, key and secret must all be set: otherwise Sockudo keeps the demo app of its bundled config
   appId: phrasea
   # __SET_ME__
-  key: "__CHANGE_ME_k3yPhraseaSoketi"
+  key: "__CHANGE_ME_k3yPhraseaSockudo"
   # __SET_ME__
-  secret: "__CHANGE_ME_s3cr3tPhraseaSoketi"
-  # Use external secret for production
+  secret: "__CHANGE_ME_s3cr3tPhraseaSockudo"
+  # Existing Secret holding SOCKUDO_SECRET (otherwise created from secret)
   externalSecretName:
   app:
+    # https://github.com/sockudo/sockudo
     image:
-      repository: quay.io/soketi/soketi
+      repository: ghcr.io/sockudo/sockudo
       pullPolicy: IfNotPresent
-      tag: "1.6-16-debian"
-    mode: full
+      tag: "5.2.0"
     maxConnections: 200
-    command:
-      - node
-      - --max-old-space-size=256
-      - --max_old_space_size=256
-      - --optimize_for_size
-      - --optimize-for-size
-      - /app/bin/server.js
-      - start
     resources:
       requests:
         cpu: 100m
@@ -948,10 +1065,20 @@ soketi:
       limits:
         cpu: 250m
         memory: 256Mi
-    extraEnv: {}
+    extraEnv: []
+  serverSide:
+    internal: true
+    host: sockudo
+    port: 80
+    scheme: http
+  # Browsers connect to wss://<sockudo.host>: the ingress is required for realtime notifications.
   ingress:
-    enabled: false
-    annotations: {}
+    enabled: true
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    extraLabels: {}
+    tls: []
 
 matomo:
   enabled: false
@@ -959,6 +1086,8 @@ matomo:
   siteId:
   authToken:
   mediaPluginEnabled: false
+  # Databox client: track visitors without any cookie (_pk_*)
+  disableCookies: false
   syncPhraseanet:
     enabled: false
     schedule: '30 5 * * *'
@@ -967,7 +1096,7 @@ mailpit:
   enabled: false
   image:
     repository: axllent/mailpit
-    tag: latest
+    tag: v1.31
   # Plain-text "user:password" pair for the UI's MP_UI_AUTH env var (Mailpit
   # only supports this via env, not as a CLI flag). Fine for a dev/test-only
   # tool, but do not reuse this password anywhere sensitive.
@@ -1030,6 +1159,8 @@ sentry:
 
 ImageMagick:
   policy:
+    # Should stay below the databox worker memory limit
+    memory: 768MiB
     area: 2GiB
     temporaryPath: /tmp
     disk: 40GiB
