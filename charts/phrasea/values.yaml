@@ -1041,7 +1041,7 @@ faceRecognition:
 
 sockudo:
   enabled: true
-  host: "sockudo.{{ .Values.stack.domain }}"
+  host: "ws.{{ .Values.stack.domain }}"
   servicePort: 6001
   # appId, key and secret must all be set: otherwise Sockudo keeps the demo app of its bundled config
   appId: phrasea

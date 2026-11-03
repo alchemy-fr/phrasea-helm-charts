@@ -176,7 +176,7 @@ fallback on the old names:
 
 - the `soketi` values become `sockudo` (`sockudo.host`, `sockudo.appId`, `sockudo.key`, `sockudo.secret`,
   `sockudo.serverSide.*`, `sockudo.ingress.*`...). `soketi.app.mode` and `soketi.app.command` are removed.
-- the public host defaults to `sockudo.<domain>`: update your DNS and TLS certificates, or set `sockudo.host` to the
+- the public host defaults to `ws.<domain>`: update your DNS and TLS certificates, or set `sockudo.host` to the
   former `soketi.<domain>`.
 - the `soketi` ConfigMap, Secret and Service become `sockudo`, and the `SOKETI_*` variables `SOCKUDO_*`.
 - `sockudo.externalSecretName` names an existing Secret holding `SOCKUDO_SECRET`.
