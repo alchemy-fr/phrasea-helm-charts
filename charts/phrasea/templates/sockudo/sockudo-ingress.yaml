@@ -1,0 +1,70 @@
+{{- if and $.Values.stack.running $.Values.sockudo.enabled $.Values.sockudo.ingress.enabled }}
+apiVersion: {{ template "ingress.apiVersion" $ }}
+kind: Ingress
+metadata:
+  name: sockudo
+  labels:
+    app: phrasea
+    tier: sockudo
+  {{- with $.Values.sockudo.ingress.extraLabels }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with $.Values.sockudo.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: {{ tpl $.Values.sockudo.host $ | quote }}
+      http:
+        paths:
+        {{- include "ingress.rule_path" (dict "_" $ "name" "sockudo" "port" 80) | indent 8 }}
+{{- if $.Values.sockudo.ingress.tls }}
+{{- $tlsNode := $.Values.sockudo.ingress.tls -}}
+{{- range $value := $tlsNode }}
+  {{- if not (hasKey $value "hosts") }}
+    {{- $_ := set $value "hosts" (list (tpl $.Values.sockudo.host $)) }}
+  {{- end -}}
+{{- end }}
+  tls:
+{{ toYaml $tlsNode | indent 2 }}
+{{- else if $.Values.ingress.tls.wildcard.enabled }}
+  tls:
+    - hosts:
+        - {{ tpl $.Values.sockudo.host $ | quote }}
+      secretName: {{ include "secretRef.ingress.tls.wildcard" $ }}
+{{- end }}
+{{- end }}
+{{- if and $.Values.stack.running $.Values.sockudo.enabled $.Values.sockudo.ingress.enabled }}
+---
+# Sockudo serves /usage and /stats on the app port: ingress-nginx merges this Ingress
+# into the same server and denies these locations to every client.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sockudo-internal-paths
+  labels:
+    app: phrasea
+    tier: sockudo
+  {{- with $.Values.sockudo.ingress.extraLabels }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  annotations:
+    nginx.ingress.kubernetes.io/denylist-source-range: "0.0.0.0/0,::/0"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: {{ tpl $.Values.sockudo.host $ | quote }}
+      http:
+        paths:
+        {{- range list "/usage" "/stats" "/operator" }}
+          - path: {{ . }}
+            pathType: Prefix
+            backend:
+              service:
+                name: sockudo
+                port:
+                  number: 80
+        {{- end }}
+{{- end }}

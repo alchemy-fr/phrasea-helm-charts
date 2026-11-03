@@ -25,7 +25,7 @@ spec:
 {{- $tlsNode := .ingress.tls -}}
 {{- range $value := $tlsNode }}
   {{- if not (hasKey $value "hosts") }}
-    {{- $hosts := list $ingressNode.hostname }}
+    {{- $hosts := list (tpl $ingressNode.hostname $) }}
     {{- $_ := set $value "hosts" $hosts }}
   {{- end -}}
 {{- end }}
