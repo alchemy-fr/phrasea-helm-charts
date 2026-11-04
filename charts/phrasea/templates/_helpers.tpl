@@ -304,6 +304,10 @@ env:
   value: {{ .Values.configurator.database.name | quote }}
 - name: CONFIGURATOR_SERVICE_WAIT_TIMEOUT
   value: {{ .Values.configurator.serviceWaitTimeout | quote }}
+{{- with .Values.configurator.presets }}
+- name: CONFIGURATOR_PRESETS
+  value: {{ . | quote }}
+{{- end }}
 - name: KEYCLOAK_ADMIN_PASSWORD_IS_DEFINITIVE
   value: {{ .Values.keycloak.defaultAdmin.passwordIsDefinitive | quote }}
 - name: KC_REALM_HTML_DISPLAY_NAME
@@ -453,4 +457,61 @@ envFrom:
     secretKeyRef:
       name: {{ $secretName }}
       key: {{ $mapping.secretKey }}
+{{- end }}
+
+{{/*
+Container of the lifecycle Jobs of a PHP app (bin/lifecycle.sh <phase>): the same environment for every phase.
+Usage: {{ include "lifecycle.appContainerSpecs" (dict "app" $appName "ctx" . "glob" $) }}
+*/}}
+{{- define "lifecycle.appContainerSpecs" -}}
+{{- $appName := .app }}
+{{- $ctx := .ctx }}
+{{- $glob := .glob -}}
+name: {{ $appName }}-php-job
+image: {{ $glob.Values.repository.baseUrl }}/ps-{{ $appName }}-api-php:{{ $glob.Values.repository.tag }}
+imagePullPolicy: {{ $glob.Values.repository.imagePullPolicy }}
+terminationMessagePolicy: FallbackToLogsOnError
+env:
+- name: PHP_MEMORY_LIMIT
+  value: {{ $glob.Values.stack.migrations.phpMemoryLimit | quote }}
+{{- include "envRef.phpApp" . }}
+{{- include "envRef.configuratorSecrets" $glob }}
+envFrom:
+{{- include "envFrom.phpApp" $glob }}
+{{- include "envFrom.rabbitmq" $glob }}
+{{- include "envFrom.postgresql" $glob }}
+{{- if $ctx.adminOAuthClient }}
+- secretRef:
+    name: {{ $ctx.adminOAuthClient.externalSecretName | default (printf "%s-admin-oauth-client-secret" $appName) }}
+{{- end }}
+- configMapRef:
+    name: {{ $appName }}-api-config
+{{- end }}
+
+{{/*
+Job running one lifecycle phase of a component: bin/lifecycle.sh <phase>, as a Helm hook.
+Usage: {{ include "lifecycle.job" (dict "glob" $ "component" "configurator" "phase" "pre-install" "hook" "post-install" "weight" 4 "backoffLimit" 0 "container" (include "configurator.containerSpecs" $)) }}
+*/}}
+{{- define "lifecycle.job" -}}
+{{- $glob := .glob -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .component }}-{{ .phase }}
+  annotations:
+    "helm.sh/hook": {{ .hook }}
+    "helm.sh/hook-weight": {{ .weight | toString | quote }}
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    spec:
+      {{- include "imagePullSecrets" $glob | indent 6 }}
+      {{- if $glob.Values.nodeSelector }}
+      nodeSelector: {{ toYaml $glob.Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      containers:
+      - {{- .container | nindent 8 }}
+        args: ["bin/lifecycle.sh", {{ .phase | quote }}]
+      restartPolicy: Never
+  backoffLimit: {{ .backoffLimit }}
 {{- end }}
