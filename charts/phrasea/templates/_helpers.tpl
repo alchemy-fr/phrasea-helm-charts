@@ -35,16 +35,14 @@ imagePullSecrets:
 {{- end }}
 {{- end }}
 
-{{- define "secretRef.adminOAuthClient" }}
-- secretRef:
-    name: {{ .Values.params.adminOAuthClient.externalSecretName | default (printf "%s-admin-oauth-client-secret" .Release.Name) }}
-{{- end }}
-
 {{- define "secretName.rabbitmq" -}}
 {{- .Values.rabbitmq.externalSecretName | default "rabbitmq-secret" -}}
 {{- end }}
 {{- define "secretName.postgresql" -}}
 {{- .Values.postgresql.externalSecretName | default "postgresql-secret" -}}
+{{- end }}
+{{- define "secretName.sockudo" -}}
+{{- .Values.sockudo.externalSecretName | default "sockudo" -}}
 {{- end }}
 {{- define "secretName.mailer" -}}
 {{- .Values.mailer.externalSecretName | default "mailer" -}}
@@ -59,6 +57,21 @@ imagePullSecrets:
 {{- else -}}
 gateway-tls
 {{- end }}
+{{- end }}
+{{- end }}
+
+{{/*
+Sockudo server side endpoint for PHP services (overrides the public SOCKUDO_HOST of the sockudo/urls-config ConfigMaps).
+Included by envRef.phpApp, so every PHP pod gets it.
+*/}}
+{{- define "envRef.sockudo" }}
+{{- if and .Values.sockudo.enabled .Values.sockudo.serverSide.internal }}
+- name: SOCKUDO_HOST
+  value: {{ .Values.sockudo.serverSide.host | quote }}
+- name: SOCKUDO_PORT
+  value: {{ .Values.sockudo.serverSide.port | quote }}
+- name: SOCKUDO_SCHEME
+  value: {{ .Values.sockudo.serverSide.scheme | quote }}
 {{- end }}
 {{- end }}
 
@@ -90,6 +103,44 @@ gateway-tls
     name: mailer
 - secretRef:
     name: {{ include "secretName.mailer" . }}
+{{- end }}
+
+{{/*
+envFrom shared by the long running PHP services of an app (API, worker, scheduler).
+Usage: {{ include "envFrom.phpService" (dict "app" $appName "ctx" . "glob" $ "worker" true) }}
+*/}}
+{{- define "envFrom.phpService" }}
+{{- $appName := .app }}
+{{- $ctx := .ctx }}
+{{- $glob := .glob }}
+{{- if $ctx.adminOAuthClient }}
+- secretRef:
+    name: {{ $ctx.adminOAuthClient.externalSecretName | default (printf "%s-admin-oauth-client-secret" $appName) }}
+{{- end }}
+{{- if eq "databox" $appName }}
+- secretRef:
+    name: {{ $appName }}-secrets
+{{- if .worker }}
+- secretRef:
+    name: {{ $appName }}-worker-secrets
+{{- end }}
+- configMapRef:
+    name: imagemagick-policies
+{{- end }}
+- configMapRef:
+    name: {{ $appName }}-api-config
+{{- if $glob.Values.sockudo.enabled }}
+- configMapRef:
+    name: sockudo
+- secretRef:
+    name: {{ include "secretName.sockudo" $glob }}
+{{- end }}
+{{- if $glob.Values.matomo.enabled }}
+- configMapRef:
+    name: matomo
+- secretRef:
+    name: matomo
+{{- end }}
 {{- end }}
 
 {{- define "envRef.phpApp" }}
@@ -124,6 +175,7 @@ gateway-tls
 - name: DB_NAME
   value: {{ $ctx.database.name | quote }}
 {{- end }}
+{{- include "envRef.sockudo" $glob }}
 {{- end }}
 
 {{- define "app.s3Storage.configMap" }}
@@ -132,22 +184,23 @@ gateway-tls
 {{- $appName := .app }}
 {{- $appConfig := index $glob.Values $appName }}
 S3_ENDPOINT: {{ tpl $ctx.s3Storage.endpoint $glob | quote }}
-S3_REGION: {{ $ctx.s3Storage.region | default "eu-west-3" | quote }}
-S3_USE_PATH_STYLE_ENDPOINT: {{ (or $ctx.s3Storage.usePathStyleEndpoint $glob.Values.minio.enabled) | default false | quote }}
+S3_REGION: {{ required (printf "Missing %s.api.config.s3Storage.region" $appName) $ctx.s3Storage.region | quote }}
+S3_USE_PATH_STYLE_ENDPOINT: {{ or $ctx.s3Storage.usePathStyleEndpoint $glob.Values.minio.enabled | quote }}
 S3_BUCKET_NAME: {{ $ctx.s3Storage.bucketName | quote }}
 S3_PATH_PREFIX: {{ $ctx.s3Storage.pathPrefix | quote }}
-S3_MULTIPART_MIN_CHUNK_SIZE: {{ $appConfig.s3MultipartMinChunkSize | default "20971520" | quote }}
-S3_MULTIPART_MAX_CHUNK_SIZE: {{ $appConfig.s3MultipartMaxChunkSize | default "5368709120" | quote }}
-S3_MULTIPART_MAX_PART_NUMBER: {{ $appConfig.s3MultipartMaxPartNumber | default "10000" | quote }}
-S3_MAX_OBJECT_SIZE: {{ $appConfig.s3MaxObjectSize | default "52776558133248" | quote }}
+S3_MULTIPART_MIN_CHUNK_SIZE: {{ $appConfig.s3MultipartMinChunkSize | quote }}
+S3_MULTIPART_MAX_CHUNK_SIZE: {{ $appConfig.s3MultipartMaxChunkSize | quote }}
+S3_MULTIPART_MAX_PART_NUMBER: {{ $appConfig.s3MultipartMaxPartNumber | quote }}
+S3_MAX_OBJECT_SIZE: {{ $appConfig.s3MaxObjectSize | quote }}
 {{- end }}
 
 {{- define "app.cloudFront.configMap" }}
+{{- $appName := .app }}
 {{- $ctx := .ctx }}
 {{- $glob := .glob }}
 {{- if $ctx.cloudFront.url }}
 CLOUD_FRONT_URL: {{ tpl $ctx.cloudFront.url $glob | quote }}
-CLOUD_FRONT_REGION: {{ $ctx.cloudFront.region | default "eu-west-3" | quote }}
+CLOUD_FRONT_REGION: {{ required (printf "Missing %s.api.config.cloudFront.region" $appName) $ctx.cloudFront.region | quote }}
 CLOUD_FRONT_PRIVATE_KEY: {{ $ctx.cloudFront.privateKey | quote }}
 CLOUD_FRONT_KEY_PAIR_ID: {{ $ctx.cloudFront.keyPairId | quote }}
 CLOUD_FRONT_TTL: {{ $ctx.cloudFront.ttl | quote }}
@@ -179,6 +232,7 @@ SENTRY_ENVIRONMENT: {{ required "Missing sentry environment (sentry.environment)
 {{- if $glob.Values.matomo.enabled }}
 MATOMO_URL: {{ required "Missing matomo.baseUrl" $glob.Values.matomo.baseUrl | quote }}
 MATOMO_SITE_ID: {{ required "Missing matomo.siteId" $glob.Values.matomo.siteId | quote }}
+MATOMO_MEDIA_PLUGIN_ENABLED: {{ $glob.Values.matomo.mediaPluginEnabled | quote }}
 {{- end }}
 {{- if $ctx.client }}
 {{- if $ctx.client.csp }}
@@ -221,9 +275,9 @@ env:
 - name: PHRASEA_DOMAIN
   value: {{ .Values.stack.domain | quote }}
 - name: VERIFY_SSL
-  value: {{ .Values.security.verifySsl | default true | quote }}
+  value: {{ .Values.security.verifySsl | quote }}
 - name: VERIFY_HOST
-  value: {{ .Values.security.verifyHost | default true | quote }}
+  value: {{ .Values.security.verifyHost | quote }}
 - name: AUTH_DB_NAME
   value: {{ .Values.auth.database.name | quote }}
 {{- range $key, $value := .Values.configurator.configure }}
@@ -234,8 +288,12 @@ env:
   value: {{ .Values.configurator.database.name | quote }}
 - name: CONFIGURATOR_SERVICE_WAIT_TIMEOUT
   value: {{ .Values.configurator.serviceWaitTimeout | quote }}
+{{- with .Values.configurator.presets }}
+- name: CONFIGURATOR_PRESETS
+  value: {{ . | quote }}
+{{- end }}
 - name: KEYCLOAK_ADMIN_PASSWORD_IS_DEFINITIVE
-  value: {{ .Values.keycloak.defaultAdmin.passwordIsDefinitive | default false | quote }}
+  value: {{ .Values.keycloak.defaultAdmin.passwordIsDefinitive | quote }}
 - name: KC_REALM_HTML_DISPLAY_NAME
   value: {{ .Values.keycloak.realm.htmlDisplayName | quote }}
 - name: KC_REALM_SUPPORTED_LOCALES
@@ -287,23 +345,22 @@ env:
   value: {{ .Values.minio.internalBaseUrl | required "Missing minio.internalBaseUrl" | quote }}
 {{- end }}
 - name: S3_USE_PATH_STYLE_ENDPOINT
-  value: {{ .Values.configurator.s3.usePathStyleEndpoint | default false | quote }}
+  value: {{ .Values.configurator.s3.usePathStyleEndpoint | quote }}
+{{- $s3SecretName := .Values.configurator.s3.externalSecretKey | default "configurator-s3" }}
 - name: S3_ACCESS_KEY
-  value: {{ tpl .Values.configurator.s3.accessKey . | required "Missing configurator.s3.accessKey" | quote }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ $s3SecretName }}
+      key: {{ .Values.configurator.s3.externalSecretMapping.accessKey }}
 - name: S3_SECRET_KEY
-  value: {{ tpl .Values.configurator.s3.secretKey . | required "Missing configurator.s3.secretKey" | quote }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ $s3SecretName }}
+      key: {{ .Values.configurator.s3.externalSecretMapping.secretKey }}
 - name: S3_REGION
-  value: {{ .Values.configurator.s3.region | default "eu-west-3" | quote }}
+  value: {{ required "Missing configurator.s3.region" .Values.configurator.s3.region | quote }}
 - name: S3_PATH_PREFIX
   value: {{ .Values.configurator.s3.pathPrefix | default "" | quote }}
-- name: POSTGRES_HOST
-  value: {{ .Values.postgresql.host | required "Missing postgresql.host" | quote }}
-- name: POSTGRES_PORT
-  value: {{ .Values.postgresql.port | required "Missing postgresql.port" | quote }}
-- name: POSTGRES_USER
-  value: {{ .Values.postgresql.user | required "Missing postgresql.user" | quote }}
-- name: POSTGRES_PASSWORD
-  value: {{ .Values.postgresql.password | required "Missing postgresql.password" | quote }}
 - name: REPORT_DB_NAME
   value: {{ .Values.report.databaseName | required "Missing report.databaseName" | quote }}
 - name: KEYCLOAK_DB_NAME
@@ -318,12 +375,35 @@ env:
 - name: {{ upper $appName }}_S3_BUCKET_NAME
   value: {{ .api.config.s3Storage.bucketName | quote }}
 {{- if .adminOAuthClient }}
+{{- $oauthSecretName := .adminOAuthClient.externalSecretName | default (printf "%s-admin-oauth-client-secret" $appName) }}
 - name: {{ upper $appName }}_ADMIN_CLIENT_ID
-  value: {{ .adminOAuthClient.id | quote }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ $oauthSecretName }}
+      key: ADMIN_CLIENT_ID
 - name: {{ upper $appName }}_ADMIN_CLIENT_SECRET
-  value: {{ .adminOAuthClient.secret | quote }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ $oauthSecretName }}
+      key: ADMIN_CLIENT_SECRET
 {{- end }}
 {{- end }}
+{{- end }}
+{{- with .Values.databox.exposeIntegration.clientId }}
+- name: DATABOX_EXPOSE_INTEGRATION_CLIENT_ID
+  value: {{ . | quote }}
+{{- end }}
+{{- with .Values.keycloak.defaultAdmin.email }}
+- name: DEFAULT_ADMIN_EMAIL
+  value: {{ . | quote }}
+{{- end }}
+{{- with .Values.databox.indexer.bucketName }}
+- name: INDEXER_BUCKET_NAME
+  value: {{ . | quote }}
+{{- end }}
+{{- with .Values.minio.notifyAmqpArn }}
+- name: MINIO_NOTIFY_AMQP_ARN
+  value: {{ . | quote }}
 {{- end }}
 {{- if .Values.databox.indexer.clientId }}
 - name: INDEXER_DATABOX_CLIENT_ID
@@ -361,4 +441,61 @@ envFrom:
     secretKeyRef:
       name: {{ $secretName }}
       key: {{ $mapping.secretKey }}
+{{- end }}
+
+{{/*
+Container of the lifecycle Jobs of a PHP app (bin/lifecycle.sh <phase>): the same environment for every phase.
+Usage: {{ include "lifecycle.appContainerSpecs" (dict "app" $appName "ctx" . "glob" $) }}
+*/}}
+{{- define "lifecycle.appContainerSpecs" -}}
+{{- $appName := .app }}
+{{- $ctx := .ctx }}
+{{- $glob := .glob -}}
+name: {{ $appName }}-php-job
+image: {{ $glob.Values.repository.baseUrl }}/ps-{{ $appName }}-api-php:{{ $glob.Values.repository.tag }}
+imagePullPolicy: {{ $glob.Values.repository.imagePullPolicy }}
+terminationMessagePolicy: FallbackToLogsOnError
+env:
+- name: PHP_MEMORY_LIMIT
+  value: {{ $glob.Values.stack.migrations.phpMemoryLimit | quote }}
+{{- include "envRef.phpApp" . }}
+{{- include "envRef.configuratorSecrets" $glob }}
+envFrom:
+{{- include "envFrom.phpApp" $glob }}
+{{- include "envFrom.rabbitmq" $glob }}
+{{- include "envFrom.postgresql" $glob }}
+{{- if $ctx.adminOAuthClient }}
+- secretRef:
+    name: {{ $ctx.adminOAuthClient.externalSecretName | default (printf "%s-admin-oauth-client-secret" $appName) }}
+{{- end }}
+- configMapRef:
+    name: {{ $appName }}-api-config
+{{- end }}
+
+{{/*
+Job running one lifecycle phase of a component: bin/lifecycle.sh <phase>, as a Helm hook.
+Usage: {{ include "lifecycle.job" (dict "glob" $ "component" "configurator" "phase" "pre-install" "hook" "post-install" "weight" 4 "backoffLimit" 0 "container" (include "configurator.containerSpecs" $)) }}
+*/}}
+{{- define "lifecycle.job" -}}
+{{- $glob := .glob -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .component }}-{{ .phase }}
+  annotations:
+    "helm.sh/hook": {{ .hook }}
+    "helm.sh/hook-weight": {{ .weight | toString | quote }}
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    spec:
+      {{- include "imagePullSecrets" $glob | indent 6 }}
+      {{- if $glob.Values.nodeSelector }}
+      nodeSelector: {{ toYaml $glob.Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      containers:
+      - {{- .container | nindent 8 }}
+        args: ["bin/lifecycle.sh", {{ .phase | quote }}]
+      restartPolicy: Never
+  backoffLimit: {{ .backoffLimit }}
 {{- end }}
