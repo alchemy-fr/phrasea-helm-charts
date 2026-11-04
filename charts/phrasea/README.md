@@ -101,9 +101,9 @@ stack:
 
 Restore stack:
 
-If your PostgreSQL service is enabled, you will need to disable migrations for the pod to start.
-
-Change the:
+The `pre-upgrade` hooks run before the workloads of the release start. If the infrastructure is embedded in the chart
+(PostgreSQL, RabbitMQ, Minio, Keycloak or Elasticsearch enabled), it is not running yet at that point: restart the
+stack without the upgrade phases first.
 
 ```yaml
 stack:
@@ -111,18 +111,35 @@ stack:
     runMigrations: false
 ```
 
-Now `helm upgrade`!
+Now `helm upgrade`! Then set `runMigrations` back to `true` and `helm upgrade` again, now or with your next version:
+the lifecycle phases converge, so this upgrade only provisions and migrates what is missing (nothing when the image tag
+did not change), and can be run again safely.
 
-In a second phase, you must re-enable migrations:
+With an external infrastructure, a single `helm upgrade` with `running: true` is enough.
 
+## Lifecycle hooks
 
-```yaml
-stack:
-    running: true
-    runMigrations: true
-```
+The install and upgrade steps run as Helm hook Jobs, one per component (`configurator`, then `databox`, `expose`,
+`uploader`) and per phase, named `<component>-<phase>`. Each one runs `bin/lifecycle.sh <phase>` in the image of the
+component (see `doc/tech/Deployment/lifecycle.md` in the Phrasea repository): the images must ship `bin/lifecycle.sh`
+(Phrasea 5.0 and later).
 
-`helm upgrade` again!
+| Phase          | Helm hook      | configurator weight | apps weight | Enabled by                               |
+|----------------|----------------|---------------------|-------------|------------------------------------------|
+| `pre-install`  | `post-install` | 4                   | 5           | `stack.running` and `stack.runSetups`    |
+| `post-install` | `post-install` | 6                   | 7           | `stack.running` and `stack.runSetups`    |
+| `pre-upgrade`  | `pre-upgrade`  | 0                   | 1           | `stack.running` and `stack.runMigrations` |
+| `post-upgrade` | `post-upgrade` | 0                   | 1           | `stack.running` and `stack.runMigrations` |
+
+- Both install phases are `post-install` hooks: a Helm `pre-install` hook runs before any resource of the release
+  exists and cannot reach the infrastructure embedded in the chart. They run before `create-databox-target` (10) and
+  the fixtures (15).
+- The configurator runs before the apps in every phase: it creates the resources they depend on.
+- Every phase converges on the state of its database (it installs a fresh database and migrates an installed one), so a
+  failed Job can be run again. The install Jobs of the apps are retried 10 times, the upgrade Jobs of the configurator 3
+  times.
+- Every phase of a component gets the same environment. `configurator.presets` reaches the configurator through
+  `CONFIGURATOR_PRESETS`.
 
 ## Similarity search and face recognition
 
@@ -157,8 +174,8 @@ Other behaviour changes:
 - Defaults now live in `values.yaml` only, templates no longer fall back on them. An empty key in your values
   (e.g. `region:` copied from the 2.x `values.yaml`) overrides the default: remove it or set a value.
   The S3/CloudFront regions are required and fail the rendering when empty.
-- `stack.runSynchronize` is removed: the configuration is synchronized by the configurator migration job
-  (`stack.runMigrations`).
+- `stack.runSynchronize` is removed: the configuration is synchronized by the configurator `pre-upgrade` lifecycle
+  Job (`stack.runMigrations`), see [Lifecycle hooks](#lifecycle-hooks).
 - Keycloak and the report API are no longer built with the Phrasea images: they come from
   `keycloak.image` and `report.image` (public ECR by default) instead of `repository.baseUrl` / `repository.tag`.
 - The databox `daily` and `hourly` CronJobs (`databox.cronJob`) are replaced by Symfony Scheduler: the
