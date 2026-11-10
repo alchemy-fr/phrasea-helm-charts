@@ -167,6 +167,8 @@ Other behaviour changes:
   automations never run. Remove `databox.cronJob` from your values.
 - Zippy is removed: Expose and Databox build their ZIP archives themselves. Remove the `zippy`, `databox.zippy` and
   `expose.zippy` keys from your values, and the `zippy.<domain>` DNS entry.
+- The Databox, Expose, Uploader and dashboard clients are Next.js servers listening on port 3000: the former nginx
+  client images (listening on port 80) are no longer supported. `databox.client.port` is removed.
 
 ### APP_SECRET
 

@@ -34,7 +34,7 @@ spec:
         {{- end }}
         ports:
         - name: http
-          containerPort: {{ $.Values.databox.client.port }}
+          containerPort: 3000
         readinessProbe:
           tcpSocket:
             port: http

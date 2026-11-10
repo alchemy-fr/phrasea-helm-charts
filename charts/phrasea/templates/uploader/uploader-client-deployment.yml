@@ -32,6 +32,19 @@ spec:
             memory: {{ $.Values.uploader.client.resources.limits.memory }}
             cpu: {{ $.Values.uploader.client.resources.limits.cpu }}
         {{- end }}
+        ports:
+        - name: http
+          containerPort: 3000
+        readinessProbe:
+          tcpSocket:
+            port: http
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        livenessProbe:
+          tcpSocket:
+            port: http
+          initialDelaySeconds: 15
+          periodSeconds: 20
         terminationMessagePolicy: FallbackToLogsOnError
         env:
         - name: DEV_MODE

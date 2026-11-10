@@ -315,8 +315,6 @@ databox:
   client:
     hostname: "databox.{{ .Values.stack.domain }}"
     baseUrl: "https://databox.{{ .Values.stack.domain }}"
-    # Port the container listens on: 3000 for the Next.js client, set 80 for images <= 4.4.2 (nginx)
-    port: 3000
     # Override global resourceQuota for this service (true/false), defaults to global value
     # resourceQuota:
     resources:

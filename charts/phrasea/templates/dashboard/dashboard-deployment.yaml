@@ -33,6 +33,19 @@ spec:
             memory: {{ .resources.limits.memory }}
             cpu: {{ .resources.limits.cpu }}
         {{- end }}
+        ports:
+        - name: http
+          containerPort: 3000
+        readinessProbe:
+          tcpSocket:
+            port: http
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        livenessProbe:
+          tcpSocket:
+            port: http
+          initialDelaySeconds: 15
+          periodSeconds: 20
         terminationMessagePolicy: FallbackToLogsOnError
         envFrom:
         - configMapRef:
