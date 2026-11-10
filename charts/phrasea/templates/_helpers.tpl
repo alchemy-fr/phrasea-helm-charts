@@ -174,6 +174,13 @@ Usage: {{ include "envFrom.phpService" (dict "app" $appName "ctx" . "glob" $ "wo
 {{- end }}
 {{- end }}
 {{- end }}
+{{- if $ctx.enabled }}
+- name: APP_SECRET
+  valueFrom:
+    secretKeyRef:
+      name: {{ $ctx.appSecret.externalSecretName | default (printf "%s-app-secret" $appName) }}
+      key: APP_SECRET
+{{- end }}
 {{- if $ctx.rabbitmq }}
 - name: RABBITMQ_VHOST
   value: {{ $ctx.rabbitmq.vhost | quote }}

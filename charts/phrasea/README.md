@@ -168,6 +168,16 @@ Other behaviour changes:
 - Zippy is removed: Expose and Databox build their ZIP archives themselves. Remove the `zippy`, `databox.zippy` and
   `expose.zippy` keys from your values, and the `zippy.<domain>` DNS entry.
 
+### APP_SECRET
+
+The Databox, Expose and Uploader APIs now get their Symfony `APP_SECRET` from the `<app>-app-secret` Secret, created
+from `databox.appSecret.value`, `expose.appSecret.value` and `uploader.appSecret.value` (required for each enabled app),
+or taken from the existing Secret named by `<app>.appSecret.externalSecretName` (key `APP_SECRET`).
+
+Until now, the `APP_SECRET` committed in each `*/api/.env` (shipped in the images, hence public) signed the URI JWTs
+(asset downloads, publication archives, Phraseanet tokens). Set a distinct random value per app and per instance, e.g.
+`openssl rand -hex 32`: the URLs signed with the former value stop working once the new pods are running.
+
 ### Soketi → Sockudo
 
 Soketi is no longer maintained: the WebSocket server is now [Sockudo](https://github.com/sockudo/sockudo)

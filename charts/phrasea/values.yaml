@@ -307,6 +307,11 @@ databox:
     externalSecretName:
     id: databox-admin
     secret: '__CHANGE_ME_9jZuZqkwf9qW881jTqG'
+  appSecret:
+    # __SET_ME__ Symfony APP_SECRET: signs the URI JWTs (asset downloads, publication archives, Phraseanet tokens)
+    value:
+    # Existing Secret holding APP_SECRET (otherwise created from value)
+    externalSecretName:
   client:
     hostname: "databox.{{ .Values.stack.domain }}"
     baseUrl: "https://databox.{{ .Values.stack.domain }}"
@@ -562,6 +567,11 @@ expose:
     externalSecretName:
     id: expose-admin
     secret: '__CHANGE_ME_71EuDQ2H$ei3sHwIB0sfy'
+  appSecret:
+    # __SET_ME__ Symfony APP_SECRET: signs the URI JWTs (asset downloads, publication archives, Phraseanet tokens)
+    value:
+    # Existing Secret holding APP_SECRET (otherwise created from value)
+    externalSecretName:
   worker:
     replicas: 1
     # Override global resourceQuota for this service (true/false), defaults to global value
@@ -662,6 +672,11 @@ uploader:
     externalSecretName:
     id: uploader-admin
     secret: '__CHANGE_ME_p@P@CSnZi3sHwIB0sfy'
+  appSecret:
+    # __SET_ME__ Symfony APP_SECRET: signs the URI JWTs (asset downloads, publication archives, Phraseanet tokens)
+    value:
+    # Existing Secret holding APP_SECRET (otherwise created from value)
+    externalSecretName:
   worker:
     replicas: 1
     # Override global resourceQuota for this service (true/false), defaults to global value

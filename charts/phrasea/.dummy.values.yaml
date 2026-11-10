@@ -12,6 +12,16 @@ databox:
       secrets:
         publicKey: "databox-public-key"
         secretKey: "databox-secret-key"
+  appSecret:
+    value: "databox-app-secret"
+
+expose:
+  appSecret:
+    value: "expose-app-secret"
+
+uploader:
+  appSecret:
+    value: "uploader-app-secret"
 
 repository:
   tag: configurator-fixes
