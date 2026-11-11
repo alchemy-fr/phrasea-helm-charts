@@ -1,0 +1,10 @@
+{{- if .Values.sockudo.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sockudo
+data:
+  SOCKUDO_HOST: {{ tpl .Values.sockudo.host . | quote }}
+  SOCKUDO_APP_ID: {{ required "Missing sockudo.appId" $.Values.sockudo.appId | quote }}
+  SOCKUDO_KEY: {{ required "Missing sockudo.key" $.Values.sockudo.key | quote }}
+{{- end }}

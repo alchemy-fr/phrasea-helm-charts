@@ -1,0 +1,16 @@
+{{- with .Values.similarityEmbedder }}
+{{- if and $.Values.stack.running .enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: similarity-embedder
+spec:
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
+  selector:
+    app: phrasea
+    tier: similarity-embedder
+{{- end }}
+{{- end }}
