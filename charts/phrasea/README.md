@@ -21,6 +21,36 @@ The default empty value disables maps. This setting is independent from
 recreate the Databox client pods to load the new environment variable.
 No image rebuild is needed.
 
+### Ingress controller
+
+Since chart 3.0.0, every Ingress uses the `traefik` IngressClass by default
+(ingress-nginx is retired upstream). To keep ingress-nginx, set:
+
+```yaml
+ingress:
+  className: nginx
+```
+
+An empty `className` omits `spec.ingressClassName`, so the cluster default
+IngressClass applies.
+
+`ingress.annotations` is added to every Ingress of the chart; the annotations
+of each Ingress take precedence. For instance, to attach a Traefik Middleware
+to the whole stack:
+
+```yaml
+ingress:
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: my-namespace-my-middleware@kubernetescrd
+```
+
+With Traefik, the `nginx.ingress.kubernetes.io/*` annotations of the default
+values are ignored: request body size and timeouts are set on the Traefik
+entrypoints (`transport.respondingTimeouts`). The Sockudo internal paths
+(`/usage`, `/stats`, `/operator`) are denied with a Traefik `Middleware`
+(`traefik.io/v1alpha1` CRDs required) instead of the ingress-nginx denylist
+annotation.
+
 ### TLS
 
 You can enable wildcard TLS:

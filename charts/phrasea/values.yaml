@@ -69,8 +69,15 @@ acme:
     existingSecretName:
     existingSecretKey:
 
-# __SET_ME__ TLS configuration
 ingress:
+  # IngressClass of every Ingress of the chart. Empty: the cluster default IngressClass.
+  # Set it to "nginx" to keep using ingress-nginx (default before chart 3.0.0).
+  # The nginx.ingress.kubernetes.io/* annotations set below only apply to ingress-nginx.
+  className: traefik
+  # Annotations added to every Ingress of the chart. The annotations of each Ingress take
+  # precedence (e.g. traefik.ingress.kubernetes.io/router.middlewares: <ns>-<name>@kubernetescrd).
+  annotations: {}
+  # __SET_ME__ TLS configuration
   tls:
     wildcard:
       # set to true to enable TLS for wildcard domains (*.example.com)

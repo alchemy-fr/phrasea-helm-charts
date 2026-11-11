@@ -265,6 +265,29 @@ networking.k8s.io/v1beta1
 {{- end -}}
 {{- end -}}
 
+{{/*
+Annotations of an Ingress: the global ingress.annotations merged with the Ingress own
+annotations, which take precedence. Usage:
+include "ingress.annotations" (dict "_" $ "annotations" .ingress.annotations)
+*/}}
+{{- define "ingress.annotations" -}}
+{{- $annotations := merge (deepCopy (.annotations | default dict)) (deepCopy (._.Values.ingress.annotations | default dict)) -}}
+{{- with $annotations -}}
+annotations:
+{{ toYaml . | indent 2 }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+spec.ingressClassName of an Ingress, omitted when ingress.className is empty
+(the cluster default IngressClass then applies).
+*/}}
+{{- define "ingress.className" -}}
+{{- with .Values.ingress.className -}}
+ingressClassName: {{ . }}
+{{- end -}}
+{{- end -}}
+
 {{- define "ingress.rule_path" }}
 {{- if ._.Capabilities.APIVersions.Has "networking.k8s.io/v1/Ingress" }}
 - backend:
