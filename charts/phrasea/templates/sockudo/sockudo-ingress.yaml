@@ -9,12 +9,13 @@ metadata:
   {{- with $.Values.sockudo.ingress.extraLabels }}
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- with $.Values.sockudo.ingress.annotations }}
-  annotations:
-    {{- toYaml . | nindent 4 }}
+  {{- with include "ingress.annotations" (dict "_" $ "annotations" $.Values.sockudo.ingress.annotations) }}
+  {{- . | nindent 2 }}
   {{- end }}
 spec:
-  ingressClassName: nginx
+{{- with include "ingress.className" $ }}
+  {{- . | nindent 2 }}
+{{- end }}
   rules:
     - host: {{ tpl $.Values.sockudo.host $ | quote }}
       http:
@@ -37,9 +38,29 @@ spec:
 {{- end }}
 {{- end }}
 {{- if and $.Values.stack.running $.Values.sockudo.enabled $.Values.sockudo.ingress.enabled }}
+{{- $traefik := eq ($.Values.ingress.className | default "") "traefik" }}
+{{- if $traefik }}
 ---
-# Sockudo serves /usage and /stats on the app port: ingress-nginx merges this Ingress
-# into the same server and denies these locations to every client.
+# Rejects every client (403): attached to the sockudo-internal-paths Ingress below.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: sockudo-internal-paths-deny
+  labels:
+    app: phrasea
+    tier: sockudo
+  {{- with $.Values.sockudo.ingress.extraLabels }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ipAllowList:
+    sourceRange:
+      - 127.0.0.1/32
+{{- end }}
+---
+# Sockudo serves /usage, /stats and /operator on the app port: these paths are denied to
+# every client, through a deny-all Middleware with Traefik, through the denylist
+# annotation with ingress-nginx (which merges this Ingress into the same server).
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -51,9 +72,15 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   annotations:
+  {{- if $traefik }}
+    traefik.ingress.kubernetes.io/router.middlewares: {{ $.Release.Namespace }}-sockudo-internal-paths-deny@kubernetescrd
+  {{- else }}
     nginx.ingress.kubernetes.io/denylist-source-range: "0.0.0.0/0,::/0"
+  {{- end }}
 spec:
-  ingressClassName: nginx
+{{- with include "ingress.className" $ }}
+  {{- . | nindent 2 }}
+{{- end }}
   rules:
     - host: {{ tpl $.Values.sockudo.host $ | quote }}
       http:
