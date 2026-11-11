@@ -44,6 +44,51 @@ ingress:
     traefik.ingress.kubernetes.io/router.middlewares: my-namespace-my-middleware@kubernetescrd
 ```
 
+With Traefik, prefer `ingress.middlewares` to `ingress.annotations` to attach
+Middlewares: the chart chains, in a single `router.middlewares` annotation, the
+IP allowlist Middleware, `ingress.middlewares` and the Middlewares of each Ingress.
+
+### IP allowlist
+
+To restrict every Ingress to some IP ranges:
+
+```yaml
+ingress:
+  ipAllowlist:
+    - 192.0.2.0/24
+    - 198.51.100.7
+expose:
+  client:
+    ingress:
+      ipAllowlist:
+        enabled: false  # keep this Ingress public
+keycloak:
+  ingress:
+    ipAllowlist:
+      extra: [203.0.113.0/24]  # added for this Ingress only
+```
+
+- With Traefik, each restricted Ingress gets an `ipAllowList` Middleware; with
+  ingress-nginx, the `whitelist-source-range` annotation.
+- The ingress controller must see the client IP (e.g. PROXY protocol between the
+  load balancer and the controller), otherwise every client is rejected.
+- The services call each other through their public URLs: the egress IPs of
+  the cluster must be in the list.
+- Restricted Ingresses get `acme.cert-manager.io/http01-edit-in-place: "false"`:
+  the Let's Encrypt HTTP-01 challenges go through a cert-manager Ingress of their
+  own, not filtered. The chart issuers use DNS-01 challenges.
+
+The Sockudo `/usage`, `/stats` and `/operator` paths are always denied on
+`sockudo.host`. `/usage` can be published on a dedicated host, restricted to its
+own list (the global allowlist does not apply):
+
+```yaml
+sockudo:
+  usage:
+    host: "ws-usage.{{ .Values.stack.domain }}"  # default
+    ipAllowlist: [192.0.2.0/24]  # empty (default): not published
+```
+
 With Traefik, the `nginx.ingress.kubernetes.io/*` annotations of the default
 values are ignored: request body size and timeouts are set on the Traefik
 entrypoints (`transport.respondingTimeouts`). The Sockudo internal paths

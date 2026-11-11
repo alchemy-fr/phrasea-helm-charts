@@ -6,7 +6,7 @@ apiVersion: {{ template "ingress.apiVersion" $ }}
 kind: Ingress
 metadata:
   name: databox-client-ingress
-{{- with include "ingress.annotations" (dict "_" $ "annotations" .ingress.annotations) }}
+{{- with include "ingress.annotations" (dict "_" $ "name" "databox-client-ingress" "ingress" .ingress) }}
   {{- . | nindent 2 }}
 {{- end }}
 {{- if .ingress.extraLabels }}
@@ -38,6 +38,7 @@ spec:
     - {{ tpl .hostname $ }}
     secretName: {{ include "secretRef.ingress.tls.wildcard" $ }}
 {{- end }}
+{{- include "ingress.ipAllowlistMiddleware" (dict "_" $ "name" "databox-client-ingress" "ingress" .ingress) }}
 {{- end }}
 {{- end }}
 {{- end }}

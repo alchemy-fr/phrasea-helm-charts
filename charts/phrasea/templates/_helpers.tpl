@@ -266,16 +266,75 @@ networking.k8s.io/v1beta1
 {{- end -}}
 
 {{/*
+Effective IP allowlist of an Ingress, comma separated: ingress.ipAllowlist + <ingress>.ipAllowlist.extra.
+Empty (no restriction) when both are empty or when <ingress>.ipAllowlist.enabled is false.
+Usage: include "ingress.ipAllowlist" (dict "_" $ "ingress" .ingress)
+*/}}
+{{- define "ingress.ipAllowlist" -}}
+{{- $cfg := .ingress.ipAllowlist | default dict -}}
+{{- if or (not (hasKey $cfg "enabled")) $cfg.enabled -}}
+{{- concat (._.Values.ingress.ipAllowlist | default list) ($cfg.extra | default list) | uniq | join "," -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Annotations of an Ingress: the global ingress.annotations merged with the Ingress own
-annotations, which take precedence. Usage:
-include "ingress.annotations" (dict "_" $ "annotations" .ingress.annotations)
+annotations, which take precedence, plus the IP allowlist:
+- traefik: a single router.middlewares annotation chaining, in order, the IP allowlist
+  Middleware, ingress.middlewares, the given middlewares and the router.middlewares annotation
+  set in the values;
+- other classes: the ingress-nginx whitelist-source-range annotation.
+Usage: include "ingress.annotations" (dict "_" $ "name" "<ingress name>" "ingress" .ingress ["middlewares" (list ...)])
 */}}
 {{- define "ingress.annotations" -}}
-{{- $annotations := merge (deepCopy (.annotations | default dict)) (deepCopy (._.Values.ingress.annotations | default dict)) -}}
+{{- $root := ._ -}}
+{{- $annotations := merge (deepCopy (.ingress.annotations | default dict)) (deepCopy ($root.Values.ingress.annotations | default dict)) -}}
+{{- $allowlist := include "ingress.ipAllowlist" . -}}
+{{- if $allowlist -}}
+  {{- /* HTTP-01 challenges must reach cert-manager unfiltered: its solver gets an Ingress of its own */ -}}
+  {{- $_ := set $annotations "acme.cert-manager.io/http01-edit-in-place" "false" -}}
+{{- end -}}
+{{- if eq ($root.Values.ingress.className | default "") "traefik" -}}
+  {{- $middlewares := list -}}
+  {{- if $allowlist -}}
+    {{- $middlewares = append $middlewares (printf "%s-%s-ip-allowlist@kubernetescrd" $root.Release.Namespace .name) -}}
+  {{- end -}}
+  {{- $middlewares = concat $middlewares ($root.Values.ingress.middlewares | default list) (.middlewares | default list) -}}
+  {{- with get $annotations "traefik.ingress.kubernetes.io/router.middlewares" -}}
+    {{- $middlewares = append $middlewares . -}}
+  {{- end -}}
+  {{- if $middlewares -}}
+    {{- $_ := set $annotations "traefik.ingress.kubernetes.io/router.middlewares" ($middlewares | uniq | join ",") -}}
+  {{- end -}}
+{{- else if and $allowlist (not (hasKey $annotations "nginx.ingress.kubernetes.io/whitelist-source-range")) -}}
+  {{- $_ := set $annotations "nginx.ingress.kubernetes.io/whitelist-source-range" $allowlist -}}
+{{- end -}}
 {{- with $annotations -}}
 annotations:
 {{ toYaml . | indent 2 }}
 {{- end -}}
+{{- end -}}
+
+{{/*
+Traefik Middleware restricting an Ingress to its IP allowlist (see "ingress.ipAllowlist"),
+rendered as an extra YAML document. Nothing with another class or without restriction.
+Usage: include "ingress.ipAllowlistMiddleware" (dict "_" $ "name" "<ingress name>" "ingress" .ingress)
+*/}}
+{{- define "ingress.ipAllowlistMiddleware" -}}
+{{- $allowlist := include "ingress.ipAllowlist" . -}}
+{{- if and $allowlist (eq (._.Values.ingress.className | default "") "traefik") }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ .name }}-ip-allowlist
+spec:
+  ipAllowList:
+    sourceRange:
+    {{- range splitList "," $allowlist }}
+      - {{ . | quote }}
+    {{- end }}
+{{- end }}
 {{- end -}}
 
 {{/*

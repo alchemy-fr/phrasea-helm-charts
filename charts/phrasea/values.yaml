@@ -73,8 +73,23 @@ ingress:
   # The nginx.ingress.kubernetes.io/* annotations set below only apply to ingress-nginx.
   className: traefik
   # Annotations added to every Ingress of the chart. The annotations of each Ingress take
-  # precedence (e.g. traefik.ingress.kubernetes.io/router.middlewares: <ns>-<name>@kubernetescrd).
+  # precedence. With Traefik, prefer ingress.middlewares to attach Middlewares.
   annotations: {}
+  # CIDRs (or bare IPs) allowed on every Ingress of the chart. Empty: no restriction.
+  # The ingress controller must see the client IP (e.g. PROXY protocol behind a load balancer),
+  # and the services call each other through their public URLs: include the egress IPs of the
+  # cluster. Per Ingress, <service>.ingress.ipAllowlist overrides it:
+  #   ipAllowlist:
+  #     enabled: false   # this Ingress stays public
+  #     extra: []        # CIDRs added for this Ingress only
+  # Traefik: an ipAllowList Middleware per Ingress. Other classes: the ingress-nginx
+  # whitelist-source-range annotation. Restricted Ingresses get
+  # acme.cert-manager.io/http01-edit-in-place: "false", so that the Let's Encrypt HTTP-01
+  # challenges go through a cert-manager Ingress of their own, not filtered.
+  ipAllowlist: []
+  # Traefik only: Middlewares ("<namespace>-<name>@kubernetescrd") chained on every Ingress,
+  # after the IP allowlist one.
+  middlewares: []
   # __SET_ME__ TLS configuration
   tls:
     wildcard:
@@ -1101,6 +1116,14 @@ sockudo:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
       nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
     extraLabels: {}
+    tls: []
+  # /usage (connection statistics) on a dedicated host, restricted to usage.ipAllowlist.
+  # /usage, /stats and /operator are always denied on sockudo.host.
+  usage:
+    host: "ws-usage.{{ .Values.stack.domain }}"
+    # Empty: /usage is not published.
+    ipAllowlist: []
+    # Default: the wildcard certificate (ingress.tls.wildcard)
     tls: []
 
 matomo:

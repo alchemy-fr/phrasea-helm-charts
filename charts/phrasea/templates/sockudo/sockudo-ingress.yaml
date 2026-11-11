@@ -9,7 +9,7 @@ metadata:
   {{- with $.Values.sockudo.ingress.extraLabels }}
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- with include "ingress.annotations" (dict "_" $ "annotations" $.Values.sockudo.ingress.annotations) }}
+  {{- with include "ingress.annotations" (dict "_" $ "name" "sockudo" "ingress" $.Values.sockudo.ingress) }}
   {{- . | nindent 2 }}
   {{- end }}
 spec:
@@ -36,6 +36,7 @@ spec:
         - {{ tpl $.Values.sockudo.host $ | quote }}
       secretName: {{ include "secretRef.ingress.tls.wildcard" $ }}
 {{- end }}
+{{- include "ingress.ipAllowlistMiddleware" (dict "_" $ "name" "sockudo" "ingress" $.Values.sockudo.ingress) }}
 {{- end }}
 {{- if and $.Values.stack.running $.Values.sockudo.enabled $.Values.sockudo.ingress.enabled }}
 {{- $traefik := eq ($.Values.ingress.className | default "") "traefik" }}
@@ -94,4 +95,68 @@ spec:
                 port:
                   number: 80
         {{- end }}
+{{- end }}
+{{- if and $.Values.stack.running $.Values.sockudo.enabled $.Values.sockudo.ingress.enabled $.Values.sockudo.usage.ipAllowlist }}
+{{- /* Only the usage allowlist applies: neither ingress.ipAllowlist nor ingress.middlewares */}}
+{{- $usageList := $.Values.sockudo.usage.ipAllowlist | uniq | join "," }}
+{{- $traefik := eq ($.Values.ingress.className | default "") "traefik" }}
+---
+# /usage published on a dedicated host, restricted to sockudo.usage.ipAllowlist (a host of its
+# own: ingress-nginx rejects two Ingresses declaring the same host and path).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sockudo-usage
+  labels:
+    app: phrasea
+    tier: sockudo
+  {{- with $.Values.sockudo.ingress.extraLabels }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  annotations:
+  {{- if $traefik }}
+    traefik.ingress.kubernetes.io/router.middlewares: {{ $.Release.Namespace }}-sockudo-usage-ip-allowlist@kubernetescrd
+  {{- else }}
+    nginx.ingress.kubernetes.io/whitelist-source-range: {{ $usageList | quote }}
+  {{- end }}
+spec:
+{{- with include "ingress.className" $ }}
+  {{- . | nindent 2 }}
+{{- end }}
+  rules:
+    - host: {{ tpl $.Values.sockudo.usage.host $ | quote }}
+      http:
+        paths:
+          - path: /usage
+            pathType: Prefix
+            backend:
+              service:
+                name: sockudo
+                port:
+                  number: 80
+{{- if $.Values.sockudo.usage.tls }}
+  tls:
+{{ toYaml $.Values.sockudo.usage.tls | indent 4 }}
+{{- else if $.Values.ingress.tls.wildcard.enabled }}
+  tls:
+    - hosts:
+        - {{ tpl $.Values.sockudo.usage.host $ | quote }}
+      secretName: {{ include "secretRef.ingress.tls.wildcard" $ }}
+{{- end }}
+{{- if $traefik }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: sockudo-usage-ip-allowlist
+  labels:
+    app: phrasea
+    tier: sockudo
+spec:
+  ipAllowList:
+    sourceRange:
+    {{- range splitList "," $usageList }}
+      - {{ . | quote }}
+    {{- end }}
+{{- end }}
 {{- end }}
