@@ -39,6 +39,9 @@ spec:
         - name: http
           containerPort: 8000
         env:
+        # No version check at startup
+        - name: NO_ALBUMENTATIONS_UPDATE
+          value: "1"
         - name: DET_SIZE
           value: {{ .config.detSize | quote }}
         - name: DET_THRESH

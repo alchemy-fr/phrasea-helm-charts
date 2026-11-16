@@ -39,6 +39,11 @@ spec:
         - name: http
           containerPort: 8000
         env:
+        # The models are in the image: no check against the Hugging Face Hub
+        - name: HF_HUB_OFFLINE
+          value: "1"
+        - name: TRANSFORMERS_OFFLINE
+          value: "1"
         - name: MAX_UPLOAD_BYTES
           value: {{ .config.maxUploadBytes | quote }}
         - name: MAX_TEXT_LENGTH
