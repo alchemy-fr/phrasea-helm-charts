@@ -15,6 +15,9 @@ stack:
   runMigrations: true
   migrations:
     phpMemoryLimit: '1G'
+  # Shifts every periodic task of the schedulers (databox, expose, uploader) by this number of seconds,
+  # so that several stacks sharing the same resources do not run them at the same time
+  schedulerOffset: 0
 
 
 # Override full name of the deployed resources (e.g., phrasea-stg) useful for multiple certbot in the same cluster.
@@ -588,6 +591,18 @@ expose:
       limits:
         cpu: "2000m"
         memory: "2048Mi"
+  # Runs the periodic tasks (Symfony Scheduler): abandoned multipart uploads purge... Always a single pod.
+  scheduler:
+    enabled: true
+    # Override global resourceQuota for this service (true/false), defaults to global value
+    # resourceQuota:
+    resources:
+      requests:
+        cpu: "25m"
+        memory: "128Mi"
+      limits:
+        cpu: "500m"
+        memory: "1Gi"
   client:
     hostname: "expose.{{ .Values.stack.domain }}"
     baseUrl: "https://expose.{{ .Values.stack.domain }}"

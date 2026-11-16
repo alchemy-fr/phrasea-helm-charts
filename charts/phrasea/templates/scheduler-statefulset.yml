@@ -44,6 +44,8 @@ spec:
         env:
         - name: WORKER_PRIORITIES
           value: scheduler_main
+        - name: SCHEDULER_OFFSET
+          value: {{ $.Values.stack.schedulerOffset | quote }}
         {{- include "envRef.phpApp" $tplArgs | indent 8 }}
         {{- include "envRef.configuratorSecrets" $ | indent 8 }}
         envFrom:
