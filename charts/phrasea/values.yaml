@@ -247,15 +247,24 @@ databox:
   # this option enable the import of fixtures after setup
   # warning: this will erase existing data in databases.
   importFixtures: false
-  allowedFileTypes: "image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.psd,.psb,.ai,.dng,.jfif,.jpe,.psdt,.emf,.wmf,.svgz,.ait,.eps,.epsf,.epsi,.indd,.indt,.idml,.idms,.icml,.cr2,.cr3,.crw,.nef,.nrw,.arw,.sr2,.srf,.raf,.rw2,.mrw,.orf,.pef,.dcr,.k25,.kdc),application/*(.pdf,.doc,.docx,.md,.txt,.xls,.xlsx,.odt,.psd,.psb,.csv,.ods,.dot,.dotm,.dotx,.docm,.rtf,.wps,.xlam,.xlsb,.xlsm,.xlt,.xltm,.xltx,.xlw,.html,.htm,.mht,.mhtml,.ppt,.pptm,.pptx,.pps,.ppsm,.ppsx,.pot,.potm,.potx,.ppa,.ppam,.ps,.aep,.prproj),video/*(.mpg,.mpeg,.mov,.avi,.mxf,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc,.webm,.wmv),audio/*(.ogg,.opus,.m4r,.ac3,.flac,.aac,.mp3,.aiff,.aif,.wav)"
+  # Allowed file types: "mime/type(.ext1,.ext2),…", each type with the extensions allowed for it. An upload is
+  # accepted when one entry matches its MIME type and lists its extension; "*" only stands for the subtype
+  # (a "*/*" entry fails every upload). An empty value accepts every file.
+  allowedFileTypes: "image/*(.jpg,.jpeg,.jfif,.jpe,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.svgz,.psd,.psb,.psdt,.eps,.epsf,.epsi,.emf,.wmf,.dng,.cr2,.cr3,.crw,.nef,.nrw,.arw,.sr2,.srf,.raf,.rw2,.mrw,.orf,.pef,.dcr,.k25,.kdc),application/*(.pdf,.ai,.ait,.eps,.epsf,.epsi,.ps,.psd,.psb,.psdt,.emf,.wmf,.indd,.indt,.idml,.idms,.icml,.doc,.docx,.docm,.dot,.dotm,.dotx,.rtf,.wps,.odt,.ods,.csv,.xls,.xlsx,.xlam,.xlsb,.xlsm,.xlt,.xltm,.xltx,.xlw,.ppt,.pptm,.pptx,.pps,.ppsm,.ppsx,.pot,.potm,.potx,.ppa,.ppam,.html,.htm,.mht,.mhtml,.aep,.prproj,.mxf,.ogg),text/*(.txt,.md,.csv,.rtf),video/*(.mpg,.mpeg,.mov,.avi,.mxf,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc,.webm,.wmv,.ogg),audio/*(.ogg,.opus,.m4r,.ac3,.flac,.aac,.mp3,.mp2,.m4a,.aiff,.aif,.wav)"
   # Min size for multipart upload chunks in bytes (default 20Mb) - must be at least 5Mb for AWS S3 and some S3-compatible providers
   s3MultipartMinChunkSize: "20971520"
   # Max size for multipart upload chunks in bytes (default 5Gb)
   s3MultipartMaxChunkSize: "5368709120"
   # Max number of parts for multipart upload
   s3MultipartMaxPartNumber: "10000"
-  # Max object size for multipart upload in bytes (default 48.8 TiB)
-  s3MaxObjectSize: "52776558133248"
+  # Max object size of the storage in bytes (default 5 TiB, the largest object S3 accepts)
+  s3MaxObjectSize: "5497558138880"
+  # Multipart upload requests (creation and part URLs) accepted per minute and per user
+  multipartUploadRateLimit: 60
+  # Multipart uploads a user may have in progress (neither completed nor cancelled) at the same time
+  multipartUploadMaxPending: 20
+  # Maximum size of a file uploaded to Databox in bytes (default 100 GiB), within s3MaxObjectSize
+  maxUploadFileSize: "107374182400"
   api:
     replicas: 1
     ingress:
@@ -303,7 +312,8 @@ databox:
         region: eu-west-3
         privateKey:
         keyPairId:
-        ttl: 86400
+        # A signed URL stays valid for its whole TTL, even once its user has lost access to the file
+        ttl: 3600
       # Default Phraseanet instance used by the workspace integrations (PWI_PHRASEANET_URL / PWI_PHRASEANET_API_TOKEN)
       phraseanet:
         baseUrl:
@@ -513,14 +523,23 @@ expose:
   # this option enable the import of fixtures after setup
   # warning: this will erase existing data in databases.
   importFixtures: false
+  # Allowed file types: what Databox publishes there, i.e. the types of databox.allowedFileTypes plus the
+  # output formats of the renditions (webm, ogg, apng, tiff…). Same format as databox.allowedFileTypes.
+  allowedFileTypes: "image/*(.jpg,.jpeg,.jfif,.jpe,.bmp,.tif,.tiff,.gif,.png,.apng,.heic,.webp,.svg,.svgz,.psd,.psb,.psdt,.eps,.epsf,.epsi,.emf,.wmf,.dng,.cr2,.cr3,.crw,.nef,.nrw,.arw,.sr2,.srf,.raf,.rw2,.mrw,.orf,.pef,.dcr,.k25,.kdc),application/*(.pdf,.ai,.ait,.eps,.epsf,.epsi,.ps,.psd,.psb,.psdt,.emf,.wmf,.indd,.indt,.idml,.idms,.icml,.doc,.docx,.docm,.dot,.dotm,.dotx,.rtf,.wps,.odt,.ods,.csv,.xls,.xlsx,.xlam,.xlsb,.xlsm,.xlt,.xltm,.xltx,.xlw,.ppt,.pptm,.pptx,.pps,.ppsm,.ppsx,.pot,.potm,.potx,.ppa,.ppam,.html,.htm,.mht,.mhtml,.aep,.prproj,.mxf,.ogg),text/*(.txt,.md,.csv,.rtf),video/*(.mpg,.mpeg,.mov,.avi,.mxf,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc,.webm,.ogv,.wmv,.ogg),audio/*(.ogg,.oga,.opus,.m4r,.ac3,.flac,.aac,.mp3,.mp2,.m4a,.aiff,.aif,.wav)"
   # Min size for multipart upload chunks in bytes (default 20Mb) - must be at least 5Mb for AWS S3 and some S3-compatible providers
   s3MultipartMinChunkSize: "20971520"
   # Max size for multipart upload chunks in bytes (default 5Gb)
   s3MultipartMaxChunkSize: "5368709120"
   # Max number of parts for multipart upload
   s3MultipartMaxPartNumber: "10000"
-  # Max object size for multipart upload in bytes (default 48.8 TiB)
-  s3MaxObjectSize: "52776558133248"
+  # Max object size of the storage in bytes (default 5 TiB, the largest object S3 accepts)
+  s3MaxObjectSize: "5497558138880"
+  # Multipart upload requests (creation and part URLs) accepted per minute and per user
+  multipartUploadRateLimit: 60
+  # Multipart uploads a user may have in progress (neither completed nor cancelled) at the same time
+  multipartUploadMaxPending: 20
+  # Maximum size of a file uploaded to Expose in bytes (default 100 GiB), within s3MaxObjectSize
+  maxUploadFileSize: "107374182400"
   api:
     replicas: 1
     subnet: 0.0.0.0/0
@@ -567,7 +586,8 @@ expose:
         region: eu-west-3
         privateKey:
         keyPairId:
-        ttl: 86400
+        # A signed URL stays valid for its whole TTL, even once its user has lost access to the file
+        ttl: 3600
       phraseanet:
         baseUrl:
         oauthToken:
@@ -636,15 +656,22 @@ expose:
 
 uploader:
   enabled: true
-  allowedFileTypes: "image/*(.jpg,.jpeg,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.psd,.psb,.ai,.dng,.jfif,.jpe,.psdt,.emf,.wmf,.svgz,.ait,.eps,.epsf,.epsi,.indd,.indt,.idml,.idms,.icml,.cr2,.cr3,.crw,.nef,.nrw,.arw,.sr2,.srf,.raf,.rw2,.mrw,.orf,.pef,.dcr,.k25,.kdc),application/*(.pdf,.doc,.docx,.md,.txt,.xls,.xlsx,.odt,.psd,.psb,.csv,.ods,.dot,.dotm,.dotx,.docm,.rtf,.wps,.xlam,.xlsb,.xlsm,.xlt,.xltm,.xltx,.xlw,.html,.htm,.mht,.mhtml,.ppt,.pptm,.pptx,.pps,.ppsm,.ppsx,.pot,.potm,.potx,.ppa,.ppam,.ps,.aep,.prproj),video/*(.mpg,.mpeg,.mov,.avi,.mxf,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc,.webm,.wmv),audio/*(.ogg,.opus,.m4r,.ac3,.flac,.aac,.mp3,.aiff,.aif,.wav)"
+  # Allowed file types: "mime/type(.ext1,.ext2),…", each type with the extensions allowed for it. An upload is
+  # accepted when one entry matches its MIME type and lists its extension; "*" only stands for the subtype
+  # (a "*/*" entry fails every upload). An empty value accepts every file.
+  allowedFileTypes: "image/*(.jpg,.jpeg,.jfif,.jpe,.bmp,.tif,.gif,.png,.heic,.webp,.svg,.svgz,.psd,.psb,.psdt,.eps,.epsf,.epsi,.emf,.wmf,.dng,.cr2,.cr3,.crw,.nef,.nrw,.arw,.sr2,.srf,.raf,.rw2,.mrw,.orf,.pef,.dcr,.k25,.kdc),application/*(.pdf,.ai,.ait,.eps,.epsf,.epsi,.ps,.psd,.psb,.psdt,.emf,.wmf,.indd,.indt,.idml,.idms,.icml,.doc,.docx,.docm,.dot,.dotm,.dotx,.rtf,.wps,.odt,.ods,.csv,.xls,.xlsx,.xlam,.xlsb,.xlsm,.xlt,.xltm,.xltx,.xlw,.ppt,.pptm,.pptx,.pps,.ppsm,.ppsx,.pot,.potm,.potx,.ppa,.ppam,.html,.htm,.mht,.mhtml,.aep,.prproj,.mxf,.ogg),text/*(.txt,.md,.csv,.rtf),video/*(.mpg,.mpeg,.mov,.avi,.mxf,.mp2,.mp4,.m4v,.m4a,.mkv,.hevc,.webm,.wmv,.ogg),audio/*(.ogg,.opus,.m4r,.ac3,.flac,.aac,.mp3,.mp2,.m4a,.aiff,.aif,.wav)"
   # Min size for multipart upload chunks in bytes (default 20Mb) - must be at least 5Mb for AWS S3 and some S3-compatible providers
   s3MultipartMinChunkSize: "20971520"
   # Max size for multipart upload chunks in bytes (default 5Gb)
   s3MultipartMaxChunkSize: "5368709120"
   # Max number of parts for multipart upload
   s3MultipartMaxPartNumber: "10000"
-  # Max object size for multipart upload in bytes (default 48.8 TiB)
-  s3MaxObjectSize: "52776558133248"
+  # Max object size of the storage in bytes (default 5 TiB, the largest object S3 accepts)
+  s3MaxObjectSize: "5497558138880"
+  # Multipart upload requests (creation and part URLs) accepted per minute and per user
+  multipartUploadRateLimit: 60
+  # Multipart uploads a user may have in progress (neither completed nor cancelled) at the same time
+  multipartUploadMaxPending: 20
   api:
     replicas: 1
     ingress:

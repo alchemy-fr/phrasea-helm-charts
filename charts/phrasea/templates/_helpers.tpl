@@ -208,6 +208,8 @@ S3_MULTIPART_MIN_CHUNK_SIZE: {{ $appConfig.s3MultipartMinChunkSize | quote }}
 S3_MULTIPART_MAX_CHUNK_SIZE: {{ $appConfig.s3MultipartMaxChunkSize | quote }}
 S3_MULTIPART_MAX_PART_NUMBER: {{ $appConfig.s3MultipartMaxPartNumber | quote }}
 S3_MAX_OBJECT_SIZE: {{ $appConfig.s3MaxObjectSize | quote }}
+MULTIPART_UPLOAD_RATE_LIMIT: {{ $appConfig.multipartUploadRateLimit | quote }}
+MULTIPART_UPLOAD_MAX_PENDING: {{ $appConfig.multipartUploadMaxPending | quote }}
 {{- end }}
 
 {{- define "app.cloudFront.configMap" }}

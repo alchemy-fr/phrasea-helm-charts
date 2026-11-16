@@ -212,6 +212,26 @@ Until now, the `APP_SECRET` committed in each `*/api/.env` (shipped in the image
 (asset downloads, publication archives, Phraseanet tokens). Set a distinct random value per app and per instance, e.g.
 `openssl rand -hex 32`: the URLs signed with the former value stop working once the new pods are running.
 
+### Allowed file types and upload limits
+
+`databox.allowedFileTypes`, `uploader.allowedFileTypes` and the new `expose.allowedFileTypes` (`ALLOWED_FILE_TYPES`)
+keep their `type(.ext1,.ext2),…` format, but each entry is now a couple: an upload is accepted when one entry matches
+its MIME type **and** lists its extension, and the content of the file must match its declared type. A main type
+wildcard (`*/*`) fails every upload. The default lists are rewritten accordingly (`.indd` under `application/*`,
+`.txt`, `.md`, `.csv` under `text/*`, `.m4a` and `.mp2` under `audio/*`…): rewrite the lists of your values the same
+way. `expose.allowedFileTypes` must cover what Databox publishes: its types plus the output formats of the renditions.
+
+Other storage defaults:
+
+- `<app>.s3MaxObjectSize` defaults to 5 TiB, the largest object S3 accepts (formerly 48.8 TiB).
+- `databox.maxUploadFileSize` and `expose.maxUploadFileSize` (100 GiB by default) bound the size of an uploaded file;
+  the uploader reads it from the stack configuration (`uploader.max_upload_file_size` in `globalConfig.content`).
+  Raise them before upgrading if larger files are sent.
+- `<app>.multipartUploadRateLimit` (60 upload requests per minute and per user) and `<app>.multipartUploadMaxPending`
+  (20 uploads in progress per user) answer `429` beyond.
+- `databox.api.config.cloudFront.ttl` and `expose.api.config.cloudFront.ttl` default to 3600 seconds (formerly 86400):
+  a signed URL stays valid for its whole TTL, even once its user has lost access to the file.
+
 ### Soketi → Sockudo
 
 Soketi is no longer maintained: the WebSocket server is now [Sockudo](https://github.com/sockudo/sockudo)

@@ -10,6 +10,8 @@ data:
   DEV_MODE: "0"
   EXPOSE_CLIENT_LOGO_URL: {{ .client.logoUrl | quote }}
   EXPOSE_CLIENT_LOGO_ALT: {{ .client.logoAlt | quote }}
+  ALLOWED_FILE_TYPES: {{ .allowedFileTypes | quote }}
+  EXPOSE_MAX_UPLOAD_FILE_SIZE: {{ .maxUploadFileSize | quote }}
   {{- with .api.config.phraseanet }}
   PHRASEANET_URL: {{ .baseUrl | default "" | quote }}
   PHRASEANET_APP_OAUTH_TOKEN: {{ .oauthToken | default "" | quote }}
