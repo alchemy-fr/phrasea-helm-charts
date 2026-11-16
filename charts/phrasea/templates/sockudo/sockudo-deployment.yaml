@@ -54,6 +54,21 @@ spec:
               value: memory
             - name: SOCKUDO_DEFAULT_APP_MAX_CONNECTIONS
               value: {{ .Values.sockudo.app.maxConnections | quote }}
+            # The app key is public: the clients only receive events (channels are all private, authorized by the
+            # APIs) and connect from these origins.
+            - name: SOCKUDO_DEFAULT_APP_ENABLE_CLIENT_MESSAGES
+              value: "false"
+            {{- $origins := list }}
+            {{- range $app := list .Values.databox .Values.expose .Values.uploader }}
+            {{- if $app.enabled }}
+            {{- $origins = append $origins (tpl $app.client.baseUrl $) }}
+            {{- end }}
+            {{- end }}
+            {{- if .Values.dashboard.enabled }}
+            {{- $origins = append $origins (tpl .Values.dashboard.baseUrl $) }}
+            {{- end }}
+            - name: SOCKUDO_DEFAULT_APP_ALLOWED_ORIGINS
+              value: {{ join "," $origins | quote }}
             - name: SOCKUDO_DEFAULT_APP_ID
               valueFrom:
                 configMapKeyRef:
