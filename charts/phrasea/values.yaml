@@ -552,7 +552,6 @@ expose:
   maxUploadFileSize: "107374182400"
   api:
     replicas: 1
-    subnet: 0.0.0.0/0
     ingress:
       enabled: true
       annotations:

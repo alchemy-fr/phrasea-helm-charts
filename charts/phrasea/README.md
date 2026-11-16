@@ -208,6 +208,8 @@ Other behaviour changes:
   CloudFront URLs, external logo…). The violations and the browser errors reach Sentry through the `/api/relay` route of
   the clients, rate limited by `sentry.frontend.tunnelRateLimitPerIp` and `sentry.frontend.tunnelRateLimitGlobal`.
 - `matomo.disableCookies` now applies to every client, not only Databox.
+- `expose.api.subnet` is removed: the Expose API nginx no longer reads `PS_SUBNET` (`/purge` only refuses the requests
+  relayed by a proxy).
 
 ### APP_SECRET
 

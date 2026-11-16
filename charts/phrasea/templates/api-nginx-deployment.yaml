@@ -43,9 +43,13 @@ spec:
             configMapKeyRef:
               name: urls-config
               key: DASHBOARD_CLIENT_URL
-        {{- if .api.subnet }}
-        - name: PS_SUBNET
-          value: {{ .api.subnet | quote }}
+        {{- if eq "expose" $appName }}
+        # The origin the proxy cache keeps apart: without it, the requests of the client bypass the cache
+        - name: EXPOSE_CLIENT_URL
+          valueFrom:
+            configMapKeyRef:
+              name: urls-config
+              key: EXPOSE_CLIENT_URL
         {{- end }}
         {{- if .api.ingress }}
         {{- if .api.ingress.maxBodySize }}
