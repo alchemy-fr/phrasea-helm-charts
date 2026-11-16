@@ -95,6 +95,14 @@ ingress:
 security:
   verifySsl: true
   verifyHost: true
+  # Content Security Policy of the clients (scripts restricted to the nonce of each response)
+  csp:
+    # Only reported (Content-Security-Policy-Report-Only), not enforced: violations show in the browser console, and in
+    # Sentry when the frontend Sentry is enabled. List the sources below before enforcing it.
+    reportOnly: true
+    # Extra sources (space separated) the client pages may load files from or connect to (CDN other than the
+    # CloudFront URLs, external logo…)
+    extraSources: ""
 
 
 image:
@@ -1154,7 +1162,7 @@ matomo:
   siteId:
   authToken:
   mediaPluginEnabled: false
-  # Databox client: track visitors without any cookie (_pk_*)
+  # Clients: track visitors without any cookie (_pk_*)
   disableCookies: false
   syncPhraseanet:
     enabled: false
@@ -1224,6 +1232,10 @@ sentry:
   frontend:
     enabled: ~
     clientDsn: ~
+    # Browser error envelopes relayed per minute and per client IP by each client pod (`/api/relay`)
+    tunnelRateLimitPerIp: 30
+    # Browser error envelopes relayed per minute by each client pod, all IPs included
+    tunnelRateLimitGlobal: 300
 
 ImageMagick:
   policy:

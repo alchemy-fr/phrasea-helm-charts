@@ -6,8 +6,10 @@ kind: ConfigMap
 metadata:
   name: expose-client-config
 data:
-  S3_REQUEST_SIGNATURE_TTL: {{ .api.config.requestSignatureTtl | quote }}
   DISABLE_INDEX_PAGE: {{ .client.disableIndexPage | quote }}
+  {{- with .api.config.cloudFront.url }}
+  CLOUD_FRONT_URL: {{ tpl . $ | quote }}
+  {{- end }}
   {{- include "app.client.configMap" $tplArgs | indent 2 }}
 {{- end }}
 {{- end }}

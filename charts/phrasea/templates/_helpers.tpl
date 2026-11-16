@@ -246,12 +246,17 @@ AUTO_CONNECT_IDP: {{ $glob.Values.keycloak.autoConnectIdP | quote }}
 {{- if $sentryFrontendEnabled }}
 SENTRY_DSN: {{ required "Missing sentry frontend DSN (sentry.frontend.clientDsn or sentry.clientDsn)" $sentryFrontendDsn | quote }}
 SENTRY_ENVIRONMENT: {{ required "Missing sentry environment (sentry.environment)" (get $sentry "environment") | quote }}
+SENTRY_TUNNEL_RATE_LIMIT_PER_IP: {{ get $sentryFrontend "tunnelRateLimitPerIp" | quote }}
+SENTRY_TUNNEL_RATE_LIMIT_GLOBAL: {{ get $sentryFrontend "tunnelRateLimitGlobal" | quote }}
 {{- end }}
 {{- if $glob.Values.matomo.enabled }}
 MATOMO_URL: {{ required "Missing matomo.baseUrl" $glob.Values.matomo.baseUrl | quote }}
 MATOMO_SITE_ID: {{ required "Missing matomo.siteId" $glob.Values.matomo.siteId | quote }}
 MATOMO_MEDIA_PLUGIN_ENABLED: {{ $glob.Values.matomo.mediaPluginEnabled | quote }}
+MATOMO_DISABLE_COOKIES: {{ $glob.Values.matomo.disableCookies | ternary "1" "0" | quote }}
 {{- end }}
+CSP_REPORT_ONLY: {{ $glob.Values.security.csp.reportOnly | quote }}
+CSP_EXTRA_SOURCES: {{ $glob.Values.security.csp.extraSources | quote }}
 {{- if $ctx.client }}
 {{- if $ctx.client.csp }}
 ALLOWED_FRAME_ANCESTORS: {{ $ctx.client.csp.allowedFrameAncestors | quote }}

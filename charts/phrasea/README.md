@@ -200,7 +200,14 @@ Other behaviour changes:
 - Zippy is removed: Expose and Databox build their ZIP archives themselves. Remove the `zippy`, `databox.zippy` and
   `expose.zippy` keys from your values, and the `zippy.<domain>` DNS entry.
 - The Databox, Expose, Uploader and dashboard clients are Next.js servers listening on port 3000: the former nginx
-  client images (listening on port 80) are no longer supported. `databox.client.port` is removed.
+  client images (listening on port 80) are no longer supported. `databox.client.port` is removed. The headers formerly
+  set by their nginx (HSTS, `X-Robots-Tag`, `X-Content-Type-Options`) are no longer emitted: set them on the ingress.
+- The clients send a Content Security Policy restricting the scripts to the nonce of each response, only reported
+  (`Content-Security-Policy-Report-Only`) while `security.csp.reportOnly` is true, the default. Before enforcing it,
+  list in `security.csp.extraSources` any host serving files to the pages outside the stack (CDN other than the
+  CloudFront URLs, external logo…). The violations and the browser errors reach Sentry through the `/api/relay` route of
+  the clients, rate limited by `sentry.frontend.tunnelRateLimitPerIp` and `sentry.frontend.tunnelRateLimitGlobal`.
+- `matomo.disableCookies` now applies to every client, not only Databox.
 
 ### APP_SECRET
 

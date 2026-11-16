@@ -26,8 +26,8 @@ data:
   {{- end }}
   ALLOWED_FILE_TYPES: {{ $.Values.databox.allowedFileTypes | quote }}
   DATABOX_MAX_UPLOAD_FILE_SIZE: {{ .maxUploadFileSize | quote }}
-  {{- if $.Values.matomo.enabled }}
-  MATOMO_DISABLE_COOKIES: {{ $.Values.matomo.disableCookies | ternary "1" "0" | quote }}
+  {{- with .api.config.cloudFront.url }}
+  CLOUD_FRONT_URL: {{ tpl . $ | quote }}
   {{- end }}
   S3_MAX_OBJECT_SIZE: {{ .s3MaxObjectSize | quote }}
   {{- include "app.client.configMap" $tplArgs | indent 2 }}
