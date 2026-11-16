@@ -260,8 +260,8 @@ them (and `/operator`) on the public host.
 
 ### Elasticsearch 7.17 → 9
 
-The bundled Elasticsearch is now 9.1.4, run by the last release of the Elastic subchart (8.5.1) with the security
-disabled (plain HTTP on the internal network, as in the docker compose stack).
+The bundled Elasticsearch is now 9.1.4, run by the last release of the Elastic subchart (8.5.1), with its security
+enabled (see [Elasticsearch authentication](#elasticsearch-authentication)).
 
 Elasticsearch 9 cannot start on the data of a 7.x node: the default `elasticsearch.clusterName` becomes
 `elasticsearch9-databox`, so that the new StatefulSet starts on a new PVC. The former StatefulSet is removed by the
@@ -283,6 +283,31 @@ applies the asset rights of `GET /attributes?definition=`, which returns no valu
 ```bash
 bin/console fos:elastica:populate --index=asset
 ```
+
+### Elasticsearch authentication
+
+The asset rights are applied inside Elasticsearch: anyone reaching the cluster could read every workspace. The bundled
+Elasticsearch now runs with its security enabled, without TLS (plain HTTP inside the cluster), as in the docker compose
+stack:
+
+- `elasticsearch.secret.password` is the password of the `elastic` superuser, only used by the readiness probe and the
+  new `elasticsearch-setup` Job. Set it: left empty, the subchart would generate a new one at each upgrade.
+- `elasticsearch-setup` (post-install and post-upgrade hook) creates or updates the user of the applications,
+  `elasticsearch.username` (`databox` by default) with `elasticsearch.password`, and its role: every privilege on the
+  indices starting with `elasticsearch.indexPrefix` (every index when it is empty), `monitor` on the cluster.
+- The Databox API, workers, scheduler and Jobs get `ELASTICSEARCH_USERNAME` and `ELASTICSEARCH_PASSWORD` from the
+  `databox-elasticsearch` Secret, or from the existing Secret named by `elasticsearch.externalSecretName`.
+- Without transport TLS, Elasticsearch only starts with the single-node discovery (`discovery.type: single-node`, and
+  `elasticsearch.roles: []` so that the subchart sets no `cluster.initial_master_nodes`): keep `elasticsearch.replicas`
+  to 1.
+
+The indices of an existing volume are kept: enabling the security of an existing node is supported. Until the
+`elasticsearch-setup` Job has run at the end of the upgrade, the Databox API and workers get a 401 from Elasticsearch.
+The `elastic` password is only read from `elasticsearch.secret.password` as long as it has not been changed through the
+API (`_security/user/elastic/_password`).
+
+With an external cluster (`elasticsearch.enabled: false`), nothing is created: set `elasticsearch.username` and
+`elasticsearch.password` to an existing user, or empty both for a cluster without authentication.
 
 ### RabbitMQ 3.7 → 3.13
 

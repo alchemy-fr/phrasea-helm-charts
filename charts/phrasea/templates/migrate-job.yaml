@@ -35,6 +35,10 @@ spec:
         - secretRef:
             name: {{ .adminOAuthClient.externalSecretName | default (printf "%s-admin-oauth-client-secret" $appName) }}
         {{- end }}
+        {{- if eq $appName "databox" }}
+        - secretRef:
+            name: {{ include "secretName.elasticsearch" $ }}
+        {{- end }}
         - configMapRef:
             name: {{ $appName }}-api-config
       restartPolicy: Never

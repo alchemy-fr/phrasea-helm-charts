@@ -53,6 +53,9 @@ imagePullSecrets:
 {{- define "secretName.sockudo" -}}
 {{- .Values.sockudo.externalSecretName | default "sockudo" -}}
 {{- end }}
+{{- define "secretName.elasticsearch" -}}
+{{- .Values.elasticsearch.externalSecretName | default "databox-elasticsearch" -}}
+{{- end }}
 {{- define "secretName.mailer" -}}
 {{- .Values.mailer.externalSecretName | default "mailer" -}}
 {{- end }}
@@ -129,6 +132,8 @@ Usage: {{ include "envFrom.phpService" (dict "app" $appName "ctx" . "glob" $ "wo
 {{- if eq "databox" $appName }}
 - secretRef:
     name: {{ $appName }}-secrets
+- secretRef:
+    name: {{ include "secretName.elasticsearch" $glob }}
 {{- if .worker }}
 - secretRef:
     name: {{ $appName }}-worker-secrets

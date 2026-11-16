@@ -1018,13 +1018,27 @@ elasticsearch:
   # Also names the StatefulSet and its PVC: Elasticsearch 9 cannot start on the data of the former 7.x cluster
   # (elasticsearch-databox), so the 9.x one starts on a new volume.
   clusterName: elasticsearch9-databox
-  # Security disabled, as in the docker compose stack: plain HTTP on the internal network.
-  # The readiness probe still requires the "elastic" password Secret (secret.enabled), ignored by Elasticsearch.
+  # Security enabled without TLS (plain HTTP inside the cluster), as in the docker compose stack. Without transport TLS,
+  # Elasticsearch only starts with the single-node discovery: keep a single replica.
   protocol: http
   createCert: false
+  # No master role listed, so that the subchart sets no cluster.initial_master_nodes, refused with the single-node
+  # discovery: the node keeps every role.
+  roles: []
+  secret:
+    enabled: true
+    # __SET_ME__ Password of the "elastic" superuser, only used by the readiness probe and the elasticsearch-setup Job.
+    # Never leave it empty: the subchart would generate a new one at each upgrade.
+    password: '__CHANGE_ME_RqedMZRDy8aNskdj6N'
   extraEnvs:
     - name: xpack.security.enabled
+      value: "true"
+    - name: xpack.security.http.ssl.enabled
       value: "false"
+    - name: xpack.security.transport.ssl.enabled
+      value: "false"
+    - name: discovery.type
+      value: single-node
   # The subchart test pod only supports HTTPS
   tests:
     enabled: false
@@ -1034,7 +1048,18 @@ elasticsearch:
   clusterHealthCheckParams: "wait_for_status=yellow&timeout=1s"
   # External Elasticsearch URL, defaults to the service of the elasticsearch subchart (<clusterName>-master)
   url: "http://{{ .Values.elasticsearch.clusterName }}-master:9200"
+  # Prefix of every index name (e.g. "phrasea_prod_"). Required on a cluster shared with other deployments: it also
+  # scopes the user of the applications, the admin index screens and the populate locks.
   indexPrefix: ""
+  # Basic authentication of the applications (ELASTICSEARCH_USERNAME, ELASTICSEARCH_PASSWORD). With the bundled
+  # Elasticsearch, the elasticsearch-setup Job creates this user (not "elastic") with every privilege on the indices
+  # starting with indexPrefix (all the indices when it is empty). With an external cluster, provide an existing user,
+  # or empty both for a cluster without authentication.
+  username: databox
+  # __SET_ME__
+  password: '__CHANGE_ME_R6qjTruPjuWD1XGdjt'
+  # Existing Secret holding ELASTICSEARCH_USERNAME and ELASTICSEARCH_PASSWORD (otherwise created from username and password)
+  externalSecretName:
   resources:
     requests:
       cpu: "100m"
