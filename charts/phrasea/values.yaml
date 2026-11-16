@@ -695,6 +695,10 @@ uploader:
         memory: "2048Mi"
     config:
       deleteAssetGracefulTime: 0
+      # Maximum lifetime of an upload link, in days: every link must expire within it
+      uploadLinkMaxTtl: 90
+      # Downloads from a URL (POST /downloads) accepted per hour and per user
+      downloadRateLimit: 30
       assetConsumerCommitUri:
       assetConsumerAccessToken:
       requestSignatureTtl: 3600
