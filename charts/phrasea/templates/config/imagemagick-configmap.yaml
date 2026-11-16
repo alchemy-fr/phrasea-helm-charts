@@ -8,6 +8,11 @@ data:
   IMAGEMAGICK_POLICY_DISK: {{ .Values.ImageMagick.policy.disk | quote }}
   IMAGEMAGICK_POLICY_MAP: {{ .Values.ImageMagick.policy.map | quote }}
   IMAGEMAGICK_POLICY_WIDTH: {{ .Values.ImageMagick.policy.width | quote }}
+  {{- with .Values.ImageMagick.policy.height }}
+  IMAGEMAGICK_POLICY_HEIGHT: {{ . | quote }}
+  {{- end }}
+  IMAGEMAGICK_POLICY_TIME: {{ .Values.ImageMagick.policy.time | quote }}
+  IMAGEMAGICK_POLICY_LIST_LENGTH: {{ .Values.ImageMagick.policy.listLength | quote }}
   IMAGEMAGICK_POLICY_VERSION: {{ .Values.ImageMagick.policy.version | quote }}
   {{- with .Values.ImageMagick.policy.memory }}
   IMAGEMAGICK_POLICY_MEMORY: {{ . | quote }}
