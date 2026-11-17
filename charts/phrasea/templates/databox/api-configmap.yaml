@@ -18,7 +18,7 @@ data:
   PWI_UPLOADER_API_URL: {{ tpl $.Values.uploader.api.baseUrl $ | quote }}
   PWI_DATABOX_EXPOSE_INTEGRATION_CLIENT_ID: {{ $.Values.databox.exposeIntegration.clientId | default "" | quote }}
   ALLOWED_FILE_TYPES: {{ $.Values.databox.allowedFileTypes | quote }}
-  DATABOX_MAX_UPLOAD_FILE_SIZE: {{ $.Values.databox.maxUploadFileSize | quote }}
+  MAX_UPLOAD_FILE_SIZE: {{ $.Values.databox.maxUploadFileSize | quote }}
   {{- if $.Values.similarityEmbedder.enabled }}
   SIMILARITY_EMBEDDER_URL: {{ $.Values.similarityEmbedder.url | quote }}
   {{- end }}

@@ -25,7 +25,7 @@ data:
   {{- end }}
   {{- end }}
   ALLOWED_FILE_TYPES: {{ $.Values.databox.allowedFileTypes | quote }}
-  DATABOX_MAX_UPLOAD_FILE_SIZE: {{ .maxUploadFileSize | quote }}
+  MAX_UPLOAD_FILE_SIZE: {{ .maxUploadFileSize | quote }}
   {{- with .api.config.cloudFront.url }}
   CLOUD_FRONT_URL: {{ tpl . $ | quote }}
   {{- end }}
