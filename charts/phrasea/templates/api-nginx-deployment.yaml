@@ -37,16 +37,22 @@ spec:
         {{- end }}
         terminationMessagePolicy: FallbackToLogsOnError
         env:
-      {{- if .api.subnet }}
-          - name: PS_SUBNET
-            value: {{ .api.subnet | quote }}
-      {{- end }}
-      {{- if .api.ingress }}
-      {{- if .api.ingress.maxBodySize }}
-          - name: UPLOAD_MAX_FILE_SIZE
-            value: {{ .api.ingress.maxBodySize | quote }}
-      {{- end }}
-      {{- end }}
+        # Used in the Content-Security-Policy (frame-ancestors) so the dashboard can embed the API pages
+        - name: DASHBOARD_CLIENT_URL
+          valueFrom:
+            configMapKeyRef:
+              name: urls-config
+              key: DASHBOARD_CLIENT_URL
+        {{- if .api.subnet }}
+        - name: PS_SUBNET
+          value: {{ .api.subnet | quote }}
+        {{- end }}
+        {{- if .api.ingress }}
+        {{- if .api.ingress.maxBodySize }}
+        - name: UPLOAD_MAX_FILE_SIZE
+          value: {{ .api.ingress.maxBodySize | quote }}
+        {{- end }}
+        {{- end }}
 ---
 {{- end }}
 {{- end }}

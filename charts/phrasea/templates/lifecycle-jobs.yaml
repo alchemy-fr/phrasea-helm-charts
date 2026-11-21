@@ -1,0 +1,45 @@
+{{- /*
+Install/upgrade lifecycle: one Job per (component, phase) running "bin/lifecycle.sh <phase>" in the image of the
+component (see doc/tech/Deployment/lifecycle.md in phrasea). Within a phase the configurator runs first, then the apps.
+
+Both install phases are Helm post-install hooks: a Helm pre-install hook runs before any resource of the release
+exists, so it cannot reach the infrastructure embedded in this chart (PostgreSQL, RabbitMQ, Minio, Keycloak,
+Elasticsearch). Their weights stay below create-databox-target (10) and the fixtures (15).
+*/ -}}
+{{- $phases := list
+  (dict "phase" "pre-install" "hook" "post-install" "install" true "configuratorWeight" 4 "appWeight" 5)
+  (dict "phase" "post-install" "hook" "post-install" "install" true "configuratorWeight" 6 "appWeight" 7)
+  (dict "phase" "pre-upgrade" "hook" "pre-upgrade" "install" false "configuratorWeight" 0 "appWeight" 1)
+  (dict "phase" "post-upgrade" "hook" "post-upgrade" "install" false "configuratorWeight" 0 "appWeight" 1)
+}}
+{{- range $phases }}
+{{- $p := . }}
+{{- $enabled := ternary $.Values.stack.runSetups $.Values.stack.runMigrations $p.install }}
+{{- if and $.Values.stack.running $enabled }}
+---
+{{ include "lifecycle.job" (dict
+  "glob" $
+  "component" "configurator"
+  "phase" $p.phase
+  "hook" $p.hook
+  "weight" $p.configuratorWeight
+  "backoffLimit" (ternary 0 3 $p.install)
+  "container" (include "configurator.containerSpecs" $)
+) }}
+{{- range $.Values._internal.services }}
+{{- $appName := . }}
+{{- with (index $.Values $appName) }}
+---
+{{ include "lifecycle.job" (dict
+  "glob" $
+  "component" $appName
+  "phase" $p.phase
+  "hook" $p.hook
+  "weight" $p.appWeight
+  "backoffLimit" (ternary 10 0 $p.install)
+  "container" (include "lifecycle.appContainerSpecs" (dict "app" $appName "ctx" . "glob" $))
+) }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

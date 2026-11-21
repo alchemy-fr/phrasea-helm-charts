@@ -3,4 +3,5 @@ kind: ConfigMap
 metadata:
   name: client-config
 data:
-  NOTIFICATIONS_ENABLED: {{ .Values.notifications.enabled | default false | quote }}
+  NOTIFICATIONS_ENABLED: {{ .Values.notifications.enabled | quote }}
+  VERIFY_SSL: {{ .Values.security.verifySsl | quote }}

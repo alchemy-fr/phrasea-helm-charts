@@ -1,0 +1,69 @@
+{{- with .Values.similarityEmbedder }}
+{{- if and $.Values.stack.running .enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: similarity-embedder
+spec:
+  replicas: {{ .replicas }}
+  selector:
+    matchLabels:
+      app: phrasea
+      tier: similarity-embedder
+  template:
+    metadata:
+      labels:
+        app: phrasea
+        tier: similarity-embedder
+    spec:
+      {{ include "imagePullSecrets" $ | indent 6 }}
+      {{- if $.Values.nodeSelector }}
+      nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: similarity-embedder
+        image: "{{ .image.repository }}:{{ .image.tag }}"
+        imagePullPolicy: {{ .image.pullPolicy }}
+        securityContext:
+          allowPrivilegeEscalation: false
+        {{- if eq "true" (include "ps.resourceQuota" (dict "local" .resourceQuota "global" $.Values.resourceQuota)) }}
+        resources:
+          requests:
+            memory: {{ .resources.requests.memory }}
+            cpu: {{ .resources.requests.cpu }}
+          limits:
+            memory: {{ .resources.limits.memory }}
+            cpu: {{ .resources.limits.cpu }}
+        {{- end }}
+        ports:
+        - name: http
+          containerPort: 8000
+        env:
+        - name: MAX_UPLOAD_BYTES
+          value: {{ .config.maxUploadBytes | quote }}
+        - name: MAX_TEXT_LENGTH
+          value: {{ .config.maxTextLength | quote }}
+        - name: MAX_IMAGE_PIXELS
+          value: {{ .config.maxImagePixels | quote }}
+        # The CLIP model is loaded in memory at startup, which takes a while on CPU
+        startupProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 5
+          failureThreshold: 60
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 10
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 30
+          failureThreshold: 3
+        terminationMessagePolicy: FallbackToLogsOnError
+{{- end }}
+{{- end }}

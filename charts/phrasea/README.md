@@ -1,5 +1,56 @@
 # Phrasea Chart
 
+## Databox Mapbox configuration
+
+To enable maps in the Databox client, configure a public Mapbox access token:
+
+```yaml
+databox:
+  client:
+    mapbox:
+      token: "pk.REPLACE_WITH_YOUR_PUBLIC_TOKEN"
+```
+
+The chart injects this value as `MAPBOX_TOKEN` into the Databox client
+container. The client exposes it to the browser at runtime; use a public
+`pk.*` token, never a secret `sk.*` token, and restrict its allowed URLs to
+your Databox client domains.
+
+The default empty value disables maps. This setting is independent from
+`expose.client.mapbox.token`. After updating the token with `helm upgrade`,
+recreate the Databox client pods to load the new environment variable.
+No image rebuild is needed.
+
+### Ingress controller
+
+Since chart 3.0.0, every Ingress uses the `traefik` IngressClass by default
+(ingress-nginx is retired upstream). To keep ingress-nginx, set:
+
+```yaml
+ingress:
+  className: nginx
+```
+
+An empty `className` omits `spec.ingressClassName`, so the cluster default
+IngressClass applies.
+
+`ingress.annotations` is added to every Ingress of the chart; the annotations
+of each Ingress take precedence. For instance, to attach a Traefik Middleware
+to the whole stack:
+
+```yaml
+ingress:
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: my-namespace-my-middleware@kubernetescrd
+```
+
+With Traefik, the `nginx.ingress.kubernetes.io/*` annotations of the default
+values are ignored: request body size and timeouts are set on the Traefik
+entrypoints (`transport.respondingTimeouts`). The Sockudo internal paths
+(`/usage`, `/stats`, `/operator`) are denied with a Traefik `Middleware`
+(`traefik.io/v1alpha1` CRDs required) instead of the ingress-nginx denylist
+annotation.
+
 ### TLS
 
 You can enable wildcard TLS:
@@ -80,9 +131,9 @@ stack:
 
 Restore stack:
 
-If your PostgreSQL service is enabled, you will need to disable migrations for the pod to start.
-
-Change the:
+The `pre-upgrade` hooks run before the workloads of the release start. If the infrastructure is embedded in the chart
+(PostgreSQL, RabbitMQ, Minio, Keycloak or Elasticsearch enabled), it is not running yet at that point: restart the
+stack without the upgrade phases first.
 
 ```yaml
 stack:
@@ -90,15 +141,155 @@ stack:
     runMigrations: false
 ```
 
-Now `helm upgrade`!
+Now `helm upgrade`! Then set `runMigrations` back to `true` and `helm upgrade` again, now or with your next version:
+the lifecycle phases converge, so this upgrade only provisions and migrates what is missing (nothing when the image tag
+did not change), and can be run again safely.
 
-In a second phase, you must re-enable migrations:
+With an external infrastructure, a single `helm upgrade` with `running: true` is enough.
 
+## Lifecycle hooks
+
+The install and upgrade steps run as Helm hook Jobs, one per component (`configurator`, then `databox`, `expose`,
+`uploader`) and per phase, named `<component>-<phase>`. Each one runs `bin/lifecycle.sh <phase>` in the image of the
+component (see `doc/tech/Deployment/lifecycle.md` in the Phrasea repository): the images must ship `bin/lifecycle.sh`
+(Phrasea 5.0 and later).
+
+| Phase          | Helm hook      | configurator weight | apps weight | Enabled by                               |
+|----------------|----------------|---------------------|-------------|------------------------------------------|
+| `pre-install`  | `post-install` | 4                   | 5           | `stack.running` and `stack.runSetups`    |
+| `post-install` | `post-install` | 6                   | 7           | `stack.running` and `stack.runSetups`    |
+| `pre-upgrade`  | `pre-upgrade`  | 0                   | 1           | `stack.running` and `stack.runMigrations` |
+| `post-upgrade` | `post-upgrade` | 0                   | 1           | `stack.running` and `stack.runMigrations` |
+
+- Both install phases are `post-install` hooks: a Helm `pre-install` hook runs before any resource of the release
+  exists and cannot reach the infrastructure embedded in the chart. They run before `create-databox-target` (10) and
+  the fixtures (15).
+- The configurator runs before the apps in every phase: it creates the resources they depend on.
+- Every phase converges on the state of its database (it installs a fresh database and migrates an installed one), so a
+  failed Job can be run again. The install Jobs of the apps are retried 10 times, the upgrade Jobs of the configurator 3
+  times.
+- Every phase of a component gets the same environment. `configurator.presets` reaches the configurator through
+  `CONFIGURATOR_PRESETS`.
+
+## Similarity search and face recognition
+
+The Databox "Similarity" and "Face Recognition" integrations rely on two self-hosted services, disabled by default.
 
 ```yaml
-stack:
-    running: true
-    runMigrations: true
+similarityEmbedder:
+  enabled: true
+
+faceRecognition:
+  enabled: true
 ```
 
-`helm upgrade` again!
+The Databox API and worker then reach them through `similarityEmbedder.url` / `faceRecognition.url`.
+The similarity search (kNN on dense vectors) requires Elasticsearch >= 8.12.
+Backfill the existing assets with `bin/console app:similarity:index` and `bin/console app:face-recognition:index`
+from the interactive pod or a worker pod.
+
+## Upgrade notes
+
+### Chart 3.0
+
+The defaults now target the Phrasea 5.0 images. The 4.4.x images are no longer supported: they still need the former
+databox CronJobs, Zippy, Soketi and Elasticsearch 7, removed below.
+
+Other behaviour changes:
+
+- `keycloak.realm.loginRegistrationAllowed` now defaults to `false`.
+- The Sockudo ingress is enabled by default (realtime notifications).
+- `databox.api.config.secrets.secretKey` is stored in the `databox-worker-secrets` Secret.
+- `elasticsearch.url` now defaults to the subchart service in `values.yaml`: remove an empty `elasticsearch.url:` from your values.
+- Defaults now live in `values.yaml` only, templates no longer fall back on them. An empty key in your values
+  (e.g. `region:` copied from the 2.x `values.yaml`) overrides the default: remove it or set a value.
+  The S3/CloudFront regions are required and fail the rendering when empty.
+- `stack.runSynchronize` is removed: the configuration is synchronized by the configurator `pre-upgrade` lifecycle
+  Job (`stack.runMigrations`), see [Lifecycle hooks](#lifecycle-hooks).
+- Keycloak and the report API are no longer built with the Phrasea images: they come from
+  `keycloak.image` and `report.image` (public ECR by default) instead of `repository.baseUrl` / `repository.tag`.
+- The databox `daily` and `hourly` CronJobs (`databox.cronJob`) are replaced by Symfony Scheduler: the
+  `databox-scheduler` and `uploader-scheduler` StatefulSets (`databox.scheduler`, `uploader.scheduler`) run the worker
+  image with `WORKER_PRIORITIES=scheduler_main`, always with a single pod. Without `databox-scheduler`, the scheduled
+  automations never run. Remove `databox.cronJob` from your values.
+- Zippy is removed: Expose and Databox build their ZIP archives themselves. Remove the `zippy`, `databox.zippy` and
+  `expose.zippy` keys from your values, and the `zippy.<domain>` DNS entry.
+- The Databox, Expose, Uploader and dashboard clients are Next.js servers listening on port 3000: the former nginx
+  client images (listening on port 80) are no longer supported. `databox.client.port` is removed.
+
+### APP_SECRET
+
+The Databox, Expose and Uploader APIs now get their Symfony `APP_SECRET` from the `<app>-app-secret` Secret, created
+from `databox.appSecret.value`, `expose.appSecret.value` and `uploader.appSecret.value` (required for each enabled app),
+or taken from the existing Secret named by `<app>.appSecret.externalSecretName` (key `APP_SECRET`).
+
+Until now, the `APP_SECRET` committed in each `*/api/.env` (shipped in the images, hence public) signed the URI JWTs
+(asset downloads, publication archives, Phraseanet tokens). Set a distinct random value per app and per instance, e.g.
+`openssl rand -hex 32`: the URLs signed with the former value stop working once the new pods are running.
+
+### Soketi → Sockudo
+
+Soketi is no longer maintained: the WebSocket server is now [Sockudo](https://github.com/sockudo/sockudo)
+(`ghcr.io/sockudo/sockudo`), which speaks the same Pusher protocol. Everything named after Soketi is renamed, with no
+fallback on the old names:
+
+- the `soketi` values become `sockudo` (`sockudo.host`, `sockudo.appId`, `sockudo.key`, `sockudo.secret`,
+  `sockudo.serverSide.*`, `sockudo.ingress.*`...). `soketi.app.mode` and `soketi.app.command` are removed.
+- the public host defaults to `ws.<domain>`: update your DNS and TLS certificates, or set `sockudo.host` to the
+  former `soketi.<domain>`.
+- the `soketi` ConfigMap, Secret and Service become `sockudo`, and the `SOKETI_*` variables `SOCKUDO_*`.
+- `sockudo.externalSecretName` names an existing Secret holding `SOCKUDO_SECRET`.
+
+`sockudo.appId`, `sockudo.key` and `sockudo.secret` must all be set: otherwise Sockudo keeps the demo app of its
+bundled configuration. Sockudo serves `/usage` and `/stats` on the app port: the `sockudo-internal-paths` Ingress denies
+them (and `/operator`) on the public host.
+
+### Elasticsearch 7.17 → 9
+
+The bundled Elasticsearch is now 9.1.4, run by the last release of the Elastic subchart (8.5.1) with the security
+disabled (plain HTTP on the internal network, as in the docker compose stack).
+
+Elasticsearch 9 cannot start on the data of a 7.x node: the default `elasticsearch.clusterName` becomes
+`elasticsearch9-databox`, so that the new StatefulSet starts on a new PVC. The former StatefulSet is removed by the
+upgrade and its PVC (`elasticsearch-databox-master-elasticsearch-databox-master-0`) is kept: delete it once the new
+cluster is populated. If you set `elasticsearch.clusterName` in your values, change it as well (or delete the PVC).
+
+Rebuild the indexes after the upgrade, from the interactive pod or a databox worker pod:
+
+```bash
+bin/console fos:elastica:populate
+```
+
+An external Elasticsearch (`elasticsearch.enabled: false`) must be upgraded to 9.x as well (8.12 at least for the
+similarity search).
+
+A stack already running a 5.0 pre-release must rebuild the `asset` index as well: its new `attributeValues` field
+applies the asset rights of `GET /attributes?definition=`, which returns no value until the index is repopulated.
+
+```bash
+bin/console fos:elastica:populate --index=asset
+```
+
+### RabbitMQ 3.7 → 3.13
+
+The default `rabbitmq.image` is now `rabbitmq:3.13.7-management`. RabbitMQ cannot start a 3.13 node
+on data written by 3.7: an existing stack must either keep its current image or upgrade step by step.
+
+To keep the previous version:
+
+```yaml
+rabbitmq:
+  image: rabbitmq:3.7.14-management
+```
+
+To upgrade, run one `helm upgrade` per version below, enabling all the feature flags before moving to the next one:
+
+```bash
+# for each image: 3.8.35, 3.9.29, 3.10.25, 3.11.28, 3.12.14, 3.13.7 (all "-management")
+helm upgrade ... --set rabbitmq.image=rabbitmq:3.8.35-management
+kubectl rollout status deploy/rabbitmq
+kubectl exec deploy/rabbitmq -- rabbitmqctl enable_feature_flag all
+```
+
+Alternatively, once every queue is drained (workers scaled down), the RabbitMQ PVC can be deleted;
+the configurator must then be run again to recreate the vhosts (`configurator.configure.rabbitmq`).
