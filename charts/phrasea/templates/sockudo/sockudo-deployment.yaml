@@ -18,6 +18,9 @@ spec:
         app: phrasea
         tier: sockudo
     spec:
+      {{- if $.Values.nodeSelector }}
+      nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 8 }}
+      {{- end }}
       serviceAccountName: default
       terminationGracePeriodSeconds: 30
       securityContext:

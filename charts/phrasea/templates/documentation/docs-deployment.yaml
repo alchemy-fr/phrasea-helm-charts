@@ -13,6 +13,9 @@ spec:
       labels:
         app: phrasea-documentation
     spec:
+      {{- if $.Values.nodeSelector }}
+      nodeSelector: {{ toYaml $.Values.nodeSelector | nindent 8 }}
+      {{- end }}
       containers:
         - name: phrasea-documentation
           image: "{{ .Values.documentation.image.repository | default .Values.repository.baseUrl }}/ps-documentation:{{ .Values.documentation.image.tag | default .Values.repository.tag }}"

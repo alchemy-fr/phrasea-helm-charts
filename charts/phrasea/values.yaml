@@ -121,6 +121,9 @@ ecrTokenRefresher:
   awsAccessKeyId:
   awsSecretAccessKey:
 
+# Node labels every workload of the chart is scheduled on (spec.nodeSelector),
+# bundled services (redis, postgresql, websocket server, documentation) included.
+# Empty: no constraint. Example: {appPhrasea: "true"}
 nodeSelector:
 
 configurator:
