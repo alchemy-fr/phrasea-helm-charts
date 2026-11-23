@@ -96,6 +96,20 @@ entrypoints (`transport.respondingTimeouts`). The Sockudo internal paths
 (`traefik.io/v1alpha1` CRDs required) instead of the ingress-nginx denylist
 annotation.
 
+### Parade
+
+Parade is a dependency chart: it does not inherit `ingress.*` nor `nodeSelector`.
+Set the same values under `parade`:
+
+```yaml
+parade:
+  ingress:
+    className: traefik  # default
+    ipAllowlist: [192.0.2.0/24]
+    middlewares: []
+  nodeSelector: {}
+```
+
 ### TLS
 
 You can enable wildcard TLS:

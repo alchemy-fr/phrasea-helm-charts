@@ -1170,8 +1170,18 @@ mailpit:
     size: 1Gi
 
 # Phrasea Parade — a commercial add-on, not included in the open-source images, info@alchemy.fr for more informations.
+# Parade is a dependency chart: it does not see the values of this chart. Its Ingresses
+# and pods are configured under parade.* with the same keys, to be kept in line with
+# ingress.className, ingress.ipAllowlist, ingress.middlewares and nodeSelector above.
 parade:
   enabled: false
+  ingress:
+    className: traefik
+    # Same as ingress.ipAllowlist (Traefik ipAllowList Middleware or ingress-nginx annotation)
+    ipAllowlist: []
+    # Traefik only, same as ingress.middlewares
+    middlewares: []
+  nodeSelector: {}
   postgresql:
     enabled: false
   acme:
