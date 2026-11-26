@@ -10,8 +10,11 @@ data:
   # since it cannot parse a DSN) to the in-cluster Mailpit service for testing.
   MAILER_HOST: {{ ternary "mailpit" (.host | default "") $.Values.mailpit.enabled | quote }}
   MAILER_PORT: {{ ternary "1025" (.port | default "" | toString) $.Values.mailpit.enabled | quote }}
-  MAIL_FROM: {{ .from | default "" | quote }}
-  MAIL_FROM_DISPLAY_NAME: {{ .fromDisplayName | default (printf "Phrasea noreply %s" $.Values.stack.name) | quote }}
+  # Used by the configurator to set up the Keycloak SMTP server
+  MAILER_SSL: {{ ternary "false" (.ssl | toString) $.Values.mailpit.enabled | quote }}
+  MAILER_TLS: {{ ternary "false" (.tls | toString) $.Values.mailpit.enabled | quote }}
+  MAIL_FROM: {{ .from | default (ternary (printf "noreply@%s" $.Values.stack.domain) "" (not (empty $.Values.stack.domain))) | quote }}
+  MAIL_FROM_DISPLAY_NAME: {{ .fromDisplayName | default (ternary (printf "Phrasea noreply %s" $.Values.stack.name) "Phrasea" (not (empty $.Values.stack.name))) | quote }}
   MAIL_REPLY_TO: {{ .replyTo | default "" | quote }}
   MAIL_REPLY_TO_DISPLAY_NAME: {{ .replyToDisplayName | default "" | quote }}
   MAIL_ENVELOPE_FROM: {{ .envelopeFrom | default "" | quote }}

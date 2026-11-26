@@ -1,0 +1,19 @@
+{{- if and $.Values.stack.running .Values.sockudo.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: sockudo
+  labels:
+    app: phrasea
+    tier: sockudo
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: {{ $.Values.sockudo.servicePort }}
+      protocol: TCP
+      name: sockudo
+  selector:
+    app: phrasea
+    tier: sockudo
+{{- end }}

@@ -29,6 +29,9 @@ spec:
             configMapKeyRef:
               name: databox-api-config
               key: ELASTICSEARCH_INDEX_PREFIX
+        envFrom:
+        - secretRef:
+            name: {{ include "secretName.elasticsearch" . }}
         command:
         - /bin/sh
         - -c
@@ -37,8 +40,16 @@ spec:
           ELASTICSEARCH_URL=${ELASTICSEARCH_URL}
           PREFIX=${ELASTICSEARCH_INDEX_PREFIX}
 
+          es() {
+            if [ -n "${ELASTICSEARCH_USERNAME}" ]; then
+              curl -s -u "${ELASTICSEARCH_USERNAME}:${ELASTICSEARCH_PASSWORD}" "$@"
+            else
+              curl -s "$@"
+            fi
+          }
+
           # Get list of aliases and indices
-          ALIASES=$(curl -s -X GET "${ELASTICSEARCH_URL}/_cat/aliases/${PREFIX}*?h=alias,index")
+          ALIASES=$(es -X GET "${ELASTICSEARCH_URL}/_cat/aliases/${PREFIX}*?h=alias,index")
 
           # Loop through each alias and index
           echo "$ALIASES" | while read -r line; do
@@ -46,17 +57,17 @@ spec:
             INDEX=$(echo $line | awk '{print $2}')
 
             # Remove alias
-            curl -s -X POST "${ELASTICSEARCH_URL}/_aliases" -H 'Content-Type: application/json' -d "{
+            es -X POST "${ELASTICSEARCH_URL}/_aliases" -H 'Content-Type: application/json' -d "{
               \"actions\": [
                 { \"remove\": { \"index\": \"$INDEX\", \"alias\": \"$ALIAS\" } }
               ]
             }"
 
             # Close index
-            curl -s -X POST "${ELASTICSEARCH_URL}/$INDEX/_close"
+            es -X POST "${ELASTICSEARCH_URL}/$INDEX/_close"
 
             # Delete index
-            curl -s -X DELETE "${ELASTICSEARCH_URL}/$INDEX"
+            es -X DELETE "${ELASTICSEARCH_URL}/$INDEX"
           done
       restartPolicy: Never
 {{- end }}

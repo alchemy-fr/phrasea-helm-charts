@@ -1,0 +1,58 @@
+{{- if and .Values.elasticsearch.enabled .Values.databox.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: elasticsearch-setup
+data:
+  setup-users.sh: |-
+{{ .Files.Get "files/elasticsearch-setup-users.sh" | indent 4 }}
+---
+# Creates or updates, as the "elastic" superuser, the user of the applications (elasticsearch.username) and its role,
+# restricted to the elasticsearch.indexPrefix indices, before the setup Jobs use Elasticsearch.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: elasticsearch-setup
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      {{- if .Values.nodeSelector }}
+      nodeSelector: {{ toYaml .Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: elasticsearch-setup
+        image: "{{ .Values.elasticsearch.image }}:{{ .Values.elasticsearch.imageTag }}"
+        imagePullPolicy: {{ .Values.elasticsearch.imagePullPolicy }}
+        command: ["/bin/bash", "/scripts/setup-users.sh"]
+        terminationMessagePolicy: FallbackToLogsOnError
+        env:
+        - name: ES_URL
+          value: {{ tpl .Values.elasticsearch.url . | trimSuffix "/" | quote }}
+        # Covers the first start of the StatefulSet (volume provisioning, image pull)
+        - name: ES_WAIT_TIMEOUT
+          value: "600"
+        - name: ELASTIC_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.elasticsearch.clusterName }}-{{ .Values.elasticsearch.nodeGroup }}-credentials
+              key: password
+        - name: ELASTICSEARCH_INDEX_PREFIX
+          value: {{ .Values.elasticsearch.indexPrefix | quote }}
+        envFrom:
+        - secretRef:
+            name: {{ include "secretName.elasticsearch" . }}
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+          readOnly: true
+      restartPolicy: Never
+      volumes:
+      - name: scripts
+        configMap:
+          name: elasticsearch-setup
+{{- end }}

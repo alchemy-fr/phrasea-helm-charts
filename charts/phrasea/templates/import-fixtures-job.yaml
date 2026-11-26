@@ -45,6 +45,8 @@ spec:
         {{- if eq $appName "databox" }}
         - secretRef:
             name: {{ $appName }}-secrets
+        - secretRef:
+            name: {{ include "secretName.elasticsearch" $ }}
         {{- end }}
         - configMapRef:
             name: {{ $appName }}-api-config

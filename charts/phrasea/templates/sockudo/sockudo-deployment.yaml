@@ -1,0 +1,111 @@
+{{- if and $.Values.stack.running .Values.sockudo.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sockudo
+  labels:
+    app: phrasea
+    tier: sockudo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: phrasea
+      tier: sockudo
+  template:
+    metadata:
+      labels:
+        app: phrasea
+        tier: sockudo
+    spec:
+      serviceAccountName: default
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+
+      containers:
+        - name: sockudo
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          image: "{{ .Values.sockudo.app.image.repository }}:{{ .Values.sockudo.app.image.tag }}"
+          imagePullPolicy: {{ .Values.sockudo.app.image.pullPolicy }}
+          ports:
+            - name: sockudo
+              containerPort: {{ .Values.sockudo.servicePort }}
+              protocol: TCP
+          env:
+            - name: PORT
+              value: {{ .Values.sockudo.servicePort | quote }}
+            # Single node: explicit drivers rather than the example config bundled in the image.
+            - name: ADAPTER_DRIVER
+              value: local
+            - name: CACHE_DRIVER
+              value: memory
+            - name: QUEUE_DRIVER
+              value: memory
+            - name: APP_MANAGER_DRIVER
+              value: memory
+            - name: SOCKUDO_DEFAULT_APP_MAX_CONNECTIONS
+              value: {{ .Values.sockudo.app.maxConnections | quote }}
+            # The app key is public: the clients only receive events (channels are all private, authorized by the
+            # APIs) and connect from these origins.
+            - name: SOCKUDO_DEFAULT_APP_ENABLE_CLIENT_MESSAGES
+              value: "false"
+            {{- $origins := list }}
+            {{- range $app := list .Values.databox .Values.expose .Values.uploader }}
+            {{- if $app.enabled }}
+            {{- $origins = append $origins (tpl $app.client.baseUrl $) }}
+            {{- end }}
+            {{- end }}
+            {{- if .Values.dashboard.enabled }}
+            {{- $origins = append $origins (tpl .Values.dashboard.baseUrl $) }}
+            {{- end }}
+            - name: SOCKUDO_DEFAULT_APP_ALLOWED_ORIGINS
+              value: {{ join "," $origins | quote }}
+            - name: SOCKUDO_DEFAULT_APP_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: sockudo
+                  key: SOCKUDO_APP_ID
+            - name: SOCKUDO_DEFAULT_APP_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: sockudo
+                  key: SOCKUDO_KEY
+            - name: SOCKUDO_DEFAULT_APP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secretName.sockudo" $ }}
+                  key: SOCKUDO_SECRET
+            {{- with .Values.sockudo.app.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          # Only answers once the default app is loaded
+          readinessProbe:
+            httpGet:
+              path: /up/{{ .Values.sockudo.appId }}
+              port: sockudo
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /up/{{ .Values.sockudo.appId }}
+              port: sockudo
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            {{- toYaml .Values.sockudo.app.resources | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+{{- end }}

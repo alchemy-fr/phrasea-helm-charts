@@ -9,16 +9,17 @@ apiVersion: {{ template "ingress.apiVersion" $ }}
 kind: Ingress
 metadata:
   name: {{ $appName }}-api-ingress
-{{- if .ingress.annotations }}
-  annotations:
-{{ toYaml .ingress.annotations | indent 4 }}
+{{- with include "ingress.annotations" (dict "_" $ "annotations" .ingress.annotations) }}
+  {{- . | nindent 2 }}
 {{- end }}
 {{- if .ingress.extraLabels }}
   labels:
 {{ toYaml .ingress.extraLabels | indent 4 }}
 {{- end }}
 spec:
-  ingressClassName: nginx
+{{- with include "ingress.className" $ }}
+  {{- . | nindent 2 }}
+{{- end }}
   rules:
   - host: {{ tpl .hostname $ }}
     http:
@@ -28,7 +29,7 @@ spec:
 {{- $tlsNode := .ingress.tls -}}
 {{- range $value := $tlsNode }}
   {{- if not (hasKey $value "hosts") }}
-    {{- $hosts := list $apiNode.hostname }}
+    {{- $hosts := list (tpl $apiNode.hostname $) }}
     {{- $_ := set $value "hosts" $hosts }}
   {{- end -}}
 {{- end }}
