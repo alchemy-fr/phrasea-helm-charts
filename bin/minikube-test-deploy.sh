@@ -305,7 +305,7 @@ function install_ingress {
     hm upgrade --install traefik traefik/traefik \
       --namespace traefik --create-namespace \
       ${TRAEFIK_CHART_VERSION:+--version "${TRAEFIK_CHART_VERSION}"} \
-      --set service.type=ClusterIP \
+      --set service.spec.type=ClusterIP \
       --set ports.web.hostPort=80 \
       --set ports.websecure.hostPort=443 \
       --set ports.websecure.transport.respondingTimeouts.readTimeout=600s \
@@ -394,6 +394,8 @@ function build_local_images {
     cd "${PHRASEA_DIR}"
     eval "$(minikube -p "${PROFILE}" docker-env)"
     export COMPOSE_FILE=docker-compose.yml
+    # The profiles of the images the chart deploys, whatever the .env.local of the checkout enables.
+    export COMPOSE_PROFILES=databox,expose,uploader,dashboard,configurator,matomo
     export REGISTRY_NAMESPACE="${IMAGE_REGISTRY}/ps-"
     export DOCKER_TAG="${IMAGE_TAG}"
     bin/build.sh
@@ -553,6 +555,14 @@ function prepare_chart {
     || { cat "${WORK_DIR}/lint.log"; die "helm lint failed"; }
   helm template "${RELEASE}" "${CHART_DIR}" -n "${NAMESPACE}" "${values_args[@]}" > "${WORK_DIR}/manifests.yaml" \
     || die "helm template failed"
+
+  if [ "${IMAGES}" = local ]; then
+    local missing
+    missing=$(comm -23 \
+      <(grep -o "image: *\"\{0,1\}${IMAGE_REGISTRY}/ps-[^\" ]*:${IMAGE_TAG}" "${WORK_DIR}/manifests.yaml" | sed 's/^image: *"\{0,1\}//' | sort -u) \
+      <(minikube -p "${PROFILE}" ssh -- docker images --format '{{.Repository}}:{{.Tag}}' | tr -d '\r' | sort -u))
+    [ -z "${missing}" ] || die "Images missing from minikube, run the build step: $(echo ${missing})"
+  fi
   ok "Chart $(sed -n 's/^version: *//p' "${CHART_DIR}/Chart.yaml") ready, $(grep -c '^kind:' "${WORK_DIR}/manifests.yaml") manifests rendered (${WORK_DIR}/manifests.yaml)"
 }
 
@@ -582,17 +592,38 @@ function diagnose {
   kc -n "${NAMESPACE}" get events --field-selector type=Warning --sort-by=.lastTimestamp 2> /dev/null | tail -n 20 || true
 }
 
-# helm_deploy "label": helm upgrade --install, with a progress line while it waits.
+# wait_rollouts TIMEOUT: waits for every Deployment and StatefulSet of the namespace to be
+# rolled out, with a progress line. Returns 1 when one is not ready within TIMEOUT.
+function wait_rollouts {
+  local timeout=$1 pid
+  (
+    for workload in $(kc -n "${NAMESPACE}" get deploy,statefulset -o name); do
+      kc -n "${NAMESPACE}" rollout status "${workload}" --timeout="${timeout}" > /dev/null || exit 1
+    done
+  ) &
+  pid=$!
+  trap 'kill ${pid} 2> /dev/null' INT TERM
+  while kill -0 "${pid}" 2> /dev/null; do
+    sleep 20
+    kill -0 "${pid}" 2> /dev/null && print_progress
+  done
+  trap - INT TERM
+  wait "${pid}"
+}
+
+# helm_deploy "label": helm upgrade --install, then waits for the workloads.
+# No --wait: Helm would then wait for Keycloak and report-api before running the post-install
+# configurator, the very job that creates their databases. Helm still waits for its hook Jobs.
 function helm_deploy {
   local values_args=(-f "${SECRETS_FILE}" -f "${VALUES_FILE}") f log pid
   for f in "${EXTRA_VALUES[@]}"; do values_args+=(-f "${f}"); done
   log="${WORK_DIR}/helm-$(date +%Y%m%d-%H%M%S).log"
 
-  info "helm upgrade --install ${RELEASE} (timeout ${HELM_TIMEOUT}, log: ${log})"
+  info "helm upgrade --install ${RELEASE}, hook jobs included (timeout ${HELM_TIMEOUT}, log: ${log})"
   hm upgrade --install "${RELEASE}" "${CHART_DIR}" \
     --namespace "${NAMESPACE}" --create-namespace \
     "${values_args[@]}" \
-    --wait --wait-for-jobs --timeout "${HELM_TIMEOUT}" > "${log}" 2>&1 &
+    --timeout "${HELM_TIMEOUT}" > "${log}" 2>&1 &
   pid=$!
   trap 'kill ${pid} 2> /dev/null' INT TERM
   while kill -0 "${pid}" 2> /dev/null; do
@@ -604,6 +635,12 @@ function helm_deploy {
     tail -n 30 "${log}" >&2
     diagnose
     die "$1 failed"
+  fi
+
+  info "Waiting for the Deployments and StatefulSets to be rolled out"
+  if ! wait_rollouts 15m; then
+    diagnose
+    die "$1 failed: workloads not ready"
   fi
   ok "$1 succeeded (revision $(hm -n "${NAMESPACE}" history "${RELEASE}" --max 1 -o json | sed -n 's/.*"revision":\([0-9]*\).*/\1/p'))"
 }

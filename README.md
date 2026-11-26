@@ -64,8 +64,10 @@ Steps:
    Extra values files are passed with `-f FILE`.
 8. **Chart**: copies the chart (`charts/phrasea`, or a released version), drops the private
    `phrasea-parade` dependency when it is not vendored, then runs `helm lint` and `helm template`.
-9. **Deployment**: `helm upgrade --install --wait --wait-for-jobs`, with the pods status every
-   20 seconds and the logs of the failed jobs/pods on failure.
+9. **Deployment**: `helm upgrade --install` (Helm waits for the hook jobs), then the rollout of
+   every Deployment and StatefulSet, with the pods status every 20 seconds and the logs of the
+   failed jobs/pods on failure. No `--wait`: Keycloak and report-api only start once the
+   post-install configurator has created their databases.
 10. **/etc/hosts** (sudo): points the hosts of the ingresses to the minikube IP.
 11. **Checks**: release deployed, Deployments and StatefulSets ready, every ingress answering
     (Keycloak realm, APIs, clients, MinIO, Sockudo, Mailpit), public URLs reachable from a pod,
