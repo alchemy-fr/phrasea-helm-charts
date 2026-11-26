@@ -592,6 +592,89 @@ function diagnose {
   kc -n "${NAMESPACE}" get events --field-selector type=Warning --sort-by=.lastTimestamp 2> /dev/null | tail -n 20 || true
 }
 
+# collect_pod_logs DIR SINCE: follows the logs of every pod of the namespace into DIR/<pod>.log
+# until killed, from SINCE (RFC 3339). The hook Job pods are deleted once they succeed: their
+# logs are only kept by following them while they run. A pod is followed once out of Pending
+# (--all-containers includes its init containers), then again from the previous poll when one of
+# its containers restarts.
+function collect_pod_logs {
+  local dir=$1 since=$2 previous_poll=$2 poll pod phase restarts from
+  local -A followed=()
+  trap 'kill $(jobs -p) 2> /dev/null; exit 0' TERM
+  while true; do
+    poll=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+    while read -r pod phase restarts; do
+      [ -n "${pod}" ] && [ "${phase}" != Pending ] || continue
+      [ "${followed[${pod}]:-}" != "${restarts}" ] || continue
+      from=${since}
+      [ -z "${followed[${pod}]:-}" ] || from=${previous_poll}
+      followed[${pod}]=${restarts}
+      # kubectl itself, not the kc function: a function would run in a subshell, and killing
+      # that subshell would leave kubectl running.
+      kubectl --context "${PROFILE}" -n "${NAMESPACE}" logs -f "${pod}" --all-containers --ignore-errors \
+        --since-time="${from}" >> "${dir}/${pod}.log" 2> /dev/null &
+    done < <(kc -n "${NAMESPACE}" get pods -o jsonpath='{range .items[*]}{.metadata.name} {.status.phase} {range .status.initContainerStatuses[*]}{.restartCount}+{end}{range .status.containerStatuses[*]}{.restartCount}+{end}{"\n"}{end}' 2> /dev/null)
+    previous_poll=${poll}
+    sleep 3
+  done
+}
+
+LOG_COLLECTOR_PID=
+POD_LOGS_DIR=
+function stop_log_collector {
+  [ -n "${LOG_COLLECTOR_PID}" ] || return 0
+  kill "${LOG_COLLECTOR_PID}" 2> /dev/null || true
+  wait "${LOG_COLLECTOR_PID}" 2> /dev/null || true
+  LOG_COLLECTOR_PID=
+}
+trap stop_log_collector EXIT
+
+# snapshot_pod_logs DIR: current logs of every pod into DIR/<pod>.log, with the previous
+# container of the restarted ones.
+function snapshot_pod_logs {
+  local dir=$1 pod restarts
+  mkdir -p "${dir}"
+  while read -r pod restarts; do
+    [ -n "${pod}" ] || continue
+    {
+      [ "${restarts}" = 0 ] || kc -n "${NAMESPACE}" logs "${pod}" --all-containers --ignore-errors --previous 2> /dev/null || true
+      kc -n "${NAMESPACE}" logs "${pod}" --all-containers --ignore-errors 2> /dev/null || true
+    } > "${dir}/${pod}.log"
+  done < <(kc -n "${NAMESPACE}" get pods --no-headers 2> /dev/null | awk '{ print $1, $4 }')
+}
+
+# Lines reporting an error: log levels of Symfony/Monolog, Keycloak/Java, Go, Rust, Node and
+# PostgreSQL, PHP fatal errors, uncaught exceptions and Python tracebacks.
+POD_ERROR_REGEX='\b(ERROR|FATAL|CRITICAL|PANIC|EMERGENCY|ALERT)\b|"(level|severity|level_name)" *: *"(error|fatal|critical|panic|emergency|alert)"|level=(error|fatal|panic)|PHP (Fatal|Parse) error|Uncaught |Traceback \(most recent call last\)'
+
+# check_pod_logs DIR: one warning per pod whose logs in DIR report errors, with its first ones.
+function check_pod_logs {
+  local dir=$1 file count clean=0 total=0
+  for file in "${dir}"/*.log; do
+    [ -e "${file}" ] || continue
+    total=$((total + 1))
+    count=$(grep -acE "${POD_ERROR_REGEX}" "${file}" || true)
+    if [ "${count}" = 0 ]; then
+      clean=$((clean + 1))
+      continue
+    fi
+    soft_fail "$(basename "${file}" .log): ${count} error lines in its logs (${file})"
+    # The first 5 distinct messages, in order of appearance: lines differing only by their
+    # numbers (timestamps, PIDs, attempts) count as one.
+    grep -aE "${POD_ERROR_REGEX}" "${file}" | awk '
+      { key = $0; gsub(/[0-9]+/, "#", key); if (!(key in count)) { order[++n] = key; sample[key] = $0 } count[key]++ }
+      END {
+        for (i = 1; i <= n && i <= 5; i++) printf "      %5d× %s\n", count[order[i]], substr(sample[order[i]], 1, 220)
+        if (n > 5) printf "      …and %d other messages\n", n - 5
+      }'
+  done
+  if [ "${total}" = 0 ]; then
+    soft_fail "No pod logs in ${dir}"
+  elif [ "${clean}" = "${total}" ]; then
+    pass "No error in the logs of the ${total} pods"
+  fi
+}
+
 # wait_rollouts TIMEOUT: waits for every Deployment and StatefulSet of the namespace to be
 # rolled out, with a progress line. Returns 1 when one is not ready within TIMEOUT.
 function wait_rollouts {
@@ -615,11 +698,17 @@ function wait_rollouts {
 # No --wait: Helm would then wait for Keycloak and report-api before running the post-install
 # configurator, the very job that creates their databases. Helm still waits for its hook Jobs.
 function helm_deploy {
-  local values_args=(-f "${SECRETS_FILE}" -f "${VALUES_FILE}") f log pid
+  local values_args=(-f "${SECRETS_FILE}" -f "${VALUES_FILE}") f log pid stamp
   for f in "${EXTRA_VALUES[@]}"; do values_args+=(-f "${f}"); done
-  log="${WORK_DIR}/helm-$(date +%Y%m%d-%H%M%S).log"
+  stamp=$(date +%Y%m%d-%H%M%S)
+  log="${WORK_DIR}/helm-${stamp}.log"
+  POD_LOGS_DIR="${WORK_DIR}/pod-logs-${stamp}"
+  mkdir -p "${POD_LOGS_DIR}"
+  collect_pod_logs "${POD_LOGS_DIR}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" &
+  LOG_COLLECTOR_PID=$!
 
   info "helm upgrade --install ${RELEASE}, hook jobs included (timeout ${HELM_TIMEOUT}, log: ${log})"
+  info "Pod logs followed into ${POD_LOGS_DIR}"
   hm upgrade --install "${RELEASE}" "${CHART_DIR}" \
     --namespace "${NAMESPACE}" --create-namespace \
     "${values_args[@]}" \
@@ -632,16 +721,21 @@ function helm_deploy {
   done
   trap - INT TERM
   if ! wait "${pid}"; then
+    stop_log_collector
     tail -n 30 "${log}" >&2
+    check_pod_logs "${POD_LOGS_DIR}"
     diagnose
     die "$1 failed"
   fi
 
   info "Waiting for the Deployments and StatefulSets to be rolled out"
   if ! wait_rollouts 15m; then
+    stop_log_collector
+    check_pod_logs "${POD_LOGS_DIR}"
     diagnose
     die "$1 failed: workloads not ready"
   fi
+  stop_log_collector
   ok "$1 succeeded (revision $(hm -n "${NAMESPACE}" history "${RELEASE}" --max 1 -o json | sed -n 's/.*"revision":\([0-9]*\).*/\1/p'))"
 }
 
@@ -781,6 +875,15 @@ function run_checks {
   local restarting
   restarting=$(kc -n "${NAMESPACE}" get pods --no-headers | awk '$4 + 0 > 3 { printf "%s(%s) ", $1, $4 }')
   [ -z "${restarting}" ] || soft_fail "Pods restarted more than 3 times: ${restarting}"
+
+  if [ -z "${POD_LOGS_DIR}" ]; then
+    POD_LOGS_DIR="${WORK_DIR}/pod-logs-$(date +%Y%m%d-%H%M%S)-snapshot"
+    snapshot_pod_logs "${POD_LOGS_DIR}"
+    info "No deployment in this run: current pod logs checked (${POD_LOGS_DIR})"
+  else
+    info "Pod logs of the last deployment (${POD_LOGS_DIR})"
+  fi
+  check_pod_logs "${POD_LOGS_DIR}"
 
   local d=${DOMAIN}
   check_http "Keycloak realm" "https://keycloak.${d}/realms/phrasea/.well-known/openid-configuration" "200"

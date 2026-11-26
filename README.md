@@ -67,9 +67,12 @@ Steps:
 9. **Deployment**: `helm upgrade --install` (Helm waits for the hook jobs), then the rollout of
    every Deployment and StatefulSet, with the pods status every 20 seconds and the logs of the
    failed jobs/pods on failure. No `--wait`: Keycloak and report-api only start once the
-   post-install configurator has created their databases.
+   post-install configurator has created their databases. The logs of every pod, hook jobs and
+   restarted containers included, are followed into `pod-logs-<date>/` of the work directory.
 10. **/etc/hosts** (sudo): points the hosts of the ingresses to the minikube IP.
-11. **Checks**: release deployed, Deployments and StatefulSets ready, every ingress answering
+11. **Checks**: release deployed, Deployments and StatefulSets ready, errors in the pod logs
+    of the deployment (a warning per pod, with its distinct messages; the current logs with the
+    `test` command), every ingress answering
     (Keycloak realm, APIs, clients, MinIO, Sockudo, Mailpit), public URLs reachable from a pod,
     Keycloak master admin login, configurator clients and default admin user present, an
     authenticated Databox API call.
