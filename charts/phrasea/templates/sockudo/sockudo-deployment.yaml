@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: phrasea-sockudo
+  name: sockudo
   labels:
     app: phrasea
     tier: sockudo
